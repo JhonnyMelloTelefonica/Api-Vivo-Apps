@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace Api_Vivo_Apps.Data
+namespace Vivo_Apps_API.Data
 {
     public partial class Vivo_MAISContext : DbContext
     {
@@ -62,7 +62,7 @@ namespace Api_Vivo_Apps.Data
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Data Source=BRTDTBGS0081FU;Initial Catalog=Vivo_MAIS;User ID=RegionalNE;Password=RegionalNEvivo2019; TrustServerCertificate = true");
+                optionsBuilder.UseSqlServer("Data Source=10.124.100.153;Initial Catalog=Vivo_MAIS;Integrated Security=True;TrustServerCertificate=True");
             }
         }
 
@@ -179,12 +179,6 @@ namespace Api_Vivo_Apps.Data
                     .IsRequired()
                     .HasMaxLength(100)
                     .IsUnicode(false);
-
-                entity.HasOne(d => d.idAcessoNavigation)
-                    .WithMany(p => p.ACESSO_PERMISSAO_MENUs)
-                    .HasForeignKey(d => d.idAcesso)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK__ACESSO_PE__idAce__0F975522");
             });
 
             modelBuilder.Entity<CAMPOS_FILA>(entity =>
@@ -318,12 +312,6 @@ namespace Api_Vivo_Apps.Data
                 entity.Property(e => e.NOME_ARQUIVO)
                     .IsRequired()
                     .IsUnicode(false);
-
-                entity.HasOne(d => d.ID_RESPOSTANavigation)
-                    .WithMany(p => p.CONTROLE_DEMANDAS_ARQUIVOS_RESPOSTa)
-                    .HasForeignKey(d => d.ID_RESPOSTA)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_CONTROLE_DEMANDAS_ARQUIVOS_RESPOSTA");
             });
 
             modelBuilder.Entity<CONTROLE_DE_DEMANDAS_ARQUIVOS_RESPOSTum>(entity =>
@@ -355,12 +343,6 @@ namespace Api_Vivo_Apps.Data
                 entity.Property(e => e.MASCARA)
                     .HasMaxLength(255)
                     .IsUnicode(false);
-
-                entity.HasOne(d => d.ID_FILANavigation)
-                    .WithMany()
-                    .HasForeignKey(d => d.ID_FILA)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_CONTROLE_DE_DEMANDAS_CAMPOS_FILA");
             });
 
             modelBuilder.Entity<CONTROLE_DE_DEMANDAS_CAMPO_COMBOBOX_FILA>(entity =>
@@ -370,12 +352,6 @@ namespace Api_Vivo_Apps.Data
                 entity.Property(e => e.CAMPO)
                     .IsRequired()
                     .IsUnicode(false);
-
-                entity.HasOne(d => d.ID_FILANavigation)
-                    .WithMany(p => p.CONTROLE_DE_DEMANDAS_CAMPO_COMBOBOX_FILAs)
-                    .HasForeignKey(d => d.ID_FILA)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_CONTROLE_DE_DEMANDAS_CAMPO_COMBOBOX_FILA");
             });
 
             modelBuilder.Entity<CONTROLE_DE_DEMANDAS_CHAMADO>(entity =>
@@ -407,22 +383,6 @@ namespace Api_Vivo_Apps.Data
                 entity.Property(e => e.RESPONSAVEL_OUTRA_AREA)
                     .HasMaxLength(128)
                     .IsUnicode(false);
-
-                entity.HasOne(d => d.ID_CAMPOS_CHAMADONavigation)
-                    .WithMany(p => p.CONTROLE_DE_DEMANDAS_CHAMADOs)
-                    .HasForeignKey(d => d.ID_CAMPOS_CHAMADO)
-                    .HasConstraintName("FK_CAMPOS_CHAMADO");
-
-                entity.HasOne(d => d.ID_FILA_CHAMADONavigation)
-                    .WithMany(p => p.CONTROLE_DE_DEMANDAS_CHAMADOs)
-                    .HasForeignKey(d => d.ID_FILA_CHAMADO)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_FILA_CHAMADO");
-
-                entity.HasOne(d => d.ID_STATUS_CHAMADONavigation)
-                    .WithMany(p => p.CONTROLE_DE_DEMANDAS_CHAMADOs)
-                    .HasForeignKey(d => d.ID_STATUS_CHAMADO)
-                    .HasConstraintName("FK_STATUS_CHAMADO");
             });
 
             modelBuilder.Entity<CONTROLE_DE_DEMANDAS_CHAMADO_ARQUIVO>(entity =>
@@ -434,12 +394,6 @@ namespace Api_Vivo_Apps.Data
                     .IsUnicode(false);
 
                 entity.Property(e => e.NOME_CAMPO).IsUnicode(false);
-
-                entity.HasOne(d => d.ID_CHAMADONavigation)
-                    .WithMany(p => p.CONTROLE_DE_DEMANDAS_CHAMADO_ARQUIVOs)
-                    .HasForeignKey(d => d.ID_CHAMADO)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_ARQUIVOS_CHAMADO");
             });
 
             modelBuilder.Entity<CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTum>(entity =>
@@ -455,12 +409,6 @@ namespace Api_Vivo_Apps.Data
                 entity.Property(e => e.RESPOSTA)
                     .IsRequired()
                     .IsUnicode(false);
-
-                entity.HasOne(d => d.ID_CHAMADONavigation)
-                    .WithMany(p => p.CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTa)
-                    .HasForeignKey(d => d.ID_CHAMADO)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_RESPOSTA_CHAMADO");
             });
 
             modelBuilder.Entity<CONTROLE_DE_DEMANDAS_FILA>(entity =>
@@ -533,12 +481,6 @@ namespace Api_Vivo_Apps.Data
                 entity.Property(e => e.VALOR)
                     .IsRequired()
                     .IsUnicode(false);
-
-                entity.HasOne(d => d.ID_CAMPOS_CHAMADONavigation)
-                    .WithMany(p => p.CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADOs)
-                    .HasForeignKey(d => d.ID_CAMPOS_CHAMADO)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_CONTROLE_DE_DEMANDAS_CAMPOS_CHAMADO");
             });
 
             modelBuilder.Entity<CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADO_BKP>(entity =>
@@ -567,12 +509,6 @@ namespace Api_Vivo_Apps.Data
                     .IsUnicode(false);
 
                 entity.Property(e => e.ID).ValueGeneratedOnAdd();
-
-                entity.HasOne(d => d.ID_CAMPO_COMBOBOX_FILANavigation)
-                    .WithMany()
-                    .HasForeignKey(d => d.ID_CAMPO_COMBOBOX_FILA)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_CONTROLE_DE_DEMANDAS_ITENS_CAMPO_COMBOBOX_FILA");
             });
 
             modelBuilder.Entity<CONTROLE_DE_DEMANDAS_RELACAO_STATUS_CHAMADO>(entity =>
@@ -588,12 +524,6 @@ namespace Api_Vivo_Apps.Data
                 entity.Property(e => e.STATUS)
                     .IsRequired()
                     .IsUnicode(false);
-
-                entity.HasOne(d => d.ID_STATUS_CHAMADONavigation)
-                    .WithMany(p => p.CONTROLE_DE_DEMANDAS_RELACAO_STATUS_CHAMADOs)
-                    .HasForeignKey(d => d.ID_STATUS_CHAMADO)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_RELACAO_STATUS_CHAMADO");
             });
 
             modelBuilder.Entity<CONTROLE_DE_DEMANDAS_RESPONSAVEL_FILA>(entity =>
@@ -603,12 +533,6 @@ namespace Api_Vivo_Apps.Data
                 entity.ToTable("CONTROLE_DE_DEMANDAS_RESPONSAVEL_FILA");
 
                 entity.Property(e => e.MATRICULA_RESPONSAVEL).IsUnicode(false);
-
-                entity.HasOne(d => d.ID_FILA_CHAMADONavigation)
-                    .WithMany()
-                    .HasForeignKey(d => d.ID_FILA_CHAMADO)
-                    .OnDelete(DeleteBehavior.ClientSetNull)
-                    .HasConstraintName("FK_CONTROLE_DE_DEMANDAS_RESPONSAVEL_FILA");
             });
 
             modelBuilder.Entity<CONTROLE_DE_DEMANDAS_STATUS_CHAMADO>(entity =>

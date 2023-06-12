@@ -3,16 +3,10 @@
 using System;
 using System.Collections.Generic;
 
-namespace Api_Vivo_Apps.Data
+namespace Vivo_Apps_API.Data
 {
     public partial class CONTROLE_DE_DEMANDAS_FILA
     {
-        public CONTROLE_DE_DEMANDAS_FILA()
-        {
-            CONTROLE_DE_DEMANDAS_CAMPO_COMBOBOX_FILAs = new HashSet<CONTROLE_DE_DEMANDAS_CAMPO_COMBOBOX_FILA>();
-            CONTROLE_DE_DEMANDAS_CHAMADOs = new HashSet<CONTROLE_DE_DEMANDAS_CHAMADO>();
-        }
-
         public int ID { get; set; }
         public string FILA { get; set; }
         public string ADD_CAMPOS_AUTOMATICOS { get; set; }
@@ -21,8 +15,5 @@ namespace Api_Vivo_Apps.Data
         public string TIPO_CHAMADO { get; set; }
         public string REGIONAL { get; set; }
         public string ADD_PDV_DESTINO { get; set; }
-
-        public virtual ICollection<CONTROLE_DE_DEMANDAS_CAMPO_COMBOBOX_FILA> CONTROLE_DE_DEMANDAS_CAMPO_COMBOBOX_FILAs { get; set; }
-        public virtual ICollection<CONTROLE_DE_DEMANDAS_CHAMADO> CONTROLE_DE_DEMANDAS_CHAMADOs { get; set; }
     }
 }

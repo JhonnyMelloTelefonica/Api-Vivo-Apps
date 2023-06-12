@@ -3,20 +3,11 @@
 using System;
 using System.Collections.Generic;
 
-namespace Api_Vivo_Apps.Data
+namespace Vivo_Apps_API.Data
 {
     public partial class CONTROLE_DE_DEMANDAS_CAMPOS_CHAMADO
     {
-        public CONTROLE_DE_DEMANDAS_CAMPOS_CHAMADO()
-        {
-            CONTROLE_DE_DEMANDAS_CHAMADOs = new HashSet<CONTROLE_DE_DEMANDAS_CHAMADO>();
-            CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADOs = new HashSet<CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADO>();
-        }
-
         public int ID { get; set; }
         public int ID_CHAMADO { get; set; }
-
-        public virtual ICollection<CONTROLE_DE_DEMANDAS_CHAMADO> CONTROLE_DE_DEMANDAS_CHAMADOs { get; set; }
-        public virtual ICollection<CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADO> CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADOs { get; set; }
     }
 }

@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Api_Vivo_Apps.Data
+namespace Vivo_Apps_API.Data
 {
     public partial class CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADO
     {
@@ -11,7 +11,5 @@ namespace Api_Vivo_Apps.Data
         public string CAMPO { get; set; }
         public string VALOR { get; set; }
         public int ID { get; set; }
-
-        public virtual CONTROLE_DE_DEMANDAS_CAMPOS_CHAMADO ID_CAMPOS_CHAMADONavigation { get; set; }
     }
 }

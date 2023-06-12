@@ -3,14 +3,12 @@
 using System;
 using System.Collections.Generic;
 
-namespace Api_Vivo_Apps.Data
+namespace Vivo_Apps_API.Data
 {
     public partial class CONTROLE_DE_DEMANDAS_RELACAO_ITENS_CAMPO_COMBOBOX_FILA
     {
         public int ID { get; set; }
         public int ID_CAMPO_COMBOBOX_FILA { get; set; }
         public string DESCRICAO { get; set; }
-
-        public virtual CONTROLE_DE_DEMANDAS_CAMPO_COMBOBOX_FILA ID_CAMPO_COMBOBOX_FILANavigation { get; set; }
     }
 }

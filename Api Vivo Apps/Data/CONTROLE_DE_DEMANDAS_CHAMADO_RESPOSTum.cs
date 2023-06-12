@@ -3,22 +3,14 @@
 using System;
 using System.Collections.Generic;
 
-namespace Api_Vivo_Apps.Data
+namespace Vivo_Apps_API.Data
 {
     public partial class CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTum
     {
-        public CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTum()
-        {
-            CONTROLE_DEMANDAS_ARQUIVOS_RESPOSTa = new HashSet<CONTROLE_DEMANDAS_ARQUIVOS_RESPOSTum>();
-        }
-
         public int ID { get; set; }
         public string RESPOSTA { get; set; }
         public int ID_CHAMADO { get; set; }
         public string MATRICULA_RESPONSAVEL { get; set; }
         public DateTime? DATA_RESPOSTA { get; set; }
-
-        public virtual CONTROLE_DE_DEMANDAS_CHAMADO ID_CHAMADONavigation { get; set; }
-        public virtual ICollection<CONTROLE_DEMANDAS_ARQUIVOS_RESPOSTum> CONTROLE_DEMANDAS_ARQUIVOS_RESPOSTa { get; set; }
     }
 }

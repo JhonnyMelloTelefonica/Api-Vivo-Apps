@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace Api_Vivo_Apps.Controllers
+namespace Vivo_Apps_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

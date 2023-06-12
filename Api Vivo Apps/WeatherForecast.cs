@@ -1,4 +1,4 @@
-namespace Api_Vivo_Apps
+namespace Vivo_Apps_API
 {
     public class WeatherForecast
     {

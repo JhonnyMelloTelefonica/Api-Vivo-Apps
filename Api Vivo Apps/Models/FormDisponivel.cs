@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace Api_Vivo_Apps.Models
+namespace Vivo_Apps_API.Models
 {
     public class FormDisponivel
     {

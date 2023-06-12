@@ -2,13 +2,13 @@
 using System.Data;
 using System.Data.SqlClient;
 using System.Globalization;
-using Api_Vivo_Apps.Models;
+using Vivo_Apps_API.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Api_Vivo_Apps.Data;
+using Vivo_Apps_API.Data;
 using Vivo_Apps_API.Models;
 
-namespace Api_Vivo_Apps.Controllers
+namespace Vivo_Apps_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

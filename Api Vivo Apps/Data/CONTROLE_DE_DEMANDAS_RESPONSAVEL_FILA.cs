@@ -3,13 +3,11 @@
 using System;
 using System.Collections.Generic;
 
-namespace Api_Vivo_Apps.Data
+namespace Vivo_Apps_API.Data
 {
     public partial class CONTROLE_DE_DEMANDAS_RESPONSAVEL_FILA
     {
         public string MATRICULA_RESPONSAVEL { get; set; }
         public int ID_FILA_CHAMADO { get; set; }
-
-        public virtual CONTROLE_DE_DEMANDAS_FILA ID_FILA_CHAMADONavigation { get; set; }
     }
 }

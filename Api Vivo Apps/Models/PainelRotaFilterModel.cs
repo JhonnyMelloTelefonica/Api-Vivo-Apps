@@ -1,4 +1,4 @@
-﻿namespace Api_Vivo_Apps.Controllers
+﻿namespace Vivo_Apps_API.Controllers
 {
     public class PainelRotaFilterModel
     {

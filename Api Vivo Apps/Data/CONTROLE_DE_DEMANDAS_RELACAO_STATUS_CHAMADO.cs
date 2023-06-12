@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Api_Vivo_Apps.Data
+namespace Vivo_Apps_API.Data
 {
     public partial class CONTROLE_DE_DEMANDAS_RELACAO_STATUS_CHAMADO
     {
@@ -13,7 +13,5 @@ namespace Api_Vivo_Apps.Data
         public string MAT_QUEM_REDIRECIONOU { get; set; }
         public int ID { get; set; }
         public string ID_RESPOSTA { get; set; }
-
-        public virtual CONTROLE_DE_DEMANDAS_STATUS_CHAMADO ID_STATUS_CHAMADONavigation { get; set; }
     }
 }

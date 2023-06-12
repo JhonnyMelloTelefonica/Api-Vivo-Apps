@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 
-namespace Api_Vivo_Apps.Models
+namespace Vivo_Apps_API.Models
 {
     public class FinalizarForm
     {
@@ -15,8 +15,8 @@ namespace Api_Vivo_Apps.Models
         public string CARGO { get; set; }
         public int CADERNO { get; set; }
         public string TP_FORMS { get; set; }
-        public string DT_AVALIACAO { get; set; }
-        public string DT_FINALIZACAO { get; set; }
+        public string DT_INICIO_AVALIACAO { get; set; }
+        public string? DT_FINALIZACAO { get; set; }
         public string FIXA { get; set; }
     }
 }

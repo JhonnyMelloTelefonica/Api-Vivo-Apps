@@ -1,10 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Data;
 using System.Text;
-using Api_Vivo_Apps.Models;
-using Api_Vivo_Apps.Data;
+using Vivo_Apps_API.Models;
+using Vivo_Apps_API.Data;
 
-namespace Api_Vivo_Apps.Controllers
+namespace Vivo_Apps_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

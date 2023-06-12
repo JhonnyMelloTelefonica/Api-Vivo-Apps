@@ -3,14 +3,12 @@
 using System;
 using System.Collections.Generic;
 
-namespace Api_Vivo_Apps.Data
+namespace Vivo_Apps_API.Data
 {
     public partial class CONTROLE_DE_DEMANDAS_CAMPOS_FILA
     {
         public int ID_FILA { get; set; }
         public string CAMPO { get; set; }
         public string MASCARA { get; set; }
-
-        public virtual CONTROLE_DE_DEMANDAS_FILA ID_FILANavigation { get; set; }
     }
 }

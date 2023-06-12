@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Api_Vivo_Apps.Models
+namespace Vivo_Apps_API.Models
 {
     public class Respostas
     {
@@ -23,7 +23,6 @@ namespace Api_Vivo_Apps.Models
         public string REDE_AVALIADA { get; set; }
         public string DDD_AVALIADO { get; set; }
         public string PDV_AVALIADO { get; set; }
-        public string REDE_AVALIADO { get; set; }
         public string RE_AVALIADO { get; set; }
     }
 }

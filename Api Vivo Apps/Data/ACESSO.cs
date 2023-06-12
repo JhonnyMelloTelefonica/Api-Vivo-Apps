@@ -3,15 +3,10 @@
 using System;
 using System.Collections.Generic;
 
-namespace Api_Vivo_Apps.Data
+namespace Vivo_Apps_API.Data
 {
     public partial class ACESSO
     {
-        public ACESSO()
-        {
-            ACESSO_PERMISSAO_MENUs = new HashSet<ACESSO_PERMISSAO_MENU>();
-        }
-
         public int idAcesso { get; set; }
         public string Login { get; set; }
         public string Nome { get; set; }
@@ -21,7 +16,5 @@ namespace Api_Vivo_Apps.Data
         public byte[] Imagem { get; set; }
         public string Status { get; set; }
         public bool? Primeiro_Acesso { get; set; }
-
-        public virtual ICollection<ACESSO_PERMISSAO_MENU> ACESSO_PERMISSAO_MENUs { get; set; }
     }
 }

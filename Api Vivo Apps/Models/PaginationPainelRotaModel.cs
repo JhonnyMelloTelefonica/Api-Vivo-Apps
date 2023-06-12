@@ -6,7 +6,7 @@ using System.Runtime.ConstrainedExecution;
 using Newtonsoft.Json;
 using System.Web;
 
-namespace Api_Vivo_Apps.Models
+namespace Vivo_Apps_API.Models
 {
     
     public class PaginationPainelRotaModel

@@ -1,18 +1,16 @@
 ﻿using Newtonsoft.Json;
 using DataTable = System.Data.DataTable;
-using IHttpActionResult = System.Web.Http.IHttpActionResult;
 using System.Data;
-using Api_Vivo_Apps.Models;
-using Api_Vivo_Apps.Data;
+using Vivo_Apps_API.Models;
+using Vivo_Apps_API.Data;
 using System.Data.SqlClient;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Oracle.ManagedDataAccess.Client;
 using ApiController =  System.Web.Http.ApiController;
-using Microsoft.AspNetCore.Http.HttpResults;
 
-namespace Api_Vivo_Apps.Controllers
+namespace Vivo_Apps_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]

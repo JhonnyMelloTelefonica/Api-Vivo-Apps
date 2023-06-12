@@ -3,16 +3,10 @@
 using System;
 using System.Collections.Generic;
 
-namespace Api_Vivo_Apps.Data
+namespace Vivo_Apps_API.Data
 {
     public partial class CONTROLE_DE_DEMANDAS_CHAMADO
     {
-        public CONTROLE_DE_DEMANDAS_CHAMADO()
-        {
-            CONTROLE_DE_DEMANDAS_CHAMADO_ARQUIVOs = new HashSet<CONTROLE_DE_DEMANDAS_CHAMADO_ARQUIVO>();
-            CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTa = new HashSet<CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTum>();
-        }
-
         public int ID { get; set; }
         public int? ID_CAMPOS_CHAMADO { get; set; }
         public int? ID_STATUS_CHAMADO { get; set; }
@@ -27,11 +21,5 @@ namespace Api_Vivo_Apps.Data
         public string PBI { get; set; }
         public string EMAIL_SECUNDARIO { get; set; }
         public string RESPONSAVEL_OUTRA_AREA { get; set; }
-
-        public virtual CONTROLE_DE_DEMANDAS_CAMPOS_CHAMADO ID_CAMPOS_CHAMADONavigation { get; set; }
-        public virtual CONTROLE_DE_DEMANDAS_FILA ID_FILA_CHAMADONavigation { get; set; }
-        public virtual CONTROLE_DE_DEMANDAS_STATUS_CHAMADO ID_STATUS_CHAMADONavigation { get; set; }
-        public virtual ICollection<CONTROLE_DE_DEMANDAS_CHAMADO_ARQUIVO> CONTROLE_DE_DEMANDAS_CHAMADO_ARQUIVOs { get; set; }
-        public virtual ICollection<CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTum> CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTa { get; set; }
     }
 }

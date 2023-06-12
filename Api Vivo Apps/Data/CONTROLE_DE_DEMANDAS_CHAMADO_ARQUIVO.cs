@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Api_Vivo_Apps.Data
+namespace Vivo_Apps_API.Data
 {
     public partial class CONTROLE_DE_DEMANDAS_CHAMADO_ARQUIVO
     {
@@ -12,7 +12,5 @@ namespace Api_Vivo_Apps.Data
         public string NOME_CAMPO { get; set; }
         public string EXT_ARQUIVO { get; set; }
         public byte[] ARQUIVO { get; set; }
-
-        public virtual CONTROLE_DE_DEMANDAS_CHAMADO ID_CHAMADONavigation { get; set; }
     }
 }

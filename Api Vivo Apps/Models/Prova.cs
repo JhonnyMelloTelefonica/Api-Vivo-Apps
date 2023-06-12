@@ -1,4 +1,4 @@
-﻿namespace Api_Vivo_Apps.Models
+﻿namespace Vivo_Apps_API.Models
 {
     public class Prova
     {
