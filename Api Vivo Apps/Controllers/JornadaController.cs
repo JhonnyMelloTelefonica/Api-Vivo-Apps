@@ -109,9 +109,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpPost("GetProvaById")]
         public string GetProvaById(int id) => JsonConvert.SerializeObject(CD.JORNADA_BD_AVALIACAO_RETORNOs.Where(x => x.ID == id).FirstOrDefault());
         [HttpPost("GetLoginSenha")]
-        public string GetLoginSenha(string Email, string Senha) => JsonConvert.SerializeObject(CD.ACESSOS_MOBILEs.Where(x => x.EMAIL == Email).FirstOrDefault());
-        [HttpGet("GetListaAdm")]
-        public string GetListaAdm() => JsonConvert.SerializeObject(CD.ACESSOS_MOBILE_PERFILs.AsEnumerable());
+        public JsonResult GetLoginSenha(string matricula) => new JsonResult(CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA == matricula).FirstOrDefault());
         [HttpGet("GetListaRoles")]
         public string GetListaRoles() => JsonConvert.SerializeObject(CD.PERFIL_VIVO_TASKs.AsEnumerable());
 

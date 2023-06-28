@@ -16,5 +16,7 @@ namespace Vivo_Apps_API.Models
         public IEnumerable<CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADO>? CAMPOS {get;set;}
         public IEnumerable<StatusDemanda> STATUS {get;set;}
         public IEnumerable<RespostaDemanda> RESPOSTAS { get;set;}
+        public IEnumerable<CONTROLE_DE_DEMANDAS_CHAMADO_ARQUIVO>? ANEXOS_DEMANDA { get; set; }
+
     }
 }

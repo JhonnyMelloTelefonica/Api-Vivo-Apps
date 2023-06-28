@@ -9,10 +9,12 @@ namespace Vivo_Apps_API.Models
         public string? Nome { get; set; }
         public string? Matricula { get; set; }
         public string? email { get; set; }
+        public bool? IsSuporte { get; set; }
         public List<string>? Cargo { get; set; }
         public List<string>? Canal { get; set; }
         public List<string>? Regional { get; set; }
         public List<string>? Uf { get; set; }
-        public List<string>? Fixa { get; set; }
+        public List<bool>? Fixa { get; set; }
+
     }
 }

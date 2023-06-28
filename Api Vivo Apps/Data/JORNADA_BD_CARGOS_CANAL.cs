@@ -5,11 +5,11 @@ using System.Collections.Generic;
 
 namespace Vivo_Apps_API.Data
 {
-    public partial class ACESSOS_MOBILE_PERFIL
+    public partial class JORNADA_BD_CARGOS_CANAL
     {
+        public double? ID { get; set; }
         public string CARGO { get; set; }
-        public string PERFIL { get; set; }
-        public int? CREAT_FORMS { get; set; }
-        public int ID { get; set; }
+        public double? ID_CANAL { get; set; }
+        public string CANAL { get; set; }
     }
 }

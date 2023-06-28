@@ -19,5 +19,6 @@ namespace Vivo_Apps_API.Data
         public string CARGO { get; set; }
         public string STATUS_QUESTION { get; set; }
         public string FIXA { get; set; }
+        public string SUB_TEMA { get; set; }
     }
 }

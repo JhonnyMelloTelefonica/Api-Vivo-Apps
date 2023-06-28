@@ -20,15 +20,18 @@ namespace Vivo_Apps_API.Data
 
         public virtual DbSet<ACESSO> ACESSOs { get; set; }
         public virtual DbSet<ACESSOS_MOBILE> ACESSOS_MOBILEs { get; set; }
-        public virtual DbSet<ACESSOS_MOBILE_PERFIL> ACESSOS_MOBILE_PERFILs { get; set; }
+        public virtual DbSet<ACESSOS_MOBILE_PENDENTE> ACESSOS_MOBILE_PENDENTEs { get; set; }
         public virtual DbSet<ACESSO_PERMISSAO_MENU> ACESSO_PERMISSAO_MENUs { get; set; }
+        public virtual DbSet<ACESSO_TERCEIRO> ACESSO_TERCEIROs { get; set; }
+        public virtual DbSet<CADASTRO_GERENTE_TERRITORIO> CADASTRO_GERENTE_TERRITORIOs { get; set; }
+        public virtual DbSet<CADASTRO_PDV> CADASTRO_PDVs { get; set; }
         public virtual DbSet<CAMPOS_FILA> CAMPOS_FILAs { get; set; }
-        public virtual DbSet<CARTEIRA_DEMAIS_CANAI> CARTEIRA_DEMAIS_CANAIs { get; set; }
         public virtual DbSet<CONTROLE_DEMANDAS_ARQUIVOS_RESPOSTum> CONTROLE_DEMANDAS_ARQUIVOS_RESPOSTAs { get; set; }
         public virtual DbSet<CONTROLE_DE_DEMANDAS_ARQUIVOS_RESPOSTum> CONTROLE_DE_DEMANDAS_ARQUIVOS_RESPOSTAs { get; set; }
         public virtual DbSet<CONTROLE_DE_DEMANDAS_CAMPOS_CHAMADO> CONTROLE_DE_DEMANDAS_CAMPOS_CHAMADOs { get; set; }
         public virtual DbSet<CONTROLE_DE_DEMANDAS_CAMPOS_FILA> CONTROLE_DE_DEMANDAS_CAMPOS_FILAs { get; set; }
         public virtual DbSet<CONTROLE_DE_DEMANDAS_CAMPO_COMBOBOX_FILA> CONTROLE_DE_DEMANDAS_CAMPO_COMBOBOX_FILAs { get; set; }
+        public virtual DbSet<CONTROLE_DE_DEMANDAS_CAMPO_LISTA_ICCID> CONTROLE_DE_DEMANDAS_CAMPO_LISTA_ICCIDs { get; set; }
         public virtual DbSet<CONTROLE_DE_DEMANDAS_CHAMADO> CONTROLE_DE_DEMANDAS_CHAMADOs { get; set; }
         public virtual DbSet<CONTROLE_DE_DEMANDAS_CHAMADO_ARQUIVO> CONTROLE_DE_DEMANDAS_CHAMADO_ARQUIVOs { get; set; }
         public virtual DbSet<CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTum> CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTAs { get; set; }
@@ -45,9 +48,11 @@ namespace Vivo_Apps_API.Data
         public virtual DbSet<Carteira_NE> Carteira_NEs { get; set; }
         public virtual DbSet<FIXA_BASE_PRUMA> FIXA_BASE_PRUMAs { get; set; }
         public virtual DbSet<FIXA_VIEW_PAINEL_DE_ROTA> FIXA_VIEW_PAINEL_DE_ROTAs { get; set; }
+        public virtual DbSet<HISTORICO_ACESSOS_MOBILE_PENDENTE> HISTORICO_ACESSOS_MOBILE_PENDENTEs { get; set; }
         public virtual DbSet<JORNADA_BD_ANSWER_ALTERNATIVA> JORNADA_BD_ANSWER_ALTERNATIVAs { get; set; }
         public virtual DbSet<JORNADA_BD_ANSWER_AVALIACAO> JORNADA_BD_ANSWER_AVALIACAOs { get; set; }
         public virtual DbSet<JORNADA_BD_AVALIACAO_RETORNO> JORNADA_BD_AVALIACAO_RETORNOs { get; set; }
+        public virtual DbSet<JORNADA_BD_CARGOS_CANAL> JORNADA_BD_CARGOS_CANALs { get; set; }
         public virtual DbSet<JORNADA_BD_QUESTION> JORNADA_BD_QUESTIONs { get; set; }
         public virtual DbSet<JORNADA_BD_QUESTION_HISTORICO> JORNADA_BD_QUESTION_HISTORICOs { get; set; }
         public virtual DbSet<PERFIL_VIVO_TASK> PERFIL_VIVO_TASKs { get; set; }
@@ -62,7 +67,7 @@ namespace Vivo_Apps_API.Data
             if (!optionsBuilder.IsConfigured)
             {
 #warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see http://go.microsoft.com/fwlink/?LinkId=723263.
-                optionsBuilder.UseSqlServer("Data Source=10.124.100.153;Initial Catalog=Vivo_MAIS;Integrated Security=True;TrustServerCertificate=True");
+                optionsBuilder.UseSqlServer("Data Source=10.124.100.153;Initial Catalog=Vivo_MAIS;User ID=RegionalNE;Password=RegionalNEvivo2019;TrustServerCertificate=True");
             }
         }
 
@@ -121,10 +126,6 @@ namespace Vivo_Apps_API.Data
                     .HasMaxLength(100)
                     .IsUnicode(false);
 
-                entity.Property(e => e.FIXA)
-                    .HasMaxLength(10)
-                    .IsUnicode(false);
-
                 entity.Property(e => e.LOGIN_MOD)
                     .HasMaxLength(100)
                     .IsUnicode(false);
@@ -154,13 +155,69 @@ namespace Vivo_Apps_API.Data
                 entity.Property(e => e.UF).IsUnicode(false);
             });
 
-            modelBuilder.Entity<ACESSOS_MOBILE_PERFIL>(entity =>
+            modelBuilder.Entity<ACESSOS_MOBILE_PENDENTE>(entity =>
             {
-                entity.ToTable("ACESSOS_MOBILE_PERFIL");
+                entity.ToTable("ACESSOS_MOBILE_PENDENTE");
 
-                entity.Property(e => e.CARGO).HasMaxLength(255);
+                entity.Property(e => e.CANAL).IsUnicode(false);
 
-                entity.Property(e => e.PERFIL).HasMaxLength(255);
+                entity.Property(e => e.CARGO).IsUnicode(false);
+
+                entity.Property(e => e.CPF)
+                    .HasMaxLength(150)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.DT_PRIMEIRO_RETORNO)
+                    .HasMaxLength(150)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.DT_RETORNO)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.DT_SOLICITACAO)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.EMAIL)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.LOGIN_RESPONSAVEL)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.LOGIN_SOLICITANTE)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.MATRICULA)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.NOME).IsUnicode(false);
+
+                entity.Property(e => e.PDV)
+                    .HasMaxLength(150)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.REGIONAL)
+                    .HasMaxLength(10)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.SENHA)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.STATUS)
+                    .HasMaxLength(150)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.TIPO)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.UF).IsUnicode(false);
             });
 
             modelBuilder.Entity<ACESSO_PERMISSAO_MENU>(entity =>
@@ -179,6 +236,517 @@ namespace Vivo_Apps_API.Data
                     .IsRequired()
                     .HasMaxLength(100)
                     .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<ACESSO_TERCEIRO>(entity =>
+            {
+                entity.ToTable("ACESSO_TERCEIROS");
+
+                entity.Property(e => e.Acao)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.AceiteSenha)
+                    .HasMaxLength(150)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Adabas)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Area)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Bairro)
+                    .HasMaxLength(150)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Celular)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Cep)
+                    .HasMaxLength(150)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Cidade)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.CidadePrestServico)
+                    .HasMaxLength(150)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Cnpj)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Complemento)
+                    .HasMaxLength(150)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Cpf)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.DataCadastro).HasColumnType("datetime");
+
+                entity.Property(e => e.DataContratoFim)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.DataContratoInicio)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.DataExtracao).HasColumnType("datetime");
+
+                entity.Property(e => e.DataFinalizacao).HasColumnType("datetime");
+
+                entity.Property(e => e.DataMatricula).HasColumnType("datetime");
+
+                entity.Property(e => e.DataNascimento).HasColumnType("datetime");
+
+                entity.Property(e => e.DataStatus).HasColumnType("datetime");
+
+                entity.Property(e => e.Ddd)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.EMAILPESSOAL)
+                    .HasMaxLength(500)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Email)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Estado)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.EstadoPrestServico)
+                    .HasMaxLength(150)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Funcao)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.GESTORLIDER)
+                    .HasMaxLength(150)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Login)
+                    .HasMaxLength(150)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Matricula)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.MobileToken).HasColumnType("datetime");
+
+                entity.Property(e => e.Nome)
+                    .IsRequired()
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.NomeContato)
+                    .IsRequired()
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.NomeMae)
+                    .HasMaxLength(150)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Numero)
+                    .HasMaxLength(150)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Obs)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.OrgaoEmissor)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Origem)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.PIS)
+                    .HasMaxLength(60)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Perfil)
+                    .HasMaxLength(150)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Regional)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.RejeitarSenha).HasColumnType("datetime");
+
+                entity.Property(e => e.Rg)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Rua)
+                    .HasMaxLength(150)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Senha)
+                    .HasMaxLength(150)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Sexo)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Sobrenome)
+                    .IsRequired()
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Status)
+                    .HasMaxLength(150)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.SubArea)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.SubGrupo)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.TELEFONEPESSOAL)
+                    .HasMaxLength(500)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Telefone)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.TipoAcesso)
+                    .IsRequired()
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<CADASTRO_GERENTE_TERRITORIO>(entity =>
+            {
+                entity.ToTable("CADASTRO_GERENTE_TERRITORIO");
+
+                entity.Property(e => e.AREA_ATUACAO_DDD).HasMaxLength(255);
+
+                entity.Property(e => e.DATA_CADASTRO).HasColumnType("datetime");
+
+                entity.Property(e => e.DATA_EFETIVA_GESTAO)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.DDD).HasMaxLength(255);
+
+                entity.Property(e => e.MATRICULA).HasMaxLength(255);
+
+                entity.Property(e => e.NOME).HasMaxLength(255);
+            });
+
+            modelBuilder.Entity<CADASTRO_PDV>(entity =>
+            {
+                entity.HasNoKey();
+
+                entity.ToTable("CADASTRO_PDV");
+
+                entity.Property(e => e.ADMINISTRACAO).IsUnicode(false);
+
+                entity.Property(e => e.AGENCIA).HasMaxLength(255);
+
+                entity.Property(e => e.AREA_ATUAÇÃO_DDD_GESTOR)
+                    .HasMaxLength(255)
+                    .HasColumnName("AREA ATUAÇÃO DDD GESTOR");
+
+                entity.Property(e => e.ASSINATURA_NO_CONTRATO_VIVO).IsUnicode(false);
+
+                entity.Property(e => e.ATIVIDADE).HasMaxLength(255);
+
+                entity.Property(e => e.ATUAL_ESTRELAGEM)
+                    .HasMaxLength(255)
+                    .HasColumnName("ATUAL ESTRELAGEM");
+
+                entity.Property(e => e.BAIRRO_)
+                    .HasMaxLength(255)
+                    .HasColumnName("BAIRRO ");
+
+                entity.Property(e => e.CANAL).HasMaxLength(255);
+
+                entity.Property(e => e.CANAL_DISTRIBUIÇÃO)
+                    .HasMaxLength(255)
+                    .HasColumnName("CANAL DISTRIBUIÇÃO");
+
+                entity.Property(e => e.CELULAR).HasMaxLength(255);
+
+                entity.Property(e => e.CEP).HasMaxLength(255);
+
+                entity.Property(e => e.CIDADE).HasMaxLength(255);
+
+                entity.Property(e => e.CNPJ).HasMaxLength(255);
+
+                entity.Property(e => e.CODIGO_BANCO)
+                    .HasMaxLength(255)
+                    .HasColumnName("CODIGO BANCO");
+
+                entity.Property(e => e.CODIGO_VENDEDOR)
+                    .HasMaxLength(255)
+                    .HasColumnName("CODIGO VENDEDOR");
+
+                entity.Property(e => e.COD_IBGE).HasMaxLength(255);
+
+                entity.Property(e => e.COMPLEMENTO).HasMaxLength(255);
+
+                entity.Property(e => e.CONDIÇÕES_DE_PAGAMENTO)
+                    .HasMaxLength(255)
+                    .HasColumnName("CONDIÇÕES DE PAGAMENTO");
+
+                entity.Property(e => e.CONTATO).HasMaxLength(255);
+
+                entity.Property(e => e.CPF).IsUnicode(false);
+
+                entity.Property(e => e.CPF2).IsUnicode(false);
+
+                entity.Property(e => e.CPF3).IsUnicode(false);
+
+                entity.Property(e => e.CPF4).IsUnicode(false);
+
+                entity.Property(e => e.CÓDIGO_CLIENTE).HasColumnName("CÓDIGO CLIENTE");
+
+                entity.Property(e => e.CÓDIGO_FORNECEDOR).HasColumnName("CÓDIGO FORNECEDOR");
+
+                entity.Property(e => e.DATA_CADASTRO_GESTOR).HasColumnType("datetime");
+
+                entity.Property(e => e.DATA_CADASTRO_SELL_IN).HasColumnType("datetime");
+
+                entity.Property(e => e.DATA_EFETI_CART_GESTOR).HasColumnType("datetime");
+
+                entity.Property(e => e.DATA_EFETI_CART_SELL_IN).HasColumnType("datetime");
+
+                entity.Property(e => e.DATA_ENVIO).IsUnicode(false);
+
+                entity.Property(e => e.DATA_FIM_CONTRATO)
+                    .HasColumnType("datetime")
+                    .HasColumnName("DATA FIM CONTRATO");
+
+                entity.Property(e => e.DATA_INICIO_CONTRATO)
+                    .HasColumnType("datetime")
+                    .HasColumnName("DATA INICIO CONTRATO");
+
+                entity.Property(e => e.DATA_NOVO_GESTOR).HasColumnType("datetime");
+
+                entity.Property(e => e.DATA_NOVO_TERRITORIAL).HasColumnType("datetime");
+
+                entity.Property(e => e.DATA_RECEBIMENTO).IsUnicode(false);
+
+                entity.Property(e => e.DDD_GESTOR)
+                    .HasMaxLength(255)
+                    .HasColumnName("DDD GESTOR");
+
+                entity.Property(e => e.DIGITO_VERIFICADOR)
+                    .HasMaxLength(255)
+                    .HasColumnName("DIGITO VERIFICADOR");
+
+                entity.Property(e => e.DMS).IsUnicode(false);
+
+                entity.Property(e => e.DRN).IsUnicode(false);
+
+                entity.Property(e => e.ENDEREÇO).HasMaxLength(255);
+
+                entity.Property(e => e.E_MAIL_COMERCIAL)
+                    .HasMaxLength(255)
+                    .HasColumnName("E-MAIL COMERCIAL");
+
+                entity.Property(e => e.E_MAIL_DIVULGAÇÃO)
+                    .HasMaxLength(255)
+                    .HasColumnName("E-MAIL DIVULGAÇÃO");
+
+                entity.Property(e => e.E_MAIL_FINANCEIRO)
+                    .HasMaxLength(255)
+                    .HasColumnName("E-MAIL FINANCEIRO");
+
+                entity.Property(e => e.FAX).HasMaxLength(255);
+
+                entity.Property(e => e.GERENTE_TERRITORIAL)
+                    .HasMaxLength(255)
+                    .HasColumnName("GERENTE TERRITORIAL");
+
+                entity.Property(e => e.GESTOR).HasMaxLength(255);
+
+                entity.Property(e => e.GRUPO_VENDEDOR_NOME_GC)
+                    .HasMaxLength(255)
+                    .HasColumnName("GRUPO VENDEDOR/NOME GC");
+
+                entity.Property(e => e.HOME_PAGE)
+                    .HasMaxLength(255)
+                    .HasColumnName("HOME PAGE");
+
+                entity.Property(e => e.INSCRIÇÃO_ESTADUAL)
+                    .HasMaxLength(255)
+                    .HasColumnName("INSCRIÇÃO ESTADUAL");
+
+                entity.Property(e => e.IXOS).HasMaxLength(255);
+
+                entity.Property(e => e.LIMITE).HasColumnType("money");
+
+                entity.Property(e => e.MARGEM_APARELHO).HasColumnName("MARGEM APARELHO");
+
+                entity.Property(e => e.MARGEM_CHIP).HasColumnName("MARGEM CHIP");
+
+                entity.Property(e => e.MARGEM__RECARGA).HasColumnName("MARGEM  RECARGA");
+
+                entity.Property(e => e.MATRICULA_GER_CONTA).HasMaxLength(255);
+
+                entity.Property(e => e.MATRICULA_SELL_IN)
+                    .HasMaxLength(50)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.MES_LIBERACAO).HasMaxLength(15);
+
+                entity.Property(e => e.MODELO_CONTRATO).IsUnicode(false);
+
+                entity.Property(e => e.NOME_FANTASIA)
+                    .HasMaxLength(255)
+                    .HasColumnName("NOME FANTASIA");
+
+                entity.Property(e => e.NOVO_GERENTE_TERRITORIAL)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.NOVO_GESTOR).HasMaxLength(255);
+
+                entity.Property(e => e.NUMERO).HasMaxLength(255);
+
+                entity.Property(e => e.NUMERO_CONTA)
+                    .HasMaxLength(255)
+                    .HasColumnName("NUMERO CONTA");
+
+                entity.Property(e => e.OPTANTE_SIMPLES).HasColumnName("OPTANTE SIMPLES");
+
+                entity.Property(e => e.ORGANIZAÇÃO_DE_COMPRAS)
+                    .HasMaxLength(255)
+                    .HasColumnName("ORGANIZAÇÃO DE COMPRAS");
+
+                entity.Property(e => e.ORGANIZAÇÃO_DE_VENDAS)
+                    .HasMaxLength(255)
+                    .HasColumnName("ORGANIZAÇÃO DE VENDAS");
+
+                entity.Property(e => e.PAGADOR_FATURA)
+                    .HasMaxLength(255)
+                    .HasColumnName("PAGADOR FATURA");
+
+                entity.Property(e => e.PONTO_DE_VENDA)
+                    .HasMaxLength(255)
+                    .HasColumnName("PONTO DE VENDA");
+
+                entity.Property(e => e.PRAZO_LIMITE)
+                    .HasColumnType("datetime")
+                    .HasColumnName("PRAZO LIMITE");
+
+                entity.Property(e => e.RAZÃO_SOCIAL)
+                    .HasMaxLength(255)
+                    .HasColumnName("RAZÃO SOCIAL");
+
+                entity.Property(e => e.RECEBEDOR_DA_MERCADORIA)
+                    .IsRequired()
+                    .HasMaxLength(1)
+                    .IsUnicode(false)
+                    .HasColumnName("RECEBEDOR DA MERCADORIA");
+
+                entity.Property(e => e.RECEBEDOR_DO_COMISSIONAMENTO)
+                    .HasMaxLength(255)
+                    .HasColumnName("RECEBEDOR DO COMISSIONAMENTO");
+
+                entity.Property(e => e.RECEBEDOR_FATURA)
+                    .HasMaxLength(255)
+                    .HasColumnName("RECEBEDOR FATURA");
+
+                entity.Property(e => e.REDE).HasMaxLength(255);
+
+                entity.Property(e => e.REGIONAL).HasMaxLength(255);
+
+                entity.Property(e => e.REGIONAL2).HasMaxLength(255);
+
+                entity.Property(e => e.REGIÃO_GEOGRAFICA)
+                    .HasMaxLength(255)
+                    .HasColumnName("REGIÃO GEOGRAFICA");
+
+                entity.Property(e => e.SELL_IN)
+                    .HasMaxLength(255)
+                    .HasColumnName("SELL IN");
+
+                entity.Property(e => e.SETOR_ATIVIDADE)
+                    .HasMaxLength(255)
+                    .HasColumnName("SETOR ATIVIDADE");
+
+                entity.Property(e => e.SOCIO1).IsUnicode(false);
+
+                entity.Property(e => e.SOCIO2).IsUnicode(false);
+
+                entity.Property(e => e.SOCIO3).IsUnicode(false);
+
+                entity.Property(e => e.SOCIO4).IsUnicode(false);
+
+                entity.Property(e => e.STATUS_CALLIDUS)
+                    .HasMaxLength(255)
+                    .HasColumnName("STATUS CALLIDUS");
+
+                entity.Property(e => e.TELEFONE).HasMaxLength(255);
+
+                entity.Property(e => e.TERRITORIAL).HasMaxLength(255);
+
+                entity.Property(e => e.TERRITORIAL2).HasMaxLength(255);
+
+                entity.Property(e => e.TIPO_MINUTA).IsUnicode(false);
+
+                entity.Property(e => e.UF).HasMaxLength(255);
+
+                entity.Property(e => e.UF_LOCALIDADE_PDV).HasMaxLength(255);
+
+                entity.Property(e => e.VENDEDOR).HasMaxLength(255);
+
+                entity.Property(e => e.VIGENCIA_FIM).IsUnicode(false);
+
+                entity.Property(e => e.VIGENCIA_INICIO).IsUnicode(false);
+
+                entity.Property(e => e.VPC__Sell_in_ou_Out_)
+                    .HasMaxLength(255)
+                    .HasColumnName("VPC (Sell in ou Out)");
+
+                entity.Property(e => e.ÁREA_DE_CREDITO)
+                    .HasMaxLength(255)
+                    .HasColumnName("ÁREA DE CREDITO");
             });
 
             modelBuilder.Entity<CAMPOS_FILA>(entity =>
@@ -204,99 +772,6 @@ namespace Vivo_Apps_API.Data
                 entity.Property(e => e.REGIONAL)
                     .IsRequired()
                     .IsUnicode(false);
-            });
-
-            modelBuilder.Entity<CARTEIRA_DEMAIS_CANAI>(entity =>
-            {
-                entity.ToTable("CARTEIRA_DEMAIS_CANAIS");
-
-                entity.Property(e => e.ANOMES)
-                    .HasMaxLength(10)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.AREA_ATUACAO_DDD).HasMaxLength(255);
-
-                entity.Property(e => e.Atividade).HasMaxLength(255);
-
-                entity.Property(e => e.Bairro).HasMaxLength(255);
-
-                entity.Property(e => e.Canal).HasMaxLength(255);
-
-                entity.Property(e => e.Cep).HasMaxLength(255);
-
-                entity.Property(e => e.Cidade).HasMaxLength(255);
-
-                entity.Property(e => e.Clusters).HasMaxLength(255);
-
-                entity.Property(e => e.Cnpj).HasMaxLength(255);
-
-                entity.Property(e => e.Complemento).HasMaxLength(255);
-
-                entity.Property(e => e.DDD_LOCALIDADE_PDV).HasMaxLength(255);
-
-                entity.Property(e => e.DataSolicitacao).HasColumnType("datetime");
-
-                entity.Property(e => e.DataUltimaAlteracao).HasColumnType("datetime");
-
-                entity.Property(e => e.Data_Credenciamento).HasMaxLength(255);
-
-                entity.Property(e => e.Data_Descredenciamento).HasMaxLength(255);
-
-                entity.Property(e => e.DivisaoOrig)
-                    .HasMaxLength(20)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.Endereco).HasMaxLength(255);
-
-                entity.Property(e => e.Estrelagem).HasMaxLength(255);
-
-                entity.Property(e => e.GA).HasMaxLength(255);
-
-                entity.Property(e => e.GGP).HasMaxLength(255);
-
-                entity.Property(e => e.GSS).HasMaxLength(255);
-
-                entity.Property(e => e.GV).HasMaxLength(255);
-
-                entity.Property(e => e.Local_Loja).HasMaxLength(255);
-
-                entity.Property(e => e.LoginSiebel).HasMaxLength(255);
-
-                entity.Property(e => e.MATRICULA_GA)
-                    .HasMaxLength(10)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.MATRICULA_GGP)
-                    .HasMaxLength(10)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.MATRICULA_GV)
-                    .HasMaxLength(10)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.MT).HasMaxLength(255);
-
-                entity.Property(e => e.Metragem).HasMaxLength(30);
-
-                entity.Property(e => e.Modelo_Loja).HasMaxLength(255);
-
-                entity.Property(e => e.NomeFantasia).HasMaxLength(255);
-
-                entity.Property(e => e.Numero).HasMaxLength(255);
-
-                entity.Property(e => e.QtdPA).HasMaxLength(30);
-
-                entity.Property(e => e.REDE).HasMaxLength(255);
-
-                entity.Property(e => e.RazaoSocial).HasMaxLength(255);
-
-                entity.Property(e => e.StatusCallidus).HasMaxLength(255);
-
-                entity.Property(e => e.Tipo_Loja).HasMaxLength(255);
-
-                entity.Property(e => e.Uf).HasMaxLength(255);
-
-                entity.Property(e => e.Vendedor).HasMaxLength(255);
             });
 
             modelBuilder.Entity<CONTROLE_DEMANDAS_ARQUIVOS_RESPOSTum>(entity =>
@@ -351,6 +826,17 @@ namespace Vivo_Apps_API.Data
 
                 entity.Property(e => e.CAMPO)
                     .IsRequired()
+                    .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<CONTROLE_DE_DEMANDAS_CAMPO_LISTA_ICCID>(entity =>
+            {
+                entity.HasNoKey();
+
+                entity.ToTable("CONTROLE_DE_DEMANDAS_CAMPO_LISTA_ICCID");
+
+                entity.Property(e => e.NR_ICCID)
+                    .HasMaxLength(550)
                     .IsUnicode(false);
             });
 
@@ -1067,6 +1553,30 @@ namespace Vivo_Apps_API.Data
                     .IsUnicode(false);
             });
 
+            modelBuilder.Entity<HISTORICO_ACESSOS_MOBILE_PENDENTE>(entity =>
+            {
+                entity.ToTable("HISTORICO_ACESSOS_MOBILE_PENDENTE");
+
+                entity.Property(e => e.DATA)
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.MATRICULA)
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.RESPOSTA)
+                    .IsRequired()
+                    .IsUnicode(false);
+
+                entity.Property(e => e.STATUS)
+                    .IsRequired()
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+            });
+
             modelBuilder.Entity<JORNADA_BD_ANSWER_ALTERNATIVA>(entity =>
             {
                 entity.HasKey(e => e.ID_ALTERNATIVA)
@@ -1141,6 +1651,17 @@ namespace Vivo_Apps_API.Data
                 entity.Property(e => e.TP_FORMS).HasMaxLength(255);
             });
 
+            modelBuilder.Entity<JORNADA_BD_CARGOS_CANAL>(entity =>
+            {
+                entity.HasNoKey();
+
+                entity.ToTable("JORNADA_BD_CARGOS_CANAL");
+
+                entity.Property(e => e.CANAL).HasMaxLength(255);
+
+                entity.Property(e => e.CARGO).HasMaxLength(255);
+            });
+
             modelBuilder.Entity<JORNADA_BD_QUESTION>(entity =>
             {
                 entity.HasKey(e => e.ID_QUESTION)
@@ -1159,6 +1680,10 @@ namespace Vivo_Apps_API.Data
                 entity.Property(e => e.RESPOSTA_CORRETA).IsUnicode(false);
 
                 entity.Property(e => e.STATUS_QUESTION).HasMaxLength(255);
+
+                entity.Property(e => e.SUB_TEMA)
+                    .HasMaxLength(1)
+                    .IsUnicode(false);
 
                 entity.Property(e => e.TEMA).HasMaxLength(255);
 

@@ -8,12 +8,12 @@ using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Oracle.ManagedDataAccess.Client;
-using ApiController =  System.Web.Http.ApiController;
+using ApiController = System.Web.Http.ApiController;
 
 namespace Vivo_Apps_API.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/[controller]")] 
     public class FixaController
     {
         private Vivo_MAISContext CD = new Vivo_MAISContext();
@@ -25,35 +25,10 @@ namespace Vivo_Apps_API.Controllers
             _logger = logger;
         }
 
-        [HttpPost("GerarArquivoTexto_FIXA_ROTA")]
-        public async Task<bool> GerarArquivoTexto_FIXA_ROTA(IList<string[]> listarray)
-        {
-            try
-            {
-                StringBuilder sb = new StringBuilder();
-
-                string colunas = $"DDD,TERRITÓRIO,UF,CIDADE,BAIRRO,MICRORREGIÃO,CEP,TIPO,TITULO,LOGRADOURO,NÚMERO,DATA_ARMÁRIO,ARMÁRIO,CAIXA,CAPACIDADE,USADOS,DISPONÍVEL,OCUPAÇÃO,STATUS_LOTE,BADDEBT,FRAUDE,SEGMENTO,COD_CONDOMINIO,NOM_CONDOMINIO,ESTEIRA,DATA_ESTEIRA,PRIORIDADE,BLOCOS,QTD_APARTAMENTO,CLASSE_A,CLASSE_B,CLASSE_C,CLASSE_AB,TIPO_RESIDENCIA,CLIENTE_FTTC,VENDAS,MIGRAÇÃO,CEP_NUM,CLIENTE_FTTC_POR_DISPONIBILIDADE,AGING_ARMÁRIO";
-                sb.AppendLine(colunas);
-                foreach (string[] row in listarray)
-                {
-                    string line = string.Join(";", row);
-                    sb.AppendLine(line);
-                }
-
-                string filePath = @"D:\VivoSimArquivos\Saida_Update_Painel_Fixa-" + DateTime.Now.ToShortTimeString() + ".txt";
-                System.IO.File.WriteAllText(filePath, sb.ToString());
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                return false;
-            }
-        }
         [HttpPost("UpdatePainelRota_SQL")]
-        public async Task<JsonResult> UpdatePainelRota_SQL<T>()
-        {
-            IList<string[]> table = new List<string[]>();
+        public async Task<JsonResult> UpdatePainelRota_SQL()
+        { 
+            IList<FIXA_VIEW_PAINEL_DE_ROTA> table = new List<FIXA_VIEW_PAINEL_DE_ROTA>();
             try
             {
                 var dataTable = new DataTable();
@@ -63,67 +38,68 @@ namespace Vivo_Apps_API.Controllers
                 {
                     foreach (DataRow item in dataTable.Rows)
                     {
-                        var linha = new string[]
+                        var linha = new FIXA_VIEW_PAINEL_DE_ROTA
                         {
-                                item[0].ToString(),
-                                item[1].ToString(),
-                                item[2].ToString(),
-                                item[3].ToString(),
-                                item[4].ToString(),
-                                item[5].ToString(),
-                                item[6].ToString(),
-                                item[7].ToString(),
-                                item[8].ToString(),
-                                item[9].ToString(),
-                                item[10].ToString(),
-                                item[11].ToString(),
-                                item[12].ToString(),
-                                item[13].ToString(),
-                                item[14].ToString(),
-                                item[15].ToString(),
-                                item[16].ToString(),
-                                item[17].ToString(),
-                                item[18].ToString(),
-                                item[19].ToString(),
-                                item[20].ToString(),
-                                item[21].ToString(),
-                                item[22].ToString(),
-                                item[23].ToString(),
-                                item[24].ToString(),
-                                item[25].ToString(),
-                                item[26].ToString(),
-                                item[27].ToString(),
-                                item[28].ToString(),
-                                item[29].ToString(),
-                                item[30].ToString(),
-                                item[31].ToString(),
-                                item[32].ToString(),
-                                item[33].ToString(),
-                                item[34].ToString(),
-                                item[35].ToString(),
-                                item[36].ToString(),
-                                item[37].ToString(),
-                                item[38].ToString(),
-                                item[39].ToString()
+                            DDD = item[0].ToString(),
+                            TERRITÓRIO = item[1].ToString(),
+                            UF = item[2].ToString(),
+                            CIDADE = item[3].ToString(),
+                            BAIRRO = item[4].ToString(),
+                            MICRORREGIÃO = item[5].ToString(),
+                            CEP = item[6].ToString(),
+                            TIPO = item[7].ToString(),
+                            TITULO = item[8].ToString(),
+                            LOGRADOURO = item[9].ToString(),
+                            NÚMERO = item[10].ToString(),
+                            DATA_ARMÁRIO = item[11].ToString(),
+                            ARMÁRIO = item[12].ToString(),
+                            CAIXA = item[13].ToString(),
+                            CAPACIDADE = item[14].ToString(),
+                            USADOS = item[15].ToString(),
+                            DISPONÍVEL = item[16].ToString(),
+                            OCUPAÇÃO = item[17].ToString(),
+                            STATUS_LOTE = item[18].ToString(),
+                            BADDEBT = item[19].ToString(),
+                            FRAUDE = item[20].ToString(),
+                            SEGMENTO = item[21].ToString(),
+                            COD_CONDOMINIO = item[22].ToString(),
+                            NOM_CONDOMINIO = item[23].ToString(),
+                            ESTEIRA = item[24].ToString(),
+                            DATA_ESTEIRA = item[25].ToString(),
+                            PRIORIDADE = item[26].ToString(),
+                            BLOCOS = item[27].ToString(),
+                            QTD_APARTAMENTO = item[28].ToString(),
+                            CLASSE_A = item[29].ToString(),
+                            CLASSE_B = item[30].ToString(),
+                            CLASSE_C = item[31].ToString(),
+                            CLASSE_AB = item[32].ToString(),
+                            TIPO_RESIDENCIA = item[33].ToString(),
+                            CLIENTE_FTTC = item[34].ToString(),
+                            VENDAS = item[35].ToString(),
+                            MIGRAÇÃO = item[36].ToString(),
+                            CEP_NUM = item[37].ToString(),
+                            CLIENTE_FTTC_POR_DISPONIBILIDADE = item[38].ToString(),
+                            AGING_ARMÁRIO = item[39].ToString()
                         };
                         table.Add(linha);
                     }
                 }
-
-                var retorno = await GerarArquivoTexto_FIXA_ROTA(table);
+                CD.FIXA_VIEW_PAINEL_DE_ROTAs.BulkInsert(table);
+                var retorno = await CD.SaveChangesAsync();
+                //var retorno = await GerarArquivoTexto_FIXA_ROTA(table);
 
                 return new JsonResult(new Response<bool>
                 {
-                    Data = retorno,
-                    Succeeded = retorno,
+                    Data = retorno > 0,
+                    Succeeded = retorno > 0,
                     Message = "Tudo Ceto!"
                 });
             }
             catch (Exception ex)
             {
-                return new JsonResult(new Response<IEnumerable<string[]>>
+                return new JsonResult(new Response<int>
                 {
-                    Data = table,
+                    Data = table.Count,
                     Succeeded = false,
                     Errors = new string[]
                     {

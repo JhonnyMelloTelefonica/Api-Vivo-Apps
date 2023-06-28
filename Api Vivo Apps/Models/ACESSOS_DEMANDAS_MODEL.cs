@@ -18,5 +18,6 @@ namespace Vivo_Apps_API.Models
         public string? PBI { get; set; }
         public string? EMAIL_SECUNDARIO { get; set; }
         public ACESSO? RESPONSAVEL_OUTRA_AREA { get; set; }
+        public TimeSpan? SLA_PRIMEIRA_RESPOSTA { get; set; }
     }
 }

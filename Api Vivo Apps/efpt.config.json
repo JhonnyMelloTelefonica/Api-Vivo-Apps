@@ -7,7 +7,7 @@
    "IncludeConnectionString": true,
    "ModelNamespace": null,
    "OutputContextPath": null,
-   "OutputPath": "DataGRC",
+   "OutputPath": "Data",
    "PreserveCasingWithRegex": true,
    "ProjectRootNamespace": "Vivo_Apps_API",
    "Schemas": null,
@@ -15,43 +15,23 @@
    "SelectedToBeGenerated": 0,
    "Tables": [
       {
-         "Name": "[dbo].[AG_CREDENCIADOS_HISTORICA]",
+         "Name": "[dbo].[ACESSO]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[AG_CREDENCIADOS_Original]",
+         "Name": "[dbo].[ACESSO_PERMISSAO_MENU]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[AG_CREDENCIADOS_PARCIAL]",
+         "Name": "[dbo].[ACESSO_TERCEIROS]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[ATV_HISTORICO_IMEI]",
+         "Name": "[dbo].[ACESSOS_MOBILE]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[BASE_ATV_NOVO_]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CADASTRO_ASSOCIACAO_FDV]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CADASTRO_ASSOCIACAO_FDV AGOSTO]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CADASTRO_ASSOCIACAO_FDV DEZEMBRO]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CADASTRO_ASSOCIACAO_FDV_BKP]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CADASTRO_GERENTE_CONTAS]",
+         "Name": "[dbo].[ACESSOS_MOBILE_PENDENTE]",
          "ObjectType": 0
       },
       {
@@ -59,179 +39,155 @@
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[CADASTRO_NOME_REDE]",
-         "ObjectType": 0
-      },
-      {
          "Name": "[dbo].[CADASTRO_PDV]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[CADASTRO_PDV_COMPLEMENTO_AUX]",
+         "Name": "[dbo].[CAMPOS_FILA]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[CADASTRO_X_VIVO_SIM]",
+         "Name": "[dbo].[carteira_demais_canais_rede_colaborador]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[CADASTRO_X_VIVO_SIM_X_CANAL]",
+         "Name": "[dbo].[Carteira_NE]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[CARTEIRA_CADASTRO_GERAL_PDVS]",
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_ARQUIVOS_RESPOSTA]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[DE_PARA_DDD_NACIONAL]",
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CAMPO_COMBOBOX_FILA]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[ENVIO CARTEIRA]",
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CAMPO_LISTA_ICCID]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[fat_SET_]",
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CAMPOS_CHAMADO]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[HEADCOUNT_LLPP]",
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CAMPOS_FILA]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[LOJAS_SCA_360]",
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CHAMADO]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[PERFIS_DANI]",
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CHAMADO_ARQUIVOS]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[REDES_NACIONAIS]",
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTA]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[REGISTRO_DIVISAO]",
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_FILA]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[TAB_AG_CREDENCIADOS_DESCOBRE_PDV]",
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_OPERADORES]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[TAB_CADASTRO_GERAL_PDVS_ADMINISTRATIVO]",
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADO]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[TAB_CADASTRO_GERAL_PDVS_COMERCIAL]",
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADO_BKP]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[TAB_CADASTRO_GERAL_PDVS_COMPLETO]",
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_RELACAO_ITENS_CAMPO_COMBOBOX_FILA]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[TAB_CADASTRO_GERAL_PDVS_COMPLETO_OUTRAS_REGIONAIS]",
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_RELACAO_STATUS_CHAMADO]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[TAB_CADASTRO_GERAL_PDVS_COMPLETO_OUTRAS_REGIONAIS 2]",
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_RESPONSAVEL_FILA]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[TAB_CADASTRO_GERAL_PDVS_COMPLETO_OUTRAS_REGIONAIS_AUX]",
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_STATUS_CHAMADO]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[TAB_CADASTRO_GERAL_PDVS_LLPP]",
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_SUGESTOES_NOMES_CAMPOS]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[TAB_CADASTRO_GERAL_PDVS_OUTRAS_REGIONAIS_BKP]",
+         "Name": "[dbo].[CONTROLE_DEMANDAS_ARQUIVOS_RESPOSTA]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[TAB_CADASTRO_GERAL_PDVS_SELL_IN]",
+         "Name": "[dbo].[CREDENCIAMENTO_PROSPECT]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[TAB_CADASTRO_GERAL_PDVS_USUARIO_VIVO_SIM]",
+         "Name": "[dbo].[FIXA_BASE_PRUMA]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[TAB_CANAIS_RESUMO]",
+         "Name": "[dbo].[FIXA_VIEW_PAINEL_DE_ROTAS]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[TAB_COLABORADORES_LLPP]",
+         "Name": "[dbo].[HISTORICO_ACESSOS_MOBILE_PENDENTE]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[TAB_DE_PARA_ADABAS_LOJAS_PROPRIAS]",
+         "Name": "[dbo].[JORNADA_BD_ANSWER_ALTERNATIVAS]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[TAB_LOGRADOUROS_E_CLASSIFICAÇÃO]",
+         "Name": "[dbo].[JORNADA_BD_ANSWER_AVALIACAO]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[TAB_MAN_GERENTE_CONTA]",
+         "Name": "[dbo].[JORNADA_BD_AVALIACAO_RETORNO]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[TAB_MAN_GERENTE_CONTA_AUDITORIA]",
+         "Name": "[dbo].[JORNADA_BD_CARGOS_CANAL]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[TAB_PESSOAS]",
+         "Name": "[dbo].[JORNADA_BD_QUESTION]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[VIEW_VIVO_GRC_AG_CREDENCIADOS_DESCOBRE_PDV]",
+         "Name": "[dbo].[JORNADA_BD_QUESTION_HISTORICO]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[ZS118_NOTE_10]",
+         "Name": "[dbo].[PERFIL_VIVO_TASK]",
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[CNS_CADASTRO_GERAL_PDVS]",
-         "ObjectType": 3
+         "Name": "[dbo].[SUB_FILA]",
+         "ObjectType": 0
       },
       {
-         "Name": "[dbo].[CNS_CARTEIRA_DASHBOARD]",
-         "ObjectType": 3
+         "Name": "[dbo].[TAB_PESSOAS_SUPORTE]",
+         "ObjectType": 0
       },
       {
-         "Name": "[dbo].[CNS_GERENTE_CONTAS_ATIVO]",
-         "ObjectType": 3
+         "Name": "[dbo].[TIPO_FILA]",
+         "ObjectType": 0
       },
       {
-         "Name": "[dbo].[CNS_GERENTE_TERRITORIO_ATIVO]",
-         "ObjectType": 3
-      },
-      {
-         "Name": "[dbo].[CNS_HIERARQUIA_CAMPANHA]",
-         "ObjectType": 3
-      },
-      {
-         "Name": "[dbo].[CNS_VIVO_ADIANTE]",
-         "ObjectType": 3
-      },
-      {
-         "Name": "[dbo].[VIEW_GERENTE_CONTAS]",
-         "ObjectType": 3
-      },
-      {
-         "Name": "[dbo].[VIEW_GERENTE_TERRITORIAL]",
-         "ObjectType": 3
-      },
-      {
-         "Name": "[dbo].[VIEW_GERENTE_TERRITORIO]",
-         "ObjectType": 3
+         "Name": "[dbo].[VALORES_CAMPOS_SUSPENSO]",
+         "ObjectType": 0
       }
    ],
-   "UiHint": "BRTDTBGS0081FU.Vivo_GRC",
+   "UiHint": "BRTDTBGS0081FU.Vivo_MAIS",
    "UseBoolPropertiesWithoutDefaultSql": false,
    "UseDatabaseNames": true,
    "UseDbContextSplitting": false,

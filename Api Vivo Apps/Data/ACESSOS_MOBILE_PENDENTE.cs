@@ -5,7 +5,7 @@ using System.Collections.Generic;
 
 namespace Vivo_Apps_API.Data
 {
-    public partial class ACESSOS_MOBILE
+    public partial class ACESSOS_MOBILE_PENDENTE
     {
         public int ID { get; set; }
         public string EMAIL { get; set; }
@@ -14,16 +14,20 @@ namespace Vivo_Apps_API.Data
         public string REGIONAL { get; set; }
         public string CARGO { get; set; }
         public string CANAL { get; set; }
-        public string PDV { get; set; }
-        public string CPF { get; set; }
         public string NOME { get; set; }
         public string UF { get; set; }
-        public bool? STATUS { get; set; }
+        public bool? APROVACAO { get; set; }
         public bool? FIXA { get; set; }
-        public string TP_AFASTAMENTO { get; set; }
-        public string OBS { get; set; }
-        public byte[] UserAvatar { get; set; }
-        public string LOGIN_MOD { get; set; }
-        public string DT_MOD { get; set; }
+        public string LOGIN_SOLICITANTE { get; set; }
+        public string LOGIN_RESPONSAVEL { get; set; }
+        public string DT_SOLICITACAO { get; set; }
+        public string DT_RETORNO { get; set; }
+        public string STATUS { get; set; }
+        public string DT_PRIMEIRO_RETORNO { get; set; }
+        public string CPF { get; set; }
+        public string PDV { get; set; }
+        public string TIPO { get; set; }
+        public int? ID_ACESSOS_MOBILE { get; set; }
+        public bool? STATUS_USUARIO { get; set; }
     }
 }

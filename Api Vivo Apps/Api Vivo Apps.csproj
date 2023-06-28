@@ -5,11 +5,16 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <RootNamespace>Vivo_Apps_API</RootNamespace>
+    <UserSecretsId>acfdd39b-5641-46aa-87dd-6e6b243f875d</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="EFCore.BulkExtensions" Version="7.1.2" />
+    <PackageReference Include="EntityFramework6.BulkInsert" Version="6.0.3.10" />
     <PackageReference Include="Microsoft.AspNet.WebApi" Version="5.2.9" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.5" />
+    <PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="7.0.7" />
+    <PackageReference Include="Microsoft.Azure.SignalR" Version="1.21.4" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="7.0.5" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.5">
@@ -24,8 +29,10 @@
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <PackageReference Include="Oracle.EntityFrameworkCore" Version="7.21.9" />
+    <PackageReference Include="SqlTableDependency" Version="8.5.8" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.5" />
+    <PackageReference Include="Z.EntityFramework.Extensions.EFCore" Version="7.22.3" />
   </ItemGroup>
 
   <ItemGroup>
