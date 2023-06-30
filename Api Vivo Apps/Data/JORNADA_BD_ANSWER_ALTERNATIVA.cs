@@ -10,6 +10,8 @@ namespace Vivo_Apps_API.Data
         public int ID_ALTERNATIVA { get; set; }
         public string ALTERNATIVA { get; set; }
         public int? ID_QUESTION { get; set; }
-        public string STATUS_ALTERNATIVA { get; set; }
+        public bool? STATUS_ALTERNATIVA { get; set; }
+        public int? PESO { get; set; }
+        public bool? RESPOSTA_CORRETA { get; set; }
     }
 }

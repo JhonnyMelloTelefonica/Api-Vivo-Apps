@@ -103,158 +103,6 @@ namespace Vivo_Apps_API.Controllers
 
             return new JsonResult(PagedResponse.CreatePagedReponse<ACESSOS_MOBILE>(Data, filter, totalRecords));
         }
-        private string DeParaDeCanalCargo(string cargo)
-        {
-            switch (cargo)
-            {
-                case "Guru":
-
-                    return "Loja Própria";
-
-                case "GGP":
-
-                    return "MultCanal";
-
-                case "Gerente Geral":
-
-                    return "Loja Própria";
-
-                case "GA":
-
-                    return "MultCanal";
-
-                case "GO":
-
-                    return "Loja Própria";
-
-                case "Supervisor PAP":
-
-                    return "PAP";
-
-                case "Vendedor PAP":
-
-                    return "PAP";
-
-                case "Gerente de Revenda":
-
-                    return "Revenda";
-
-                case "Vendedor Revenda":
-
-                    return "Revenda";
-
-                case "CN":
-
-                    return "Loja Própria";
-
-                case "Vendas_Adm":
-
-                    return "Adm_Consumer";
-
-                case "Adm_Consumer":
-
-                    return "Adm_Consumer";
-
-                default:
-
-                    return "";
-            }
-        }
-
-        private Canal DeParaDeCanalCargoEnum(Cargos cargo)
-        {
-            switch (cargo)
-            {
-                case Cargos.Vendedor_PAP:
-
-                    return Canal.Venda_Externa;
-
-                case Cargos.Gerente_Parceiros:
-                    
-                    return Canal.Consumer;
-
-                case Cargos.Gerente_Geral:
-                    
-                    return Canal.Lojas_Próprias;
-
-                case Cargos.Supervisor_PAP:
-                    
-                    return Canal.Venda_Externa;
-
-                case Cargos.Vendedor_Revenda:
-                    
-                    return Canal.Revenda;
-
-                case Cargos.Gerente_Revenda:
-                    
-                    return Canal.Revenda;
-
-                case Cargos.Gerente_Área:
-                    
-                    return Canal.Canal_Vendas;
-
-                case Cargos.Gerente_Operações:
-                    
-                    return Canal.Lojas_Próprias;
-
-                case Cargos.Consultor_Negócios:
-                    
-                    return Canal.Lojas_Próprias;
-
-                case Cargos.Consultor_Tecnológico:
-                    
-                    return Canal.Lojas_Próprias;
-
-                case Cargos.Gerente_Vendas_B2C:
-                    
-                    return Canal.Canal_Vendas;
-
-                case Cargos.Gerente_Senior_Territorial:
-                    
-                    return Canal.Canal_Vendas;
-
-                case Cargos.Coordenador_Suporte_Vendas:
-                    
-                    return Canal.Consumer;
-
-                case Cargos.Gerente_Suporte_Vendas:
-                    
-                    return Canal.Consumer;
-
-                case Cargos.Diretora:
-                    
-                    return Canal.Consumer;
-
-                case Cargos.Consultor_Gestão_Vendas:
-                    
-                    return Canal.Consumer;
-
-                case Cargos.Analista_Suporte_Vendas_Senior:
-                    
-                    return Canal.Consumer;
-
-                case Cargos.Analista_Suporte_Vendas_Pleno:
-                    
-                    return Canal.Consumer;
-
-                case Cargos.Analista_Suporte_Vendas_Junior:
-                    
-                    return Canal.Consumer;
-
-                case Cargos.Estagiário:
-                    
-                    return Canal.Consumer;
-
-                case Cargos.Gerente_Senior_Gestão_Vendas:
-                    
-                    return Canal.Consumer;
-
-                default:
-
-                    return Canal.ADM;
-
-            }
-        }
 
         [HttpPost("UpdateUsuarios")]
         public async Task<JsonResult> UpdateUsuarios([FromBody] ACESSOS_MOBILE usuario,
@@ -282,7 +130,7 @@ namespace Vivo_Apps_API.Controllers
                     SENHA = usuario.SENHA,
                     REGIONAL = usuario.REGIONAL,
                     CARGO = usuario.CARGO,
-                    CANAL = ((int)DeParaDeCanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString(),
+                    CANAL = ((int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString(),
                     NOME = usuario.NOME,
                     UF = usuario.UF,
                     CPF = usuario.CPF,
@@ -365,7 +213,7 @@ namespace Vivo_Apps_API.Controllers
                     SENHA = usuario.SENHA,
                     REGIONAL = usuario.REGIONAL,
                     CARGO = usuario.CARGO,
-                    CANAL = ((int)DeParaDeCanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString(),
+                    CANAL = ((int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString(),
                     NOME = usuario.NOME,
                     UF = usuario.UF,
                     CPF = usuario.CPF,
@@ -435,7 +283,7 @@ namespace Vivo_Apps_API.Controllers
                     SENHA = usuario.SENHA,
                     REGIONAL = usuario.REGIONAL,
                     CARGO = usuario.CARGO,
-                    CANAL = ((int)DeParaDeCanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString(),
+                    CANAL = ((int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString(),
                     NOME = usuario.NOME,
                     UF = usuario.UF,
                     CPF = usuario.CPF,
@@ -505,7 +353,7 @@ namespace Vivo_Apps_API.Controllers
                         user.SENHA = usuario.SENHA;
                         user.REGIONAL = usuario.REGIONAL;
                         user.CARGO = usuario.CARGO;
-                        user.CANAL = ((int)DeParaDeCanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString();
+                        user.CANAL = ((int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString();
                         user.PDV = usuario.PDV;
                         user.CPF = usuario.CPF;
                         user.NOME = usuario.NOME;
@@ -682,7 +530,7 @@ namespace Vivo_Apps_API.Controllers
                     SENHA = usuario.SENHA,
                     REGIONAL = usuario.REGIONAL,
                     CARGO = usuario.CARGO,
-                    CANAL = ((int)DeParaDeCanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString(),
+                    CANAL = ((int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString(),
                     NOME = usuario.NOME,
                     UF = usuario.UF,
                     CPF = usuario.CPF,
@@ -841,7 +689,7 @@ namespace Vivo_Apps_API.Controllers
                     SENHA = acesso.SENHA,
                     REGIONAL = acesso.REGIONAL,
                     CARGO = (Cargos)Convert.ToInt32(acesso.CARGO),
-                    CANAL = DeParaDeCanalCargoEnum((Cargos)Convert.ToInt32(acesso.CARGO)),
+                    CANAL = DePara.CanalCargoEnum((Cargos)Convert.ToInt32(acesso.CARGO)),
                     NOME = acesso.NOME,
                     UF = acesso.UF,
                     CPF = acesso.CPF,
@@ -935,7 +783,7 @@ namespace Vivo_Apps_API.Controllers
                                 SENHA = CryptSenha(usuario.SENHA),
                                 REGIONAL = usuario.REGIONAL,
                                 CARGO = ((int)usuario.CARGO).ToString(),
-                                CANAL = ((int)DeParaDeCanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString(),
+                                CANAL = ((int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString(),
                                 NOME = usuario.NOME,
                                 UF = usuario.UF,
                                 CPF = usuario.CPF,
@@ -957,7 +805,7 @@ namespace Vivo_Apps_API.Controllers
                     acesso.SENHA = usuario.SENHA;
                     acesso.REGIONAL = usuario.REGIONAL;
                     acesso.CARGO = ((int)usuario.CARGO).ToString();
-                    acesso.CANAL = ((int)DeParaDeCanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString();
+                    acesso.CANAL = ((int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString();
                     acesso.NOME = usuario.NOME;
                     acesso.UF = usuario.UF;
                     acesso.CPF = usuario.CPF;
@@ -991,7 +839,7 @@ namespace Vivo_Apps_API.Controllers
                     SENHA = acesso.SENHA,
                     REGIONAL = acesso.REGIONAL,
                     CARGO = (Cargos)Convert.ToInt32(usuario.CARGO),
-                    CANAL = DeParaDeCanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO)),
+                    CANAL = DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO)),
                     NOME = acesso.NOME,
                     UF = acesso.UF,
                     CPF = acesso.CPF,

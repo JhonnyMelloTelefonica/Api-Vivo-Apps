@@ -167,6 +167,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[JORNADA_BD_TEMAS_SUB_TEMAS]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[PERFIL_VIVO_TASK]",
          "ObjectType": 0
       },

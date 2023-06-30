@@ -374,224 +374,224 @@ namespace Vivo_Apps_API.Controllers
                     return "";
             }
         }
-        [HttpPost("GerarNovoFormulario")]
-        public string GerarNovoFormulario([FromBody] Form data)
-        {
-            try
-            {
-                List<JORNADA_BD_QUESTION> Formulario = new List<JORNADA_BD_QUESTION>();
-                int proximocaderno = 0;
-                JORNADA_BD_QUESTION_HISTORICO check = new JORNADA_BD_QUESTION_HISTORICO();
-                var rand = new Random();
-                var matricula = data.MATRICULA;
-                string rota = data.TIPO_ROTA;
+        //[HttpPost("GerarNovoFormulario")]
+        //public string GerarNovoFormulario([FromBody] Form data)
+        //{
+        //    try
+        //    {
+        //        List<JORNADA_BD_QUESTION> Formulario = new List<JORNADA_BD_QUESTION>();
+        //        int proximocaderno = 0;
+        //        JORNADA_BD_QUESTION_HISTORICO check = new JORNADA_BD_QUESTION_HISTORICO();
+        //        var rand = new Random();
+        //        var matricula = data.MATRICULA;
+        //        string rota = data.TIPO_ROTA;
 
-                if (rota.Equals("Rota Cruzada"))
-                {
-                    check = CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => x.CARGO == data.CARGO &&
-                    x.ID_CRIADOR == matricula &&
-                    x.TP_FORMS == data.TIPO_ROTA && x.FIXA == data.FIXA).FirstOrDefault();
+        //        if (rota.Equals("Rota Cruzada"))
+        //        {
+        //            check = CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => x.CARGO == data.CARGO &&
+        //            x.ID_CRIADOR == matricula &&
+        //            x.TP_FORMS == data.TIPO_ROTA && x.FIXA == data.FIXA).FirstOrDefault();
 
-                    if (check != null)
-                    {
-                        var maxcaderno = (int)(CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => x.CARGO == data.CARGO && x.ID_CRIADOR == matricula && x.TP_FORMS == "Rota Cruzada" && x.FIXA == data.FIXA)
-                            .Select(y => y.CADERNO)
-                        .Max());
+        //            if (check != null)
+        //            {
+        //                var maxcaderno = (int)(CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => x.CARGO == data.CARGO && x.ID_CRIADOR == matricula && x.TP_FORMS == "Rota Cruzada" && x.FIXA == data.FIXA)
+        //                    .Select(y => y.CADERNO)
+        //                .Max());
 
-                        var datafinal = CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => x.CARGO == data.CARGO &&
-                            x.ID_CRIADOR == matricula 
-                            && x.TP_FORMS == "Rota Cruzada"
-                            && x.FIXA == data.FIXA
-                            && x.CADERNO == maxcaderno).Select(x => x.DT_FINALIZACAO).FirstOrDefault(); //vai buscar a ultima prova com os parametros passados
+        //                var datafinal = CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => x.CARGO == data.CARGO &&
+        //                    x.ID_CRIADOR == matricula 
+        //                    && x.TP_FORMS == "Rota Cruzada"
+        //                    && x.FIXA == data.FIXA
+        //                    && x.CADERNO == maxcaderno).Select(x => x.DT_FINALIZACAO).FirstOrDefault(); //vai buscar a ultima prova com os parametros passados
 
-                        if (string.IsNullOrEmpty(datafinal))
-                        {
-                            //DateTime.Now > Convert.ToDateTime(datafinal)
-                            //significa que o formulário está finalizado
-                            return "403";
-                        }
+        //                if (string.IsNullOrEmpty(datafinal))
+        //                {
+        //                    //DateTime.Now > Convert.ToDateTime(datafinal)
+        //                    //significa que o formulário está finalizado
+        //                    return "403";
+        //                }
 
-                        proximocaderno = maxcaderno + 1;
-                    }
-                    else
-                    {
-                        proximocaderno = 1;
-                    }
+        //                proximocaderno = maxcaderno + 1;
+        //            }
+        //            else
+        //            {
+        //                proximocaderno = 1;
+        //            }
 
 
-                    for (int i = 0; i < data.Temas.Count; i++)
-                    {
-                        var tema = data.Temas[i].Tema;
-                        var qtdtema = data.Temas[i].Qtd_Pergunta;
-                        List<JORNADA_BD_QUESTION> jornadaQuestion;
-                        Random rnd = new Random();
-                        if (check != null) // Sele for encontrado algum caderno do tipo escolhido
-                        {
-                            var questaorepetida = CD.JORNADA_BD_QUESTION_HISTORICOs //  pega todos as questões  que já passaram
-                                .Where(x => x.CARGO == data.CARGO)
-                                .Where(x => (data.FIXA == "NAO" ? x.FIXA == data.FIXA : x.FIXA != null))
-                                .Where(x => x.TP_FORMS == "Rota Cruzada")
-                                .Where(x => x.ID_CRIADOR == matricula)
-                                .Select(y => y.ID_QUESTION)
-                                .ToList();
+        //            for (int i = 0; i < data.Temas.Count; i++)
+        //            {
+        //                var tema = data.Temas[i].Tema;
+        //                var qtdtema = data.Temas[i].Qtd_Pergunta;
+        //                List<JORNADA_BD_QUESTION> jornadaQuestion;
+        //                Random rnd = new Random();
+        //                if (check != null) // Sele for encontrado algum caderno do tipo escolhido
+        //                {
+        //                    var questaorepetida = CD.JORNADA_BD_QUESTION_HISTORICOs //  pega todos as questões  que já passaram
+        //                        .Where(x => x.CARGO == data.CARGO)
+        //                        .Where(x => (data.FIXA == "NAO" ? x.FIXA == data.FIXA : x.FIXA != null))
+        //                        .Where(x => x.TP_FORMS == "Rota Cruzada")
+        //                        .Where(x => x.ID_CRIADOR == matricula)
+        //                        .Select(y => y.ID_QUESTION)
+        //                        .ToList();
 
-                            jornadaQuestion = CD.JORNADA_BD_QUESTIONs  //Gera um formulário novo em que não se repete nenhum as questões já passadas
-                                .Where(y => y.TP_FORMS == "Rota Cruzada")
-                                .Where(x => x.CARGO == data.CARGO)
-                                .Where(k => k.TEMA == tema)
-                                .GroupBy(x => x.PERGUNTA).Select(x => x.FirstOrDefault()).ToList()
-                                .Where(x => (data.FIXA == "NAO" ? x.FIXA == data.FIXA : x.FIXA != null))
-                            .Where(k => !questaorepetida.Contains(k.ID_QUESTION))
-                                .Take(qtdtema)
-                                .ToList();
+        //                    jornadaQuestion = CD.JORNADA_BD_QUESTIONs  //Gera um formulário novo em que não se repete nenhum as questões já passadas
+        //                        .Where(y => y.TP_FORMS == "Rota Cruzada")
+        //                        .Where(x => x.CARGO == data.CARGO)
+        //                        .Where(k => k.TEMA == tema)
+        //                        .GroupBy(x => x.PERGUNTA).Select(x => x.FirstOrDefault()).ToList()
+        //                        .Where(x => (data.FIXA == "NAO" ? x.FIXA == data.FIXA : x.FIXA != null))
+        //                    .Where(k => !questaorepetida.Contains(k.ID_QUESTION))
+        //                        .Take(qtdtema)
+        //                        .ToList();
 
-                            if (jornadaQuestion.Count() < qtdtema) // se não houver questões no banco suficiente para o que foi requisitado
-                            {
-                                jornadaQuestion = CD.JORNADA_BD_QUESTIONs.Where(y => y.TP_FORMS == "Rota Cruzada")
-                                    .Where(k => k.TEMA == tema)
-                                    .GroupBy(x => x.PERGUNTA).Select(x => x.FirstOrDefault()).ToList()
-                                    .Where(k => k.CARGO == data.CARGO)
-                                    .Where(k => (data.FIXA == "NAO" ? k.FIXA == data.FIXA : k.FIXA != null))
-                                    .Where(y => !jornadaQuestion.Select(p => p.ID_QUESTION).Contains(y.ID_QUESTION))
-                                    .Take(qtdtema)
-                                    .ToList();
+        //                    if (jornadaQuestion.Count() < qtdtema) // se não houver questões no banco suficiente para o que foi requisitado
+        //                    {
+        //                        jornadaQuestion = CD.JORNADA_BD_QUESTIONs.Where(y => y.TP_FORMS == "Rota Cruzada")
+        //                            .Where(k => k.TEMA == tema)
+        //                            .GroupBy(x => x.PERGUNTA).Select(x => x.FirstOrDefault()).ToList()
+        //                            .Where(k => k.CARGO == data.CARGO)
+        //                            .Where(k => (data.FIXA == "NAO" ? k.FIXA == data.FIXA : k.FIXA != null))
+        //                            .Where(y => !jornadaQuestion.Select(p => p.ID_QUESTION).Contains(y.ID_QUESTION))
+        //                            .Take(qtdtema)
+        //                            .ToList();
 
-                                if (jornadaQuestion.Count() < qtdtema)
-                                {
-                                    var diferenca = qtdtema - jornadaQuestion.Count();
+        //                        if (jornadaQuestion.Count() < qtdtema)
+        //                        {
+        //                            var diferenca = qtdtema - jornadaQuestion.Count();
 
-                                    jornadaQuestion.AddRange(jornadaQuestion = CD.JORNADA_BD_QUESTIONs.AsEnumerable()
-                                .Where(k => k.TP_FORMS == "Rota Cruzada")
-                                .Where(y => y.CARGO == data.CARGO)
-                                .Where(t => t.TEMA == tema)
-                                .Where(g => (data.FIXA == "NAO" ? g.FIXA == data.FIXA : g.FIXA != null))
-                                .GroupBy(x => x.PERGUNTA).Select(x => x.FirstOrDefault()).ToList()
-                                .Take(diferenca)
-                                .ToList());
-                                }
-                            }
-                        }
-                        else
-                        {
-                            jornadaQuestion = CD.JORNADA_BD_QUESTIONs.AsEnumerable()
-                                .Where(k => k.TP_FORMS == "Rota Cruzada")
-                                .Where(y => y.CARGO == data.CARGO)
-                                .Where(t => t.TEMA == tema)
-                                .Where(g => (data.FIXA == "NAO" ? g.FIXA == data.FIXA : g.FIXA != null))
-                                .GroupBy(x => x.PERGUNTA).Select(x => x.FirstOrDefault()).ToList()
-                                .Take(qtdtema)
-                                .ToList();
-                        }
-                        foreach (JORNADA_BD_QUESTION item in jornadaQuestion)
-                        {
-                            Formulario.Add(item);
-                        }
-                    }
-                }
-                else // Caso seja Jornada
-                { // Este looping faz o mesmo mas sem o parametro de matricula
-                    check = CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => x.CARGO == data.CARGO && x.FIXA == data.FIXA && x.TP_FORMS == "Jornada").FirstOrDefault();
-                    if (check != null)
-                    {
-                        proximocaderno = (int)(CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => x.CARGO == data.CARGO && x.FIXA == data.FIXA && x.TP_FORMS == "Jornada").Select(y => y.CADERNO).Max() + 1);
-                    }
-                    else
-                    {
-                        proximocaderno = 1;
-                    }
+        //                            jornadaQuestion.AddRange(jornadaQuestion = CD.JORNADA_BD_QUESTIONs.AsEnumerable()
+        //                        .Where(k => k.TP_FORMS == "Rota Cruzada")
+        //                        .Where(y => y.CARGO == data.CARGO)
+        //                        .Where(t => t.TEMA == tema)
+        //                        .Where(g => (data.FIXA == "NAO" ? g.FIXA == data.FIXA : g.FIXA != null))
+        //                        .GroupBy(x => x.PERGUNTA).Select(x => x.FirstOrDefault()).ToList()
+        //                        .Take(diferenca)
+        //                        .ToList());
+        //                        }
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    jornadaQuestion = CD.JORNADA_BD_QUESTIONs.AsEnumerable()
+        //                        .Where(k => k.TP_FORMS == "Rota Cruzada")
+        //                        .Where(y => y.CARGO == data.CARGO)
+        //                        .Where(t => t.TEMA == tema)
+        //                        .Where(g => (data.FIXA == "NAO" ? g.FIXA == data.FIXA : g.FIXA != null))
+        //                        .GroupBy(x => x.PERGUNTA).Select(x => x.FirstOrDefault()).ToList()
+        //                        .Take(qtdtema)
+        //                        .ToList();
+        //                }
+        //                foreach (JORNADA_BD_QUESTION item in jornadaQuestion)
+        //                {
+        //                    Formulario.Add(item);
+        //                }
+        //            }
+        //        }
+        //        else // Caso seja Jornada
+        //        { // Este looping faz o mesmo mas sem o parametro de matricula
+        //            check = CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => x.CARGO == data.CARGO && x.FIXA == data.FIXA && x.TP_FORMS == "Jornada").FirstOrDefault();
+        //            if (check != null)
+        //            {
+        //                proximocaderno = (int)(CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => x.CARGO == data.CARGO && x.FIXA == data.FIXA && x.TP_FORMS == "Jornada").Select(y => y.CADERNO).Max() + 1);
+        //            }
+        //            else
+        //            {
+        //                proximocaderno = 1;
+        //            }
 
-                    for (int i = 0; i < data.Temas.Count; i++)
-                    {
-                        var tema = data.Temas[i].Tema;
-                        var qtdtema = data.Temas[i].Qtd_Pergunta;
-                        List<JORNADA_BD_QUESTION> jornadaQuestion;
-                        if (check != null)
-                        {
+        //            for (int i = 0; i < data.Temas.Count; i++)
+        //            {
+        //                var tema = data.Temas[i].Tema;
+        //                var qtdtema = data.Temas[i].Qtd_Pergunta;
+        //                List<JORNADA_BD_QUESTION> jornadaQuestion;
+        //                if (check != null)
+        //                {
 
-                            var questaorepetida = CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => x.CARGO == data.CARGO && x.FIXA == data.FIXA && x.TP_FORMS == "Jornada").Select(y => y.ID_QUESTION).ToList();
+        //                    var questaorepetida = CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => x.CARGO == data.CARGO && x.FIXA == data.FIXA && x.TP_FORMS == "Jornada").Select(y => y.ID_QUESTION).ToList();
 
-                            jornadaQuestion = CD.JORNADA_BD_QUESTIONs.Where(x => x.TP_FORMS == "Jornada" && x.CARGO == data.CARGO).GroupBy(x => new { x.PERGUNTA }).Select(x => x.FirstOrDefault())
-                                .Where(y => data.FIXA == "NAO" ? y.FIXA == data.FIXA : y.FIXA != null)
-                                .Where(y => y.TEMA == tema)
-                                .Where(y => !questaorepetida.Contains(y.ID_QUESTION))
-                                .Take(qtdtema).ToList();
+        //                    jornadaQuestion = CD.JORNADA_BD_QUESTIONs.Where(x => x.TP_FORMS == "Jornada" && x.CARGO == data.CARGO).GroupBy(x => new { x.PERGUNTA }).Select(x => x.FirstOrDefault())
+        //                        .Where(y => data.FIXA == "NAO" ? y.FIXA == data.FIXA : y.FIXA != null)
+        //                        .Where(y => y.TEMA == tema)
+        //                        .Where(y => !questaorepetida.Contains(y.ID_QUESTION))
+        //                        .Take(qtdtema).ToList();
 
-                            if (jornadaQuestion.Count() < qtdtema) // Se a quantidade máxima de perguntas para os formulários do responsavel chegou o limite
-                            {
-                                jornadaQuestion =
-                                    CD.JORNADA_BD_QUESTIONs
-                                    .Where(x => x.TP_FORMS == "Jornada")
-                                    .Where(x => x.CARGO == data.CARGO)
-                                    .GroupBy(x => x.PERGUNTA).Select(x => x.FirstOrDefault()).ToList()
-                                .Where(k => (data.FIXA == "NAO" ? k.FIXA == data.FIXA : k.FIXA != null))
-                                .Where(k => k.TEMA == tema)
-                                .Where(y => !jornadaQuestion.Select(p => p.ID_QUESTION).Contains(y.ID_QUESTION))
-                                .Take(qtdtema)
-                                .ToList();
+        //                    if (jornadaQuestion.Count() < qtdtema) // Se a quantidade máxima de perguntas para os formulários do responsavel chegou o limite
+        //                    {
+        //                        jornadaQuestion =
+        //                            CD.JORNADA_BD_QUESTIONs
+        //                            .Where(x => x.TP_FORMS == "Jornada")
+        //                            .Where(x => x.CARGO == data.CARGO)
+        //                            .GroupBy(x => x.PERGUNTA).Select(x => x.FirstOrDefault()).ToList()
+        //                        .Where(k => (data.FIXA == "NAO" ? k.FIXA == data.FIXA : k.FIXA != null))
+        //                        .Where(k => k.TEMA == tema)
+        //                        .Where(y => !jornadaQuestion.Select(p => p.ID_QUESTION).Contains(y.ID_QUESTION))
+        //                        .Take(qtdtema)
+        //                        .ToList();
 
-                                if (jornadaQuestion.Count() < qtdtema)
-                                {
-                                    var diferenca = qtdtema - jornadaQuestion.Count();
+        //                        if (jornadaQuestion.Count() < qtdtema)
+        //                        {
+        //                            var diferenca = qtdtema - jornadaQuestion.Count();
 
-                                    jornadaQuestion.AddRange(jornadaQuestion = CD.JORNADA_BD_QUESTIONs.AsEnumerable()
-                                    .Where(k => k.TP_FORMS == "Jornada")
-                                    .Where(y => y.CARGO == data.CARGO)
-                                    .Where(t => t.TEMA == tema)
-                                    .Where(g => (data.FIXA == "NAO" ? g.FIXA == data.FIXA : g.FIXA != null))
-                                    .GroupBy(x => x.PERGUNTA).Select(x => x.FirstOrDefault()).ToList()
-                                    .Take(diferenca)
-                                    .ToList());
-                                }
-                            }
-                        }
-                        else
-                        {
-                            jornadaQuestion = CD.JORNADA_BD_QUESTIONs.Where(y => y.TP_FORMS == "Jornada" && y.CARGO == data.CARGO)
-                                .GroupBy(x => x.PERGUNTA).Select(x => x.FirstOrDefault()).ToList()
-                                .Where(k => (data.FIXA == "NAO") ? k.FIXA == data.FIXA : k.FIXA != null && k.TEMA == tema)
-                                .Take(qtdtema)
-                                .ToList();
-                        }
-                        foreach (JORNADA_BD_QUESTION item in jornadaQuestion)
-                        {
-                            Formulario.Add(item);
-                        }
-                    }
-                }
+        //                            jornadaQuestion.AddRange(jornadaQuestion = CD.JORNADA_BD_QUESTIONs.AsEnumerable()
+        //                            .Where(k => k.TP_FORMS == "Jornada")
+        //                            .Where(y => y.CARGO == data.CARGO)
+        //                            .Where(t => t.TEMA == tema)
+        //                            .Where(g => (data.FIXA == "NAO" ? g.FIXA == data.FIXA : g.FIXA != null))
+        //                            .GroupBy(x => x.PERGUNTA).Select(x => x.FirstOrDefault()).ToList()
+        //                            .Take(diferenca)
+        //                            .ToList());
+        //                        }
+        //                    }
+        //                }
+        //                else
+        //                {
+        //                    jornadaQuestion = CD.JORNADA_BD_QUESTIONs.Where(y => y.TP_FORMS == "Jornada" && y.CARGO == data.CARGO)
+        //                        .GroupBy(x => x.PERGUNTA).Select(x => x.FirstOrDefault()).ToList()
+        //                        .Where(k => (data.FIXA == "NAO") ? k.FIXA == data.FIXA : k.FIXA != null && k.TEMA == tema)
+        //                        .Take(qtdtema)
+        //                        .ToList();
+        //                }
+        //                foreach (JORNADA_BD_QUESTION item in jornadaQuestion)
+        //                {
+        //                    Formulario.Add(item);
+        //                }
+        //            }
+        //        }
 
-                if (Formulario.Count() <= 0 || Formulario is null)
-                {
-                    return "505 -> Não foi encontrado nenhuma pergunta com estes parametros";
-                }
+        //        if (Formulario.Count() <= 0 || Formulario is null)
+        //        {
+        //            return "505 -> Não foi encontrado nenhuma pergunta com estes parametros";
+        //        }
 
-                foreach (var item in Formulario) // Adiciona as perguntas selecionadas a lista que será inserida no banco
-                {
-                    var canal = DeParaDeCanalCargo(data.CARGO);
+        //        foreach (var item in Formulario) // Adiciona as perguntas selecionadas a lista que será inserida no banco
+        //        {
+        //            var canal = DeParaDeCanalCargo(data.CARGO);
 
-                    CD.JORNADA_BD_QUESTION_HISTORICOs.Add(new JORNADA_BD_QUESTION_HISTORICO
-                    {
-                        CANAL = canal,
-                        CARGO = data.CARGO,
-                        DT_CRIACAO = DateTime.Now.ToString(),
-                        ID_CRIADOR = data.MATRICULA,
-                        ID_QUESTION = item.ID_QUESTION,
-                        CADERNO = proximocaderno,
-                        TP_FORMS = item.TP_FORMS,
-                        DT_INICIO_AVALIACAO = data.Data_Aval.ToString(new CultureInfo("pt-BR")),
-                        DT_FINALIZACAO = item.TP_FORMS == "Rota Cruzada" ? null : data.DT_FINALIZACAO.ToString(new CultureInfo("pt-BR")),
-                        FIXA = data.FIXA
-                    });
+        //            CD.JORNADA_BD_QUESTION_HISTORICOs.Add(new JORNADA_BD_QUESTION_HISTORICO
+        //            {
+        //                CANAL = canal,
+        //                CARGO = data.CARGO,
+        //                DT_CRIACAO = DateTime.Now.ToString(),
+        //                ID_CRIADOR = data.MATRICULA,
+        //                ID_QUESTION = item.ID_QUESTION,
+        //                CADERNO = proximocaderno,
+        //                TP_FORMS = item.TP_FORMS,
+        //                DT_INICIO_AVALIACAO = data.Data_Aval.ToString(new CultureInfo("pt-BR")),
+        //                DT_FINALIZACAO = item.TP_FORMS == "Rota Cruzada" ? null : data.DT_FINALIZACAO.ToString(new CultureInfo("pt-BR")),
+        //                FIXA = data.FIXA
+        //            });
 
-                }
-                CD.SaveChanges();
-                return $"200 -> {JsonConvert.SerializeObject(Formulario)}";
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine(ex);
-                return $"505 -> {ex.Message}\n\n{ex.InnerException}\n\n{ex}";
-            }
-        }
+        //        }
+        //        CD.SaveChanges();
+        //        return $"200 -> {JsonConvert.SerializeObject(Formulario)}";
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine(ex);
+        //        return $"505 -> {ex.Message}\n\n{ex.InnerException}\n\n{ex}";
+        //    }
+        //}
     }
 
 

@@ -9,7 +9,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddSignalR().AddAzureSignalR();
+builder.Services.AddSignalR();
 builder.Services.AddHttpClient();
 //builder.Services.AddSingleton<TableDependencyService>();
 
@@ -21,7 +21,7 @@ if (app.Environment.IsDevelopment())
 }
 
 // Configure the HTTP request pipeline.
-
+app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.UseHttpLogging();

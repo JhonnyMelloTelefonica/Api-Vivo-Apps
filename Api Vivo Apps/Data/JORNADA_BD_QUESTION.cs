@@ -17,8 +17,10 @@ namespace Vivo_Apps_API.Data
         public string EXPLICACAO { get; set; }
         public string CANAL { get; set; }
         public string CARGO { get; set; }
-        public string STATUS_QUESTION { get; set; }
-        public string FIXA { get; set; }
+        public bool? STATUS_QUESTION { get; set; }
+        public bool? FIXA { get; set; }
         public string SUB_TEMA { get; set; }
+        public string DT_MOD { get; set; }
+        public string LOGIN_MOD { get; set; }
     }
 }

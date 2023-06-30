@@ -55,6 +55,7 @@ namespace Vivo_Apps_API.Data
         public virtual DbSet<JORNADA_BD_CARGOS_CANAL> JORNADA_BD_CARGOS_CANALs { get; set; }
         public virtual DbSet<JORNADA_BD_QUESTION> JORNADA_BD_QUESTIONs { get; set; }
         public virtual DbSet<JORNADA_BD_QUESTION_HISTORICO> JORNADA_BD_QUESTION_HISTORICOs { get; set; }
+        public virtual DbSet<JORNADA_BD_TEMAS_SUB_TEMA> JORNADA_BD_TEMAS_SUB_TEMAs { get; set; }
         public virtual DbSet<PERFIL_VIVO_TASK> PERFIL_VIVO_TASKs { get; set; }
         public virtual DbSet<SUB_FILA> SUB_FILAs { get; set; }
         public virtual DbSet<TAB_PESSOAS_SUPORTE> TAB_PESSOAS_SUPORTEs { get; set; }
@@ -1583,8 +1584,6 @@ namespace Vivo_Apps_API.Data
                     .HasName("PK__JORNADA___6759B3ED9D446566");
 
                 entity.ToTable("JORNADA_BD_ANSWER_ALTERNATIVAS");
-
-                entity.Property(e => e.STATUS_ALTERNATIVA).HasMaxLength(255);
             });
 
             modelBuilder.Entity<JORNADA_BD_ANSWER_AVALIACAO>(entity =>
@@ -1673,16 +1672,20 @@ namespace Vivo_Apps_API.Data
 
                 entity.Property(e => e.CARGO).HasMaxLength(255);
 
-                entity.Property(e => e.FIXA).IsUnicode(false);
+                entity.Property(e => e.DT_MOD)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.LOGIN_MOD)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
 
                 entity.Property(e => e.PERGUNTA).IsUnicode(false);
 
                 entity.Property(e => e.RESPOSTA_CORRETA).IsUnicode(false);
 
-                entity.Property(e => e.STATUS_QUESTION).HasMaxLength(255);
-
                 entity.Property(e => e.SUB_TEMA)
-                    .HasMaxLength(1)
+                    .HasMaxLength(100)
                     .IsUnicode(false);
 
                 entity.Property(e => e.TEMA).HasMaxLength(255);
@@ -1714,6 +1717,22 @@ namespace Vivo_Apps_API.Data
                 entity.Property(e => e.ID_CRIADOR).HasMaxLength(255);
 
                 entity.Property(e => e.TP_FORMS).IsUnicode(false);
+            });
+
+            modelBuilder.Entity<JORNADA_BD_TEMAS_SUB_TEMA>(entity =>
+            {
+                entity.HasKey(e => e.ID_SUB_TEMAS)
+                    .HasName("PK__JORNADA___DE5581391EF734BB");
+
+                entity.ToTable("JORNADA_BD_TEMAS_SUB_TEMAS");
+
+                entity.Property(e => e.SUB_TEMAS)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.TEMAS)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
             });
 
             modelBuilder.Entity<PERFIL_VIVO_TASK>(entity =>
