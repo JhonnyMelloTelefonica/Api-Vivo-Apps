@@ -33,10 +33,12 @@ namespace Vivo_Apps_API.Controllers
             {
                 string cargos = string.Join(";", question.CARGO);
                 List<string> canaislista = new();
+
                 foreach (var item in question.CARGO)
                 {
                     canaislista.Add(((int)DePara.CanalCargoEnum((Cargos)item)).ToString());
                 }
+
                 string canais = string.Join(";", canaislista.Distinct());
                 string TP_FORMS = string.Join(";", question.TP_FORMS);
 

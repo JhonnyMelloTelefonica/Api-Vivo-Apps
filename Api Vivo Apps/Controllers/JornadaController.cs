@@ -37,14 +37,9 @@ namespace Vivo_Apps_API.Controllers
                 string selectTopics = "select * FROM CNS_BASE_TERCEIROS_SAP_GT";
                 var dataTable = new DataTable();
                 List<BASE_SAP_GT> list = new List<BASE_SAP_GT>();
-                // Define the ADO.NET Objects
+                
                 using (SqlConnection con = new SqlConnection(CD.Database.GetConnectionString()))
                 {
-                    //    SqlCommand topiccmd = new SqlCommand(selectTopics, con);
-                    //    con.Open();
-                    //    var numros = topiccmd.ExecuteReader();
-                    //    con.Close();
-                    //}
                     SqlCommand cmd = new SqlCommand();
 
 
@@ -179,29 +174,29 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
-        [HttpPost("FinalizarForm")]
-        public string FinalizarForm(FinalizarForm data)
-        {
-            try
-            {
-                IEnumerable<int> Ids = CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => x.ID_CRIADOR == data.ID_CRIADOR
-                && x.FIXA == data.FIXA
-                && x.CARGO == data.CARGO
-                && x.TP_FORMS == data.TP_FORMS
-                && x.CADERNO == data.CADERNO).Select(x => x.ID_PROVA).AsEnumerable();
-                foreach (var item in CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => Ids.Contains(x.ID_PROVA)))
-                {
-                    item.DT_FINALIZACAO = DateTime.Now.ToString();
-                }
-                CD.SaveChanges();
+        //[HttpPost("FinalizarForm")]
+        //public string FinalizarForm(FinalizarForm data)
+        //{
+        //    try
+        //    {
+        //        IEnumerable<int> Ids = CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => x.ID_CRIADOR == data.ID_CRIADOR
+        //        && x.FIXA == data.FIXA
+        //        && x.CARGO == data.CARGO
+        //        && x.TP_FORMS == data.TP_FORMS
+        //        && x.CADERNO == data.CADERNO).Select(x => x.ID_PROVA).AsEnumerable();
+        //        foreach (var item in CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => Ids.Contains(x.ID_PROVA)))
+        //        {
+        //            item.DT_FINALIZACAO = DateTime.Now.ToString();
+        //        }
+        //        CD.SaveChanges();
 
-                return $"Tudo Certo -> {Ids}";
-            }
-            catch (Exception ex)
-            {
-                return $"Algum erro ocorreu log: {ex.Message} -------- {ex.ToString()}";
-            }
-        }
+        //        return $"Tudo Certo -> {Ids}";
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return $"Algum erro ocorreu log: {ex.Message} -------- {ex.ToString()}";
+        //    }
+        //}
 
         [HttpGet("GetDataQuestions")]
         public string GetDataQuestions()
@@ -253,50 +248,52 @@ namespace Vivo_Apps_API.Controllers
         }
 
 
-        [HttpPost("GetFormJornada")]
-        public string GetFormJornada([FromBody] FormDisponivelJornada data)
-        {
-            try
-            {
-                var actual = DateTime.Now;
-                var maxcaderno = CD.JORNADA_BD_QUESTION_HISTORICOs // Buscar o caderno maximo baseado nos parametros
-                .Where(y => y.TP_FORMS == "Jornada"
-                && y.CARGO == data.CARGO
-                && y.FIXA == data.FIXA)
-                .Max(y => y.CADERNO);
+        //[HttpPost("GetFormJornada")]
+        //public string GetFormJornada([FromBody] FormDisponivelJornada data)
+        //{
+        //    try
+        //    {
+        //        var actual = DateTime.Now;
+        //        var maxcaderno = CD.JORNADA_BD_QUESTION_HISTORICOs // Buscar o caderno maximo baseado nos parametros
+        //        .Where(y => y.TP_FORMS == "Jornada"
+        //        && y.CARGO == data.CARGO
+        //        && y.FIXA == data.FIXA)
+        //        .Max(y => y.CADERNO);
 
-                var questions = CD.JORNADA_BD_QUESTION_HISTORICOs
-                .Where(x => x.TP_FORMS == "Jornada"
-                && x.CARGO == data.CARGO
-                && x.FIXA == data.FIXA
-                && x.CADERNO == maxcaderno).ToList();
+        //        var questions = CD.JORNADA_BD_QUESTION_HISTORICOs
+        //        .Where(x => x.TP_FORMS == "Jornada"
+        //        && x.CARGO == data.CARGO
+        //        && x.FIXA == data.FIXA
+        //        && x.CADERNO == maxcaderno).ToList();
 
-                questions = questions.Where(x => Convert.ToDateTime(x.DT_FINALIZACAO) > actual && Convert.ToDateTime(x.DT_INICIO_AVALIACAO) < DateTime.Now).ToList();
+        //        questions = questions.Where(x => Convert.ToDateTime(x.DT_FINALIZACAO) > actual && Convert.ToDateTime(x.DT_INICIO_AVALIACAO) < DateTime.Now).ToList();
 
-                var resposta = CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
-                    .Where(x => x.PUBLICO_CARGO == data.CARGO
-                    && x.CADERNO == maxcaderno.ToString()
-                    && x.MATRICULA_APLICADOR == data.MATRICULA
-                    && x.TP_FORMS == "Jornada");
+        //        var resposta = CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
+        //            .Where(x => x.PUBLICO_CARGO == data.CARGO
+        //            && x.CADERNO == maxcaderno.ToString()
+        //            && x.MATRICULA_APLICADOR == data.MATRICULA
+        //            && x.TP_FORMS == "Jornada");
 
-                if (resposta.Count() > 0)
-                {
-                    return "[]";
-                }
-                else
-                {
-                    return JsonConvert.SerializeObject(questions);
-                }
-            }
-            catch (Exception ex)
-            {
+        //        if (resposta.Count() > 0)
+        //        {
+        //            return "[]";
+        //        }
+        //        else
+        //        {
+        //            return JsonConvert.SerializeObject(questions);
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
 
-                return $"500 -> {ex.Message} ----------------- {ex.ToString()}";
-            }
-        }
+        //        return $"500 -> {ex.Message} ----------------- {ex.ToString()}";
+        //    }
+        //}
 
         [HttpGet("GetAllRotaByMAT")]
-        public string GetAllRotaByMAT(string matricula) => JsonConvert.SerializeObject(CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => x.TP_FORMS == "Rota Cruzada" && x.ID_CRIADOR == matricula && x.DT_FINALIZACAO == null));
+        public string GetAllRotaByMAT(string matricula) => 
+            JsonConvert.SerializeObject(CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => x.TP_FORMS == "Rota Cruzada" && x.ID_CRIADOR == matricula && x.DT_FINALIZACAO == null));
+
         [HttpPost("GetFormulario")]
         public string GetFormulario([FromBody] IEnumerable<int> Questions)
         {
@@ -317,62 +314,6 @@ namespace Vivo_Apps_API.Controllers
                 ALTERNATIVAS = CD.JORNADA_BD_ANSWER_ALTERNATIVAs.Where(y => y.ID_QUESTION == x.ID_QUESTION).AsEnumerable(),
             }).ToList();
             return JsonConvert.SerializeObject(questions);
-        }
-        private string DeParaDeCanalCargo(string cargo)
-        {
-            switch (cargo)
-            {
-                case "Guru":
-
-                    return "Loja Própria";
-
-                case "GGP":
-
-                    return "MultCanal";
-
-                case "Gerente Geral":
-
-                    return "Loja Própria";
-
-                case "GA":
-
-                    return "MultCanal";
-
-                case "GO":
-
-                    return "Loja Própria";
-
-                case "Supervisor PAP":
-
-                    return "PAP";
-
-                case "Vendedor PAP":
-
-                    return "PAP";
-
-                case "Gerente de Revenda":
-
-                    return "Revenda";
-
-                case "Vendedor Revenda":
-
-                    return "Revenda";
-
-                case "CN":
-
-                    return "Loja Própria";
-
-                case "Vendas_Adm":
-
-                    return "Adm_Consumer";
-
-                case "Adm_Consumer":
-
-                    return "Adm_Consumer";
-
-                default:
-                    return "";
-            }
         }
         //[HttpPost("GerarNovoFormulario")]
         //public string GerarNovoFormulario([FromBody] Form data)
@@ -399,7 +340,7 @@ namespace Vivo_Apps_API.Controllers
         //                .Max());
 
         //                var datafinal = CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => x.CARGO == data.CARGO &&
-        //                    x.ID_CRIADOR == matricula 
+        //                    x.ID_CRIADOR == matricula
         //                    && x.TP_FORMS == "Rota Cruzada"
         //                    && x.FIXA == data.FIXA
         //                    && x.CADERNO == maxcaderno).Select(x => x.DT_FINALIZACAO).FirstOrDefault(); //vai buscar a ultima prova com os parametros passados

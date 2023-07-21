@@ -56,6 +56,8 @@ namespace Vivo_Apps_API.Data
         public virtual DbSet<JORNADA_BD_QUESTION> JORNADA_BD_QUESTIONs { get; set; }
         public virtual DbSet<JORNADA_BD_QUESTION_HISTORICO> JORNADA_BD_QUESTION_HISTORICOs { get; set; }
         public virtual DbSet<JORNADA_BD_TEMAS_SUB_TEMA> JORNADA_BD_TEMAS_SUB_TEMAs { get; set; }
+        public virtual DbSet<PERFIL_PLATAFORMAS_VIVO> PERFIL_PLATAFORMAS_VIVOs { get; set; }
+        public virtual DbSet<PERFIL_USUARIO> PERFIL_USUARIOs { get; set; }
         public virtual DbSet<PERFIL_VIVO_TASK> PERFIL_VIVO_TASKs { get; set; }
         public virtual DbSet<SUB_FILA> SUB_FILAs { get; set; }
         public virtual DbSet<TAB_PESSOAS_SUPORTE> TAB_PESSOAS_SUPORTEs { get; set; }
@@ -1712,8 +1714,6 @@ namespace Vivo_Apps_API.Data
 
                 entity.Property(e => e.DT_INICIO_AVALIACAO).IsUnicode(false);
 
-                entity.Property(e => e.FIXA).IsUnicode(false);
-
                 entity.Property(e => e.ID_CRIADOR).HasMaxLength(255);
 
                 entity.Property(e => e.TP_FORMS).IsUnicode(false);
@@ -1732,6 +1732,45 @@ namespace Vivo_Apps_API.Data
 
                 entity.Property(e => e.TEMAS)
                     .HasMaxLength(255)
+                    .IsUnicode(false);
+            });
+
+            modelBuilder.Entity<PERFIL_PLATAFORMAS_VIVO>(entity =>
+            {
+                entity.HasKey(e => e.ID_PERFIL)
+                    .HasName("PK__PERFIL_P__90BDE809D056135B");
+
+                entity.ToTable("PERFIL_PLATAFORMAS_VIVO");
+
+                entity.Property(e => e.Perfil)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.obs).IsUnicode(false);
+            });
+
+            modelBuilder.Entity<PERFIL_USUARIO>(entity =>
+            {
+                entity.ToTable("PERFIL_USUARIO");
+
+                entity.Property(e => e.DT_MOD)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.LOGIN_MOD)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Login)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.PLATAFORMA)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.Perfil)
+                    .HasMaxLength(100)
                     .IsUnicode(false);
             });
 

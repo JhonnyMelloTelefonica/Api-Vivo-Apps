@@ -25,5 +25,6 @@ namespace Vivo_Apps_API.Data
         public byte[] UserAvatar { get; set; }
         public string LOGIN_MOD { get; set; }
         public string DT_MOD { get; set; }
+        public int? ID_Perfil_Usuario { get; set; }
     }
 }

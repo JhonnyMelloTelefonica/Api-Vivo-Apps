@@ -171,6 +171,14 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[PERFIL_PLATAFORMAS_VIVO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PERFIL_USUARIO]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[PERFIL_VIVO_TASK]",
          "ObjectType": 0
       },

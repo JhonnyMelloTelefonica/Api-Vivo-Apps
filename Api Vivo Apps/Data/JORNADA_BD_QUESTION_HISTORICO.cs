@@ -17,6 +17,6 @@ namespace Vivo_Apps_API.Data
         public string TP_FORMS { get; set; }
         public string DT_INICIO_AVALIACAO { get; set; }
         public string DT_FINALIZACAO { get; set; }
-        public string FIXA { get; set; }
+        public bool? FIXA { get; set; }
     }
 }

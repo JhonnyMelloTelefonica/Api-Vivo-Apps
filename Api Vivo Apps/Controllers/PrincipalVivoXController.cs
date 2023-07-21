@@ -65,49 +65,11 @@ namespace Vivo_Apps_API.Controllers
                 });
             }
         }
-
         [HttpGet("GetUserByMatricula")]
         public JsonResult GetUserByMatricula(string matricula)
         {
-            AcessoVivoMaisModel user = _context.ACESSOs.Where(x => x.Login == matricula)
-                .Select(y => new AcessoVivoMaisModel
-                {
-                    idAcesso = y.idAcesso,
-                    Login = y.Login,
-                    Nome = y.Nome,
-                    Email = y.Email,
-                    Regional = y.Regional,
-                    Senha = y.Senha,
-                    Imagem = y.Imagem,
-                    Status = y.Status,
-                    Primeiro_Acesso = y.Primeiro_Acesso,
-                    ACESSO_PERMISSAO_MENU = _context.ACESSO_PERMISSAO_MENUs.Where(x => x.idAcesso == y.idAcesso).FirstOrDefault()
-                }).FirstOrDefault();
-            if (user is not null)
-            {
-                return new JsonResult(new Response<AcessoVivoMaisModel>
-                {
-                    Data = user,
-                    Succeeded = true,
-                    Errors = null,
-                    Message = "Usuário Encontrado"
-                });
-            }
-            else
-            {
-                return new JsonResult(new Response<string>
-                {
-                    Data = "Erro ao encontrar usuário",
-                    Succeeded = false,
-                    Message = "Não foi encontrado nenhum usuário com esta matricula"
-                });
-            }
-        }
-        [HttpGet("GetUserTaskByMatricula")]
-        public JsonResult GetUserTaskByMatricula(string matricula)
-        {
-            AcessoVivoTaskModel user = _context.ACESSOS_MOBILEs.Where(x => x.MATRICULA == matricula)
-                .Select(y => new AcessoVivoTaskModel
+            AcessoModel user = _context.ACESSOS_MOBILEs.Where(x => x.MATRICULA == matricula)
+                .Select(y => new AcessoModel
                 {
                     ID = y.ID,
                     EMAIL = y.EMAIL,
@@ -126,11 +88,19 @@ namespace Vivo_Apps_API.Controllers
                     OBS = y.OBS,
                     UserAvatar = y.UserAvatar,
                     LOGIN_MOD = y.LOGIN_MOD,
-                    DT_MOD = y.DT_MOD
+                    DT_MOD = y.DT_MOD,
+                    Perfil = _context.PERFIL_USUARIOs.Where(x => x.ID == y.ID_Perfil_Usuario).Select(k => new Perfil
+                    {
+                        ID = k.ID,
+                        Cargo = k.Cargo,
+                        Login = k.Login,
+                        PLATAFORMA = k.PLATAFORMA,
+                        Perfil_Plataforma = _context.PERFIL_PLATAFORMAS_VIVOs.Where(p=>p.ID_PERFIL == k.id_Perfil).First()
+                    }).AsEnumerable()
                 }).FirstOrDefault();
             if (user is not null)
             {
-                return new JsonResult(new Response<AcessoVivoTaskModel>
+                return new JsonResult(new Response<AcessoModel>
                 {
                     Data = user,
                     Succeeded = true,
@@ -177,8 +147,7 @@ namespace Vivo_Apps_API.Controllers
                                         .Where(s => s.ID_STATUS_CHAMADO == c.ID_STATUS_CHAMADO)
                                         .OrderByDescending(s => s.DATA)
                                         .Select(s => s.STATUS)
-                                        .FirstOrDefault()
-                                ));
+                                        .FirstOrDefault()));
                 }
                 if (filter.tipo_fila.Any())
                 {

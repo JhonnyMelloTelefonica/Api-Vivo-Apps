@@ -3,7 +3,7 @@ using Vivo_Apps_API.Enums;
 
 namespace Vivo_Apps_API.Models
 {
-    public class AcessoVivoTaskModel
+    public class AcessoModel
     {
         public int ID { get; set; }
         public string EMAIL { get; set; }
@@ -23,11 +23,10 @@ namespace Vivo_Apps_API.Models
         public byte[] UserAvatar { get; set; }
         public string LOGIN_MOD { get; set; }
         public string DT_MOD { get; set; }
+        public IEnumerable<Perfil> Perfil { get; set; }
         public bool IsSuporte()
         {
-            if (CARGO.HasFlag(Cargos.Coordenador_Suporte_Vendas) 
-                || CARGO.HasFlag(Cargos.Diretora)
-                )
+            if (this.Perfil.Any(x => x.Perfil_Plataforma.ID_PERFIL == 1))
             {
                 return true;
             }
