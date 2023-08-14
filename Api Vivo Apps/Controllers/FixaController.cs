@@ -2,7 +2,7 @@
 using DataTable = System.Data.DataTable;
 using System.Data;
 using Vivo_Apps_API.Models;
-using Vivo_Apps_API.Data;
+using Api_Vivo_Apps.Data;
 using System.Data.SqlClient;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;

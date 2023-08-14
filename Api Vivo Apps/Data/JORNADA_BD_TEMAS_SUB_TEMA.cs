@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Vivo_Apps_API.Data
+namespace Api_Vivo_Apps.Data
 {
     public partial class JORNADA_BD_TEMAS_SUB_TEMA
     {

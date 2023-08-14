@@ -1,6 +1,6 @@
 ﻿
 using Microsoft.AspNetCore.SignalR;
-using Vivo_Apps_API.Data;
+using Api_Vivo_Apps.Data;
 
 namespace Vivo_Apps_API.Hubs
 {

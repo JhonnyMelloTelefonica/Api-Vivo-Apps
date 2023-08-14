@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Data.Entity;
 using TableDependency.SqlClient;
 using TableDependency.SqlClient.Base.EventArgs;
-using Vivo_Apps_API.Data;
+using Api_Vivo_Apps.Data;
 using Vivo_Apps_API.Hubs;
 
 namespace Vivo_Apps_API

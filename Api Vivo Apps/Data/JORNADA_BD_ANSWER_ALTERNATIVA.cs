@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Vivo_Apps_API.Data
+namespace Api_Vivo_Apps.Data
 {
     public partial class JORNADA_BD_ANSWER_ALTERNATIVA
     {
@@ -11,7 +11,7 @@ namespace Vivo_Apps_API.Data
         public string ALTERNATIVA { get; set; }
         public int? ID_QUESTION { get; set; }
         public bool? STATUS_ALTERNATIVA { get; set; }
-        public int? PESO { get; set; }
+        public double? PESO { get; set; }
         public bool? RESPOSTA_CORRETA { get; set; }
     }
 }

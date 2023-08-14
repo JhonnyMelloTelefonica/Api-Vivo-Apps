@@ -8,6 +8,5 @@
         public required string REGIONAL { get; set; }
         public string? UF { get; set; }
         public string? DT_SOLICITACAO { get; set; }
-
     }
 }

@@ -3,16 +3,13 @@
 using System;
 using System.Collections.Generic;
 
-namespace Vivo_Apps_API.Data
+namespace Api_Vivo_Apps.Data
 {
     public partial class PERFIL_USUARIO
     {
         public int ID { get; set; }
         public string Login { get; set; }
-        public string PLATAFORMA { get; set; }
-        public int? Cargo { get; set; }
         public int? id_Perfil { get; set; }
-        public string Perfil { get; set; }
         public string DT_MOD { get; set; }
         public string LOGIN_MOD { get; set; }
     }

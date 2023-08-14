@@ -5,7 +5,7 @@ using System.Globalization;
 using Vivo_Apps_API.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Vivo_Apps_API.Data;
+using Api_Vivo_Apps.Data;
 using Vivo_Apps_API.Models;
 
 namespace Vivo_Apps_API.Controllers
@@ -105,8 +105,8 @@ namespace Vivo_Apps_API.Controllers
         public string GetProvaById(int id) => JsonConvert.SerializeObject(CD.JORNADA_BD_AVALIACAO_RETORNOs.Where(x => x.ID == id).FirstOrDefault());
         [HttpPost("GetLoginSenha")]
         public JsonResult GetLoginSenha(string matricula) => new JsonResult(CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA == matricula).FirstOrDefault());
-        [HttpGet("GetListaRoles")]
-        public string GetListaRoles() => JsonConvert.SerializeObject(CD.PERFIL_VIVO_TASKs.AsEnumerable());
+        //[HttpGet("GetListaRoles")]
+        //public string GetListaRoles() => JsonConvert.SerializeObject(CD.PERFIL_Vivo_Xs.AsEnumerable());
 
         [HttpPost("InsertRespostasProva")]
         public string InsertRespostasProva(Respostas data)
@@ -118,7 +118,7 @@ namespace Vivo_Apps_API.Controllers
                     CD.JORNADA_BD_AVALIACAO_RETORNOs.Add(new JORNADA_BD_AVALIACAO_RETORNO
                     {
                         ID_QUESTION = item.ID_QUESTION,
-                        TEMA = item.TEMA,
+                        ID_TEMAS = item.TEMA,
                         TP_FORMS = item.TP_FORMS,
                         PESO = item.PESO,
                         PUBLICO_CANAL = item.PUBLICO_CANAL,
@@ -150,7 +150,7 @@ namespace Vivo_Apps_API.Controllers
             {
                 CD.JORNADA_BD_ANSWER_AVALIACAOs.Add(new JORNADA_BD_ANSWER_AVALIACAO
                 {
-                    TEMA = data.TEMA,
+                    ID_TEMAS = data.TEMA,
                     TP_FORMS = data.TP_FORMS,
                     PUBLICO_CANAL = data.PUBLICO_CANAL,
                     PUBLICO_CARGO = data.PUBLICO_CARGO,
@@ -204,12 +204,12 @@ namespace Vivo_Apps_API.Controllers
             return JsonConvert.SerializeObject(CD.JORNADA_BD_QUESTIONs.GroupBy(x => new
             {
                 x.FIXA,
-                x.TEMA,
+                x.ID_TEMAS,
                 x.CARGO,
                 x.TP_FORMS
             }).Select(y => new
             {
-                y.Key.TEMA,
+                y.Key.ID_TEMAS,
                 y.Key.CARGO,
                 y.Key.FIXA,
                 y.Key.TP_FORMS,
@@ -244,7 +244,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpPost("GetQuestionsById_Prova")]
         public string GetQuestionsById_Prova(int id)
         {
-            return JsonConvert.SerializeObject(CD.JORNADA_BD_AVALIACAO_RETORNOs.Where(x => x.ID_PROVA == id).ToList());
+            return JsonConvert.SerializeObject(CD.JORNADA_BD_AVALIACAO_RETORNOs.Where(x => x.ID_PROVA_RESPONDIDA == id).ToList());
         }
 
 
@@ -301,7 +301,7 @@ namespace Vivo_Apps_API.Controllers
             var questions = CD.JORNADA_BD_QUESTIONs.Where(x => Questions.Contains(x.ID_QUESTION)).Select(x => new
             {
                 ID_QUESTION = x.ID_QUESTION,
-                TEMA = x.TEMA,
+                TEMA = x.ID_TEMAS,
                 TP_FORMS = x.TP_FORMS,
                 TP_QUESTAO = x.TP_QUESTAO,
                 PERGUNTA = x.PERGUNTA,

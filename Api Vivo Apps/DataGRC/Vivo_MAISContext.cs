@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace Vivo_Apps_API.DataGRC
+namespace Api_Vivo_Apps.DataGRC
 {
     public partial class Vivo_MAISContext : DbContext
     {

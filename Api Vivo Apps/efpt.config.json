@@ -9,7 +9,7 @@
    "OutputContextPath": null,
    "OutputPath": "Data",
    "PreserveCasingWithRegex": true,
-   "ProjectRootNamespace": "Vivo_Apps_API",
+   "ProjectRootNamespace": "Shared_Class_Vivo_Mais",
    "Schemas": null,
    "SelectedHandlebarsLanguage": 0,
    "SelectedToBeGenerated": 0,
@@ -159,11 +159,19 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[JORNADA_BD_HIERARQUIA]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[JORNADA_BD_QUESTION]",
          "ObjectType": 0
       },
       {
          "Name": "[dbo].[JORNADA_BD_QUESTION_HISTORICO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[JORNADA_BD_RELACAO_HISTORICO]",
          "ObjectType": 0
       },
       {
@@ -179,7 +187,7 @@
          "ObjectType": 0
       },
       {
-         "Name": "[dbo].[PERFIL_VIVO_TASK]",
+         "Name": "[dbo].[PERFIL_USUARIO_PENDENTE]",
          "ObjectType": 0
       },
       {

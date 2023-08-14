@@ -1,4 +1,4 @@
-﻿using Vivo_Apps_API.Data;
+﻿using Api_Vivo_Apps.Data;
 using Vivo_Apps_API.Enums;
 
 namespace Vivo_Apps_API.Models
@@ -28,5 +28,7 @@ namespace Vivo_Apps_API.Models
 
         public string STATUS { get; set; }
         public IEnumerable<RespostasAcessosPendentesModel> RESPOSTAS { get; set; }
+        public IEnumerable<PERFIL_PLATAFORMAS_VIVO> PERFIS_SOLICITADOS { get; set; }
+
     }
 }

@@ -2,12 +2,8 @@
 using System.Data;
 using System.Text;
 using Vivo_Apps_API.Models;
-using Vivo_Apps_API.Data;
-using System.Drawing;
-using Newtonsoft.Json;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+using Api_Vivo_Apps.Data;
 using Vivo_Apps_API.Enums;
-using NetTopologySuite.Algorithm;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -47,19 +43,21 @@ namespace Vivo_Apps_API.Controllers
         public JsonResult GetUsuarios([FromBody] PaginationControleAcessoModel filter)
         {
             var pagedData = CD.ACESSOS_MOBILEs.AsQueryable();
-            if (filter.IsSuporte is not null)
-            {
-                if (filter.IsSuporte == false)
-                {
-                    // Caso quem esteja acessando não seja do suporte
-                    // só verá acesso que foram solicitados pelo mesmo
 
-                    var MatriculasResponsavel = CD.ACESSOS_MOBILE_PENDENTEs
-                        .Where(x => x.LOGIN_SOLICITANTE == filter.Matricula).Select(x => x.MATRICULA).Distinct();
+            //if (filter.IsSuporte is not null)
+            //{
+            //    if (filter.IsSuporte == false)
+            //    {
+            // Caso quem esteja acessando não seja do suporte
+            // só verá acesso que foram solicitados pelo mesmo
 
-                    pagedData = pagedData.Where(x => MatriculasResponsavel.Contains(x.MATRICULA));
-                }
-            }
+            //        var MatriculasResponsavel = CD.ACESSOS_MOBILE_PENDENTEs
+            //            .Where(x => x.LOGIN_SOLICITANTE == filter.Matricula).Select(x => x.MATRICULA).Distinct();
+
+            //        pagedData = pagedData.Where(x => MatriculasResponsavel.Contains(x.MATRICULA));
+            //    }
+            //}
+
             if (filter.Uf.Count() > 0)
             {
                 pagedData = pagedData.Where(x => filter.Uf.Contains(x.UF));
@@ -84,7 +82,7 @@ namespace Vivo_Apps_API.Controllers
             {
                 pagedData = pagedData.Where(x => x.NOME.ToLower().Contains(filter.Nome.ToLower()));
             }
-            if (!string.IsNullOrEmpty(filter.Matricula) && filter.IsSuporte == true)
+            if (!string.IsNullOrEmpty(filter.Matricula))
             {
                 pagedData = pagedData.Where(x => x.MATRICULA.ToLower().Contains(filter.Matricula.ToLower()));
             }
@@ -94,18 +92,42 @@ namespace Vivo_Apps_API.Controllers
             }
 
             var Data = pagedData.OrderBy(x => x.ID)
-                .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
-                .ToList();
+                    .Skip((filter.PageNumber - 1) * filter.PageSize)
+                    .Take(filter.PageSize)
+                    .ToList();
 
             var totalRecords = pagedData.Count();
             var totalPages = ((double)totalRecords / (double)filter.PageSize);
 
-            return new JsonResult(PagedResponse.CreatePagedReponse<ACESSOS_MOBILE>(Data, filter, totalRecords));
+            var DataFinal = Data.Select(x => new ControleUsuariosModel
+            {
+                ID = x.ID,
+                EMAIL = x.EMAIL,
+                MATRICULA = x.MATRICULA,
+                SENHA = x.SENHA,
+                REGIONAL = x.REGIONAL,
+                CARGO = x.CARGO,
+                CANAL = x.CANAL,
+                PDV = x.PDV,
+                CPF = x.CPF,
+                NOME = x.NOME,
+                UF = x.UF,
+                STATUS = x.STATUS,
+                FIXA = x.FIXA,
+                TP_AFASTAMENTO = x.TP_AFASTAMENTO,
+                OBS = x.OBS,
+                UserAvatar = x.UserAvatar,
+                LOGIN_MOD = x.LOGIN_MOD,
+                DT_MOD = x.DT_MOD,
+                ID_Perfil_Usuario = x.ID_Perfil_Usuario,
+                Perfil = CD.PERFIL_USUARIOs.Where(k => k.Login == x.MATRICULA).Select(x => x.id_Perfil).ToList()
+            });
+
+            return new JsonResult(PagedResponse.CreatePagedReponse<ControleUsuariosModel>(DataFinal, filter, totalRecords));
         }
 
         [HttpPost("UpdateUsuarios")]
-        public async Task<JsonResult> UpdateUsuarios([FromBody] ACESSOS_MOBILE usuario,
+        public async Task<JsonResult> UpdateUsuarios([FromBody] ControleUsuariosModel usuario,
             string? matricula,
             int ID_ACESSOS_MOBILE)
         {
@@ -328,63 +350,78 @@ namespace Vivo_Apps_API.Controllers
         }
         // Metodos POST //
         [HttpPost("UpdateUsuariosSuporte")]
-        public async Task<JsonResult> UpdateUsuariosSuporte([FromBody] ACESSOS_MOBILE usuario, string matricula)
+        public async Task<JsonResult> UpdateUsuariosSuporte([FromBody] ControleUsuariosModel usuario, string matricula)
         {
-            try
+            using (var transaction = CD.Database.BeginTransaction())
             {
-                using (CD = new Vivo_MAISContext())
+                try
                 {
-                    ACESSOS_MOBILE user = CD.ACESSOS_MOBILEs.Find(usuario.ID);
+                    using (CD = new Vivo_MAISContext())
+                    {
+                        ACESSOS_MOBILE user = CD.ACESSOS_MOBILEs.Find(usuario.ID);
 
-                    if (user.EMAIL != usuario.EMAIL && CD.ACESSOS_MOBILEs.Any(x => x.EMAIL.Contains(usuario.EMAIL))
-                        || user.MATRICULA != usuario.MATRICULA && CD.ACESSOS_MOBILEs.Any(x => x.MATRICULA.Contains(usuario.MATRICULA)))
-                    {
-                        return new JsonResult(new Response<string>
+                        if (user.EMAIL != usuario.EMAIL && CD.ACESSOS_MOBILEs.Any(x => x.EMAIL.Contains(usuario.EMAIL))
+                            || user.MATRICULA != usuario.MATRICULA && CD.ACESSOS_MOBILEs.Any(x => x.MATRICULA.Contains(usuario.MATRICULA)))
                         {
-                            Data = "Matricula ou email repetidas",
-                            Succeeded = false,
-                            Message = "Matricula ou email foi repetida com algum valor ja inserido no banco"
-                        });
+                            return new JsonResult(new Response<string>
+                            {
+                                Data = "Matricula ou email repetidas",
+                                Succeeded = false,
+                                Message = "Matricula ou email foi repetida com algum valor ja inserido no banco"
+                            });
+                        }
+                        if (user != null)
+                        {
+                            user.EMAIL = usuario.EMAIL;
+                            user.MATRICULA = usuario.MATRICULA;
+                            user.SENHA = usuario.SENHA;
+                            user.REGIONAL = usuario.REGIONAL;
+                            user.CARGO = usuario.CARGO;
+                            user.CANAL = ((int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString();
+                            user.PDV = usuario.PDV;
+                            user.CPF = usuario.CPF;
+                            user.NOME = usuario.NOME;
+                            user.UF = usuario.UF;
+                            user.STATUS = usuario.STATUS;
+                            user.FIXA = usuario.FIXA;
+                            user.TP_AFASTAMENTO = usuario.TP_AFASTAMENTO;
+                            user.OBS = usuario.OBS;
+                            user.UserAvatar = usuario.UserAvatar;
+                            user.LOGIN_MOD = matricula;
+                            user.DT_MOD = DateTime.Now.ToString();
+                        }
+
+                        var ActualPerfis = CD.PERFIL_USUARIOs.Where(x => x.Login == user.MATRICULA); // Busco todos os Perfis que o usuário já tem
+                        if (usuario.Perfil.Any())
+                        {
+                            var perfis = CD.PERFIL_USUARIOs.Where(x => usuario.Perfil.Contains(x.id_Perfil));
+                            CD.PERFIL_USUARIOs.BulkDelete(ActualPerfis);
+                            CD.PERFIL_USUARIOs.BulkInsert(perfis);
+                        }
+
+                        var result = await CD.SaveChangesAsync();
+                        transaction.Commit();
+
+                        return new JsonResult(user);
                     }
-                    if (user != null)
-                    {
-                        user.EMAIL = usuario.EMAIL;
-                        user.MATRICULA = usuario.MATRICULA;
-                        user.SENHA = usuario.SENHA;
-                        user.REGIONAL = usuario.REGIONAL;
-                        user.CARGO = usuario.CARGO;
-                        user.CANAL = ((int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString();
-                        user.PDV = usuario.PDV;
-                        user.CPF = usuario.CPF;
-                        user.NOME = usuario.NOME;
-                        user.UF = usuario.UF;
-                        user.STATUS = usuario.STATUS;
-                        user.FIXA = usuario.FIXA;
-                        user.TP_AFASTAMENTO = usuario.TP_AFASTAMENTO;
-                        user.OBS = usuario.OBS;
-                        user.UserAvatar = usuario.UserAvatar;
-                        user.LOGIN_MOD = matricula;
-                        user.DT_MOD = DateTime.Now.ToString();
-                    }
-                    var result = await CD.SaveChangesAsync();
-                    return new JsonResult(user);
                 }
-            }
-            catch (Exception ex)
-            {
-                return new JsonResult(new Response<string>
+                catch (Exception ex)
                 {
-                    Data = "Algum erro nao identificado aconteceu ao executar esta acao",
-                    Succeeded = false,
-                    Errors = new string[]
+                    transaction.Rollback();
+                    return new JsonResult(new Response<string>
                     {
+                        Data = "Algum erro nao identificado aconteceu ao executar esta acao",
+                        Succeeded = false,
+                        Errors = new string[]
+                        {
                         ex.Message,
                         ex.StackTrace,
                         ex.HelpLink,
                         ex.HResult.ToString()
-                    },
-                    Message = "Algum erro nao identificado aconteceu ao executar esta acao"
-                });
+                        },
+                        Message = "Algum erro nao identificado aconteceu ao executar esta acao"
+                    });
+                }
             }
         }
         [HttpPost("BloquearUsuarioSuporte")]
@@ -475,16 +512,48 @@ namespace Vivo_Apps_API.Controllers
                     {
                         Data = "Solicitação já existente!",
                         Succeeded = false,
-                        Message = "Já existe uma solicitação de acesso ou um usuário com esta mátricula",
-                        Errors = new string[] { "Mátricula existente!" },
+                        Message = "Já existe uma solicitação de acesso ou um usuário com esta matrícula",
+                        Errors = new string[] { "matrícula existente!" },
                     });
                 }
 
                 return new JsonResult(new Response<string>
                 {
-                    Data = "Mátricula válida!",
+                    Data = "matrícula válida!",
                     Succeeded = true,
-                    Message = "Mátricula válida!"
+                    Message = "matrícula válida!"
+                });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    },
+                });
+            }
+        }
+        [HttpGet("GetPerfilByCargo")]
+        public async Task<JsonResult> GetPerfilByCargo(string cargo)
+        {
+            try
+            {
+                var perfilbycargo = CD.PERFIL_PLATAFORMAS_VIVOs
+                    .Where(x => x.CARGO != null)
+                    .ToList()
+                    .Where(x => x.CARGO.Split(new[] { ';' }).Select(p => int.Parse(p)).Contains(int.Parse(cargo)));
+
+                return new JsonResult(new Response<IEnumerable<PERFIL_PLATAFORMAS_VIVO>>
+                {
+                    Data = perfilbycargo,
+                    Succeeded = true,
+                    Message = "matrícula válida!"
                 });
             }
             catch (Exception ex)
@@ -515,8 +584,9 @@ namespace Vivo_Apps_API.Controllers
             }
             return sb.ToString();
         }
+
         [HttpPost("CriarUsuario")]
-        public async Task<JsonResult> CriarUsuario([FromBody] ACESSOS_MOBILE usuario,
+        public async Task<JsonResult> CriarUsuario([FromBody] ControleUsuariosModel usuario,
             string? matricula,
             string OBS)
         {
@@ -556,8 +626,21 @@ namespace Vivo_Apps_API.Controllers
                     STATUS = "ABERTO",
                     DATA = DateTime.Now.ToString(),
                 });
-
                 await CD.SaveChangesAsync();
+
+                if (usuario.Perfil is not null)
+                {
+                    foreach (var item in usuario.Perfil)
+                    {
+                        CD.PERFIL_USUARIO_PENDENTEs.Add(new PERFIL_USUARIO_PENDENTE
+                        {
+                            ID_ACESSO_PENDENTE = user.ID,
+                            ID_PERFIL = item
+                        });
+                    }
+                    await CD.SaveChangesAsync();
+                }
+
 
 
                 return new JsonResult(new Response<ACESSOS_MOBILE_PENDENTE>
@@ -593,7 +676,10 @@ namespace Vivo_Apps_API.Controllers
                 var users = CD.ACESSOS_MOBILE_PENDENTEs.AsQueryable();
 
                 // FILTRA PELA REGIONAL DO USUÁRIO
-                users = users.Where(x => x.REGIONAL == filter.Value.REGIONAL);
+                if (filter.Value.LOGIN != "25183")
+                {
+                    users = users.Where(x => x.REGIONAL == filter.Value.REGIONAL);
+                }
 
                 if (filter.Value.IsSuporte == true)
                 {
@@ -605,8 +691,8 @@ namespace Vivo_Apps_API.Controllers
                     // BUSCA PELO LOGIN DO SOLICITANTE
                     users = users.Where(x => x.LOGIN_SOLICITANTE == filter.Value.LOGIN);
                 }
-                users = users.GroupBy(X => X.MATRICULA)
-                    .AsEnumerable().Select(y => y.LastOrDefault()).AsQueryable();
+                //users = users.GroupBy(X => X.MATRICULA)
+                //    .AsEnumerable().Select(y => y.LastOrDefault()).AsQueryable();
 
                 var lista = users.OrderBy(x => x.ID)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
@@ -668,6 +754,9 @@ namespace Vivo_Apps_API.Controllers
             try
             {
                 var acesso = CD.ACESSOS_MOBILE_PENDENTEs.Find(IdAcesso);
+                var ids = CD.PERFIL_USUARIO_PENDENTEs.Where(x => x.ID_ACESSO_PENDENTE == IdAcesso);
+                var perfis = CD.PERFIL_PLATAFORMAS_VIVOs.Where(x => ids.Select(k => k.ID_PERFIL).Contains(x.ID_PERFIL));
+
                 var respostas = CD.HISTORICO_ACESSOS_MOBILE_PENDENTEs.Where(x => x.ID_ACESSOS_PENDENTE == IdAcesso)
                     .Select(x => new RespostasAcessosPendentesModel
                     {
@@ -678,6 +767,7 @@ namespace Vivo_Apps_API.Controllers
                         STATUS = x.STATUS,
                         DATA = x.DATA,
                     });
+
                 var retorno = new HistoricoAcessosPendentesModel
                 {
                     ID = acesso.ID,
@@ -706,6 +796,7 @@ namespace Vivo_Apps_API.Controllers
                     DT_RETORNO = acesso.DT_RETORNO,
                     STATUS = acesso.STATUS,
                     RESPOSTAS = respostas,
+                    PERFIS_SOLICITADOS = perfis
                 };
 
                 return new JsonResult(
@@ -743,129 +834,248 @@ namespace Vivo_Apps_API.Controllers
               string status,
               bool? aprovacaosuporte)
         {
-            try
-            //Independente do tipo de usuário/status ele insere a resposta com a respectiva matricula
+            using (var transaction = CD.Database.BeginTransaction())
             {
-                CD.HISTORICO_ACESSOS_MOBILE_PENDENTEs.Add(new HISTORICO_ACESSOS_MOBILE_PENDENTE
+                try
+                //Independente do tipo de usuário/status ele insere a resposta com a respectiva matricula
                 {
-                    ID_ACESSOS_PENDENTE = id,
-                    MATRICULA = matricula,
-                    RESPOSTA = resposta,
-                    STATUS = status,
-                    DATA = DateTime.Now.ToString()
-                });
-
-                var acesso = CD.ACESSOS_MOBILE_PENDENTEs.Find(id);
-                acesso.STATUS = status;
-                acesso.DT_RETORNO = DateTime.Now.ToString();
-
-                if (acesso.LOGIN_SOLICITANTE != matricula)
-                //Caso a resposta seja diferente do solicitante significa que veio do suporte
-                {
-                    if (string.IsNullOrEmpty(acesso.DT_PRIMEIRO_RETORNO))
-                    // Caso a primeira resposta ainda não esteja defenida inserimos agora
+                    CD.HISTORICO_ACESSOS_MOBILE_PENDENTEs.Add(new HISTORICO_ACESSOS_MOBILE_PENDENTE
                     {
-                        acesso.DT_PRIMEIRO_RETORNO = DateTime.Now.ToString();
-                    }
+                        ID_ACESSOS_PENDENTE = id,
+                        MATRICULA = matricula,
+                        RESPOSTA = resposta,
+                        STATUS = status,
+                        DATA = DateTime.Now.ToString()
+                    });
 
-                    acesso.LOGIN_RESPONSAVEL = matricula;
-
-                    if (aprovacaosuporte.Value == true)
-                    // Caso tenha sido aprovado pelo suporte ele adiciona na tabela final
-                    {
-                        acesso.APROVACAO = true;
-                        if (usuario.TIPO.ToLower() != "alteração")
-                        {
-                            CD.ACESSOS_MOBILEs.Add(new ACESSOS_MOBILE
-                            {
-                                EMAIL = usuario.EMAIL,
-                                MATRICULA = usuario.MATRICULA,
-                                SENHA = CryptSenha(usuario.SENHA),
-                                REGIONAL = usuario.REGIONAL,
-                                CARGO = ((int)usuario.CARGO).ToString(),
-                                CANAL = ((int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString(),
-                                NOME = usuario.NOME,
-                                UF = usuario.UF,
-                                CPF = usuario.CPF,
-                                PDV = usuario.PDV,
-                                STATUS = true,
-                                FIXA = usuario.FIXA,
-                                OBS = resposta,
-                                LOGIN_MOD = matricula,
-                                DT_MOD = DateTime.Now.ToString(),
-                            });
-                            await CD.SaveChangesAsync();
-                        }
-                    }
-                }
-                else
-                {
-                    acesso.EMAIL = usuario.EMAIL;
-                    acesso.MATRICULA = usuario.MATRICULA;
-                    acesso.SENHA = usuario.SENHA;
-                    acesso.REGIONAL = usuario.REGIONAL;
-                    acesso.CARGO = ((int)usuario.CARGO).ToString();
-                    acesso.CANAL = ((int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString();
-                    acesso.NOME = usuario.NOME;
-                    acesso.UF = usuario.UF;
-                    acesso.CPF = usuario.CPF;
-                    acesso.PDV = usuario.PDV;
-                    acesso.APROVACAO = usuario.APROVACAO;
-                    acesso.FIXA = usuario.FIXA;
+                    var acesso = CD.ACESSOS_MOBILE_PENDENTEs.Find(id);
                     acesso.STATUS = status;
                     acesso.DT_RETORNO = DateTime.Now.ToString();
+
+                    if (acesso.LOGIN_SOLICITANTE != matricula)
+                    //Caso a resposta seja diferente do solicitante significa que veio do suporte
+                    {
+                        if (string.IsNullOrEmpty(acesso.DT_PRIMEIRO_RETORNO))
+                        // Caso a primeira resposta ainda não esteja defenida inserimos agora
+                        {
+                            acesso.DT_PRIMEIRO_RETORNO = DateTime.Now.ToString();
+                        }
+
+                        acesso.LOGIN_RESPONSAVEL = matricula;
+
+                        if (aprovacaosuporte.Value == true)
+                        // Caso tenha sido aprovado pelo suporte ele adiciona na tabela final
+                        {
+                            acesso.APROVACAO = true;
+                            if (usuario.TIPO.ToLower() != "alteração")
+                            {
+                                CD.ACESSOS_MOBILEs.Add(new ACESSOS_MOBILE
+                                {
+                                    EMAIL = usuario.EMAIL,
+                                    MATRICULA = usuario.MATRICULA,
+                                    SENHA = CryptSenha(usuario.SENHA),
+                                    REGIONAL = usuario.REGIONAL,
+                                    CARGO = ((int)usuario.CARGO).ToString(),
+                                    CANAL = ((int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString(),
+                                    NOME = usuario.NOME,
+                                    UF = usuario.UF,
+                                    CPF = usuario.CPF,
+                                    PDV = usuario.PDV,
+                                    STATUS = true,
+                                    FIXA = usuario.FIXA,
+                                    OBS = resposta,
+                                    LOGIN_MOD = matricula,
+                                    DT_MOD = DateTime.Now.ToString("dd/MM/yyyy"),
+                                });
+
+                                foreach (var item in usuario.PERFIS_SOLICITADOS)
+                                {
+                                    CD.PERFIL_USUARIOs.Add(new PERFIL_USUARIO
+                                    {
+                                        Login = usuario.MATRICULA,
+                                        id_Perfil = item.ID_PERFIL,
+                                        DT_MOD = DateTime.Now.ToString("dd/MM/yyyy"),
+                                        LOGIN_MOD = matricula,
+                                    });
+                                }
+                                await CD.SaveChangesAsync();
+                            }
+                        }
+                    }
+                    else
+                    {
+                        //Caso não seja suporte implica em que esta resposta é apenas uma resposta do usuário
+
+                        acesso.EMAIL = usuario.EMAIL;
+                        acesso.MATRICULA = usuario.MATRICULA;
+                        acesso.SENHA = usuario.SENHA;
+                        acesso.REGIONAL = usuario.REGIONAL;
+                        acesso.CARGO = ((int)usuario.CARGO).ToString();
+                        acesso.CANAL = ((int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString();
+                        acesso.NOME = usuario.NOME;
+                        acesso.UF = usuario.UF;
+                        acesso.CPF = usuario.CPF;
+                        acesso.PDV = usuario.PDV;
+                        acesso.APROVACAO = usuario.APROVACAO;
+                        acesso.FIXA = usuario.FIXA;
+                        acesso.STATUS = status;
+                        acesso.DT_RETORNO = DateTime.Now.ToString();
+
+                        var perfilbymatricula = CD.PERFIL_USUARIO_PENDENTEs.Where(x => x.ID_ACESSO_PENDENTE == acesso.ID);
+                        CD.PERFIL_USUARIO_PENDENTEs.RemoveRange(perfilbymatricula);
+                        await CD.SaveChangesAsync();
+
+                        foreach (var item in usuario.PERFIS_SOLICITADOS)
+                        {
+                            CD.PERFIL_USUARIO_PENDENTEs.Add(new PERFIL_USUARIO_PENDENTE
+                            {
+                                ID_ACESSO_PENDENTE = acesso.ID,
+                                ID_PERFIL = item.ID_PERFIL,
+                            });
+                        }
+                    }
+
+                    await CD.SaveChangesAsync();
+                    transaction.Commit();
+
+                    var respostas = CD.HISTORICO_ACESSOS_MOBILE_PENDENTEs.Where(x => x.ID_ACESSOS_PENDENTE == id) //Insere mais uma linha no historico desta conversa
+                        .Select(x => new RespostasAcessosPendentesModel
+                        {
+                            ID = x.ID,
+                            ID_ACESSOS_PENDENTE = x.ID_ACESSOS_PENDENTE,
+                            MATRICULA = CD.ACESSOs.Where(y => y.Login == x.MATRICULA).FirstOrDefault(),
+                            RESPOSTA = x.RESPOSTA,
+                            STATUS = x.STATUS,
+                            DATA = x.DATA,
+                        });
+
+                    var ids = CD.PERFIL_USUARIO_PENDENTEs.Where(x => x.ID_ACESSO_PENDENTE == id);
+                    var perfis = CD.PERFIL_PLATAFORMAS_VIVOs.Where(x => ids.Select(k => k.ID_PERFIL).Contains(x.ID_PERFIL));
+
+                    var retorno = new HistoricoAcessosPendentesModel // Apenas o retorno com a atualização
+                    {
+                        ID = acesso.ID,
+                        ID_ACESSOS_MOBILE = (acesso.TIPO.ToLower() == "alteração"
+                        ? CD.ACESSOS_MOBILEs.Where(x => x.ID == acesso.ID_ACESSOS_MOBILE).FirstOrDefault()
+                        : null),
+                        EMAIL = acesso.EMAIL,
+                        MATRICULA = acesso.MATRICULA,
+                        SENHA = acesso.SENHA,
+                        REGIONAL = acesso.REGIONAL,
+                        CARGO = (Cargos)Convert.ToInt32(usuario.CARGO),
+                        CANAL = DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO)),
+                        NOME = acesso.NOME,
+                        UF = acesso.UF,
+                        CPF = acesso.CPF,
+                        PDV = acesso.PDV,
+                        APROVACAO = acesso.APROVACAO,
+                        FIXA = acesso.FIXA,
+                        TIPO = acesso.TIPO,
+                        STATUS_USUARIO = acesso.STATUS_USUARIO,
+                        LOGIN_SOLICITANTE = CD.ACESSOs.Where(x => x.Login == acesso.LOGIN_SOLICITANTE).FirstOrDefault(),
+                        LOGIN_RESPONSAVEL = (acesso.LOGIN_RESPONSAVEL == null ?
+                                            CD.ACESSOs.Where(x => x.Login == acesso.LOGIN_RESPONSAVEL).FirstOrDefault() :
+                                            null),
+                        DT_SOLICITACAO = acesso.DT_SOLICITACAO,
+                        DT_RETORNO = acesso.DT_RETORNO,
+                        STATUS = acesso.STATUS,
+                        RESPOSTAS = respostas,
+                        PERFIS_SOLICITADOS = perfis
+                    };
+
+
+                    return new JsonResult(
+                         new Response<HistoricoAcessosPendentesModel>
+                         {
+                             Data = retorno,
+                             Succeeded = true,
+                             Message = "Tudo Certo"
+                         });
+                }
+                catch (Exception ex)
+                {
+                    transaction.Rollback();
+                    return new JsonResult(new Response<string>
+                    {
+                        Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                        Succeeded = false,
+                        Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                        Errors = new string[]
+                        {
+                        ex.Message,
+                        ex.StackTrace
+                        },
+                    });
+                }
+            }
+        }
+
+        [HttpPost("CriarUsuarioMassivo")]
+        public async Task<JsonResult> CriarUsuarioMassivo([FromBody] List<ControleUsuariosModel> usuarios, string matricula, string OBS)
+        {
+            try
+            {
+                foreach (var usuario in usuarios)
+                {
+                    var user = CD.ACESSOS_MOBILE_PENDENTEs.Add(new ACESSOS_MOBILE_PENDENTE
+                    {
+                        ID_ACESSOS_MOBILE = null,
+                        EMAIL = usuario.EMAIL,
+                        MATRICULA = usuario.MATRICULA,
+                        SENHA = usuario.SENHA,
+                        REGIONAL = usuario.REGIONAL,
+                        CARGO = usuario.CARGO,
+                        CANAL = ((int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString(),
+                        NOME = usuario.NOME,
+                        UF = usuario.UF,
+                        CPF = usuario.CPF,
+                        PDV = usuario.PDV,
+                        APROVACAO = false,
+                        FIXA = usuario.FIXA,
+                        DT_SOLICITACAO = DateTime.Now.ToString(),
+                        DT_PRIMEIRO_RETORNO = null,
+                        DT_RETORNO = null,
+                        LOGIN_RESPONSAVEL = null,
+                        LOGIN_SOLICITANTE = matricula,
+                        STATUS_USUARIO = false,
+                        STATUS = "ABERTO",
+                        TIPO = "INCLUSÃO"
+                    }).Entity;
+                    await CD.SaveChangesAsync();
+
+                    CD.HISTORICO_ACESSOS_MOBILE_PENDENTEs.Add(new HISTORICO_ACESSOS_MOBILE_PENDENTE
+                    {
+                        ID_ACESSOS_PENDENTE = user.ID,
+                        MATRICULA = user.LOGIN_SOLICITANTE,
+                        RESPOSTA = OBS,
+                        STATUS = "ABERTO",
+                        DATA = DateTime.Now.ToString(),
+                    });
+
+                    var perfilbycargo = CD.PERFIL_PLATAFORMAS_VIVOs
+                                            .Where(x => x.CARGO != null)
+                                            .ToList()
+                                            .Where(x => x.CARGO.Split(new[] { ';' }).Select(p => int.Parse(p)).Contains(int.Parse(usuario.CARGO)));
+
+                    foreach (var item in perfilbycargo)
+                    {
+                        CD.PERFIL_USUARIO_PENDENTEs.Add(new PERFIL_USUARIO_PENDENTE
+                        {
+                            ID_ACESSO_PENDENTE = user.ID,
+                            ID_PERFIL = item.ID_PERFIL,
+                        });
+                    }
+
+                    await CD.SaveChangesAsync();
                 }
 
-                await CD.SaveChangesAsync();
-
-                var respostas = CD.HISTORICO_ACESSOS_MOBILE_PENDENTEs.Where(x => x.ID_ACESSOS_PENDENTE == id)
-                    .Select(x => new RespostasAcessosPendentesModel
-                    {
-                        ID = x.ID,
-                        ID_ACESSOS_PENDENTE = x.ID_ACESSOS_PENDENTE,
-                        MATRICULA = CD.ACESSOs.Where(y => y.Login == x.MATRICULA).FirstOrDefault(),
-                        RESPOSTA = x.RESPOSTA,
-                        STATUS = x.STATUS,
-                        DATA = x.DATA,
-                    });
-                var retorno = new HistoricoAcessosPendentesModel
+                return new JsonResult(new Response<string>
                 {
-                    ID = acesso.ID,
-                    ID_ACESSOS_MOBILE = (acesso.TIPO.ToLower() == "alteração"
-                    ? CD.ACESSOS_MOBILEs.Where(x => x.ID == acesso.ID_ACESSOS_MOBILE).FirstOrDefault()
-                    : null),
-                    EMAIL = acesso.EMAIL,
-                    MATRICULA = acesso.MATRICULA,
-                    SENHA = acesso.SENHA,
-                    REGIONAL = acesso.REGIONAL,
-                    CARGO = (Cargos)Convert.ToInt32(usuario.CARGO),
-                    CANAL = DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO)),
-                    NOME = acesso.NOME,
-                    UF = acesso.UF,
-                    CPF = acesso.CPF,
-                    PDV = acesso.PDV,
-                    APROVACAO = acesso.APROVACAO,
-                    FIXA = acesso.FIXA,
-                    TIPO = acesso.TIPO,
-                    STATUS_USUARIO = acesso.STATUS_USUARIO,
-                    LOGIN_SOLICITANTE = CD.ACESSOs.Where(x => x.Login == acesso.LOGIN_SOLICITANTE).FirstOrDefault(),
-                    LOGIN_RESPONSAVEL = (acesso.LOGIN_RESPONSAVEL == null ?
-                                        CD.ACESSOs.Where(x => x.Login == acesso.LOGIN_RESPONSAVEL).FirstOrDefault() :
-                                        null),
-                    DT_SOLICITACAO = acesso.DT_SOLICITACAO,
-                    DT_RETORNO = acesso.DT_RETORNO,
-                    STATUS = acesso.STATUS,
-
-                    RESPOSTAS = respostas,
-                };
-
-                return new JsonResult(
-                     new Response<HistoricoAcessosPendentesModel>
-                     {
-                         Data = retorno,
-                         Succeeded = true,
-                         Message = "Tudo Certo"
-                     });
+                    Data = "Foi criado uma solicitação de acesso para todos os usuários no arquivo",
+                    Succeeded = true,
+                    Message = "Foi criado uma solicitação de acesso para todos os usuários no arquivo",
+                    Errors = null,
+                });
             }
             catch (Exception ex)
             {
@@ -882,7 +1092,50 @@ namespace Vivo_Apps_API.Controllers
                 });
             }
         }
-    }
 
+        [HttpGet("GetPerfisUsuario")]
+        public async Task<JsonResult> GetPerfisUsuario()
+        {
+            try
+            {
+                var perfis = CD.PERFIL_PLATAFORMAS_VIVOs.AsEnumerable();
+
+                return new JsonResult(new Response<IEnumerable<PERFIL_PLATAFORMAS_VIVO>>
+                {
+                    Data = perfis,
+                    Succeeded = true,
+                    Message = "Foi criado uma solicitação de acesso para todos os usuários no arquivo",
+                    Errors = null,
+                });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    },
+                });
+            }
+        }
+
+        //[HttpGet, DisableRequestSizeLimit]
+        //public IActionResult Download()
+        //{
+        //    var memory = new MemoryStream();
+        //    using (var stream = new FileStream(@"pathToLocalFile", FileMode.Open))
+        //    {
+        //        stream.CopyToAsync(memory);
+        //    }
+        //    memory.Position = 0;
+        //    //set correct content type here
+        //    return File(memory, "application/octet-stream", "fileNameToBeUsedForSave");
+        //}
+    }
 
 }

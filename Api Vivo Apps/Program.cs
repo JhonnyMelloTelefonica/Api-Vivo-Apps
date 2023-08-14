@@ -11,6 +11,12 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 //builder.Services.AddSignalR();
 builder.Services.AddHttpClient();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.PropertyNamingPolicy = null;
+    options.JsonSerializerOptions.IgnoreNullValues = true;
+});
+
 //builder.Services.AddSingleton<TableDependencyService>();
 
 var app = builder.Build();
@@ -28,6 +34,12 @@ app.UseHttpLogging();
 
 app.UseRouting();
 app.UseFileServer();
+app.UseRouting();
+app.UseEndpoints(endpoints =>
+{
+    endpoints.MapControllers();
+});
+
 //app.UseEndpoints(endpoints =>
 //{
 //    app.MapHub<VivoXHub>("/vivoxhub");

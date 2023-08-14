@@ -9,10 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="EFCore.BulkExtensions" Version="7.1.2" />
-    <PackageReference Include="EntityFramework6.BulkInsert" Version="6.0.3.10" />
     <PackageReference Include="Microsoft.AspNet.WebApi" Version="5.2.9" />
-    <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.5" />
     <PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="7.0.7" />
     <PackageReference Include="Microsoft.Azure.SignalR" Version="1.21.4" />
     <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.1" />
@@ -36,7 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="DataGRC\" />
+    <ProjectReference Include="..\..\..\VivoTask-API\Shared_Class_Vivo_Mais\Shared_Class_Vivo_Mais.csproj" />
   </ItemGroup>
 
 </Project>

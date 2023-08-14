@@ -156,5 +156,100 @@ namespace Vivo_Apps_API.Models
 
             }
         }
+        public static Canal CanalCargoEnum(string cargostring)
+        {
+            Cargos cargo = (Cargos)int.Parse(cargostring);
+            switch (cargo)
+            {
+                case Cargos.Vendedor_PAP:
+
+                    return Canal.Venda_Externa;
+
+                case Cargos.Gerente_Parceiros:
+
+                    return Canal.Consumer;
+
+                case Cargos.Gerente_Geral:
+
+                    return Canal.Lojas_Próprias;
+
+                case Cargos.Supervisor_PAP:
+
+                    return Canal.Venda_Externa;
+
+                case Cargos.Vendedor_Revenda:
+
+                    return Canal.Revenda;
+
+                case Cargos.Gerente_Revenda:
+
+                    return Canal.Revenda;
+
+                case Cargos.Gerente_Área:
+
+                    return Canal.Canal_Vendas;
+
+                case Cargos.Gerente_Operações:
+
+                    return Canal.Lojas_Próprias;
+
+                case Cargos.Consultor_Negócios:
+
+                    return Canal.Lojas_Próprias;
+
+                case Cargos.Consultor_Tecnológico:
+
+                    return Canal.Lojas_Próprias;
+
+                case Cargos.Gerente_Vendas_B2C:
+
+                    return Canal.Canal_Vendas;
+
+                case Cargos.Gerente_Senior_Territorial:
+
+                    return Canal.Canal_Vendas;
+
+                case Cargos.Coordenador_Suporte_Vendas:
+
+                    return Canal.Consumer;
+
+                case Cargos.Gerente_Suporte_Vendas:
+
+                    return Canal.Consumer;
+
+                case Cargos.Diretora:
+
+                    return Canal.Consumer;
+
+                case Cargos.Consultor_Gestão_Vendas:
+
+                    return Canal.Consumer;
+
+                case Cargos.Analista_Suporte_Vendas_Senior:
+
+                    return Canal.Consumer;
+
+                case Cargos.Analista_Suporte_Vendas_Pleno:
+
+                    return Canal.Consumer;
+
+                case Cargos.Analista_Suporte_Vendas_Junior:
+
+                    return Canal.Consumer;
+
+                case Cargos.Estagiário:
+
+                    return Canal.Consumer;
+
+                case Cargos.Gerente_Senior_Gestão_Vendas:
+
+                    return Canal.Consumer;
+
+                default:
+
+                    return Canal.ADM;
+
+            }
+        }
     }
 }

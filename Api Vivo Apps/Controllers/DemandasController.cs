@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Vivo_Apps_API.Models;
 using Microsoft.AspNetCore.Mvc;
-using Vivo_Apps_API.Data;
+using Api_Vivo_Apps.Data;
 
 namespace Vivo_Apps_API.Controllers
 {

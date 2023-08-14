@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Vivo_Apps_API.DataGRC
+namespace Api_Vivo_Apps.DataGRC
 {
     public partial class CADASTRO_X_VIVO_SIM_X_CANAL
     {

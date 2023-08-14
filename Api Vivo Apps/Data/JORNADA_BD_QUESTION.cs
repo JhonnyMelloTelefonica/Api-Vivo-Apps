@@ -3,12 +3,12 @@
 using System;
 using System.Collections.Generic;
 
-namespace Vivo_Apps_API.Data
+namespace Api_Vivo_Apps.Data
 {
     public partial class JORNADA_BD_QUESTION
     {
         public int ID_QUESTION { get; set; }
-        public string TEMA { get; set; }
+        public string ID_TEMAS { get; set; }
         public string TP_FORMS { get; set; }
         public string TP_QUESTAO { get; set; }
         public string PERGUNTA { get; set; }
@@ -19,7 +19,7 @@ namespace Vivo_Apps_API.Data
         public string CARGO { get; set; }
         public bool? STATUS_QUESTION { get; set; }
         public bool? FIXA { get; set; }
-        public string SUB_TEMA { get; set; }
+        public string ID_SUB_TEMAS { get; set; }
         public string DT_MOD { get; set; }
         public string LOGIN_MOD { get; set; }
     }

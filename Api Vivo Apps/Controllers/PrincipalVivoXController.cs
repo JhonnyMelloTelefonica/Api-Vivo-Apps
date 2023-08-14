@@ -1,4 +1,4 @@
-﻿using Vivo_Apps_API.Data;
+﻿using Api_Vivo_Apps.Data;
 using Vivo_Apps_API.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
@@ -89,12 +89,10 @@ namespace Vivo_Apps_API.Controllers
                     UserAvatar = y.UserAvatar,
                     LOGIN_MOD = y.LOGIN_MOD,
                     DT_MOD = y.DT_MOD,
-                    Perfil = _context.PERFIL_USUARIOs.Where(x => x.ID == y.ID_Perfil_Usuario).Select(k => new Perfil
+                    Perfil = _context.PERFIL_USUARIOs.Where(x => x.Login == y.MATRICULA).Select(k => new Perfil
                     {
                         ID = k.ID,
-                        Cargo = k.Cargo,
                         Login = k.Login,
-                        PLATAFORMA = k.PLATAFORMA,
                         Perfil_Plataforma = _context.PERFIL_PLATAFORMAS_VIVOs.Where(p=>p.ID_PERFIL == k.id_Perfil).First()
                     }).AsEnumerable()
                 }).FirstOrDefault();
@@ -114,7 +112,7 @@ namespace Vivo_Apps_API.Controllers
                 {
                     Data = "Erro ao encontrar usuário",
                     Succeeded = false,
-                    Message = "Não encontramos nenhum usuário com esta mátricula em nossa base do Vivo TASK"
+                    Message = "Não encontramos nenhum usuário com esta matrícula em nossa base do Vivo TASK"
                 });
             }
         }

@@ -3,11 +3,11 @@
 using System;
 using System.Collections.Generic;
 
-namespace Vivo_Apps_API.Data
+namespace Api_Vivo_Apps.Data
 {
     public partial class JORNADA_BD_QUESTION_HISTORICO
     {
-        public int ID_PROVA { get; set; }
+        public int ID { get; set; }
         public int? ID_QUESTION { get; set; }
         public string CANAL { get; set; }
         public string DT_CRIACAO { get; set; }
@@ -18,5 +18,7 @@ namespace Vivo_Apps_API.Data
         public string DT_INICIO_AVALIACAO { get; set; }
         public string DT_FINALIZACAO { get; set; }
         public bool? FIXA { get; set; }
+        public string REGIONAL { get; set; }
+        public int? ID_PROVA { get; set; }
     }
 }

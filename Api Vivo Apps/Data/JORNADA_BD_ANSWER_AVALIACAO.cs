@@ -3,12 +3,12 @@
 using System;
 using System.Collections.Generic;
 
-namespace Vivo_Apps_API.Data
+namespace Api_Vivo_Apps.Data
 {
     public partial class JORNADA_BD_ANSWER_AVALIACAO
     {
-        public int ID { get; set; }
-        public string TEMA { get; set; }
+        public int ID_PROVA_RESPONDIDA { get; set; }
+        public string ID_TEMAS { get; set; }
         public string TP_FORMS { get; set; }
         public string PUBLICO_CANAL { get; set; }
         public string PUBLICO_CARGO { get; set; }
@@ -21,5 +21,8 @@ namespace Vivo_Apps_API.Data
         public string DDD_AVALIADO { get; set; }
         public string PDV_AVALIADO { get; set; }
         public string RE_AVALIADO { get; set; }
+        public string ID_SUB_TEMAS { get; set; }
+        public string REGIONAL { get; set; }
+        public int? ID_PROVA { get; set; }
     }
 }

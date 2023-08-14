@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Vivo_Apps_API.Data
+namespace Api_Vivo_Apps.Data
 {
     public partial class CONTROLE_DE_DEMANDAS_CHAMADO_ARQUIVO
     {

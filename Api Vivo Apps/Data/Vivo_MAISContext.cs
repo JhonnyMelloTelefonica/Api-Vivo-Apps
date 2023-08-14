@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
-namespace Vivo_Apps_API.Data
+namespace Api_Vivo_Apps.Data
 {
     public partial class Vivo_MAISContext : DbContext
     {
@@ -53,12 +53,14 @@ namespace Vivo_Apps_API.Data
         public virtual DbSet<JORNADA_BD_ANSWER_AVALIACAO> JORNADA_BD_ANSWER_AVALIACAOs { get; set; }
         public virtual DbSet<JORNADA_BD_AVALIACAO_RETORNO> JORNADA_BD_AVALIACAO_RETORNOs { get; set; }
         public virtual DbSet<JORNADA_BD_CARGOS_CANAL> JORNADA_BD_CARGOS_CANALs { get; set; }
+        public virtual DbSet<JORNADA_BD_HIERARQUIum> JORNADA_BD_HIERARQUIAs { get; set; }
         public virtual DbSet<JORNADA_BD_QUESTION> JORNADA_BD_QUESTIONs { get; set; }
         public virtual DbSet<JORNADA_BD_QUESTION_HISTORICO> JORNADA_BD_QUESTION_HISTORICOs { get; set; }
+        public virtual DbSet<JORNADA_BD_RELACAO_HISTORICO> JORNADA_BD_RELACAO_HISTORICOs { get; set; }
         public virtual DbSet<JORNADA_BD_TEMAS_SUB_TEMA> JORNADA_BD_TEMAS_SUB_TEMAs { get; set; }
         public virtual DbSet<PERFIL_PLATAFORMAS_VIVO> PERFIL_PLATAFORMAS_VIVOs { get; set; }
         public virtual DbSet<PERFIL_USUARIO> PERFIL_USUARIOs { get; set; }
-        public virtual DbSet<PERFIL_VIVO_TASK> PERFIL_VIVO_TASKs { get; set; }
+        public virtual DbSet<PERFIL_USUARIO_PENDENTE> PERFIL_USUARIO_PENDENTEs { get; set; }
         public virtual DbSet<SUB_FILA> SUB_FILAs { get; set; }
         public virtual DbSet<TAB_PESSOAS_SUPORTE> TAB_PESSOAS_SUPORTEs { get; set; }
         public virtual DbSet<TIPO_FILA> TIPO_FILAs { get; set; }
@@ -1590,6 +1592,9 @@ namespace Vivo_Apps_API.Data
 
             modelBuilder.Entity<JORNADA_BD_ANSWER_AVALIACAO>(entity =>
             {
+                entity.HasKey(e => e.ID_PROVA_RESPONDIDA)
+                    .HasName("PK__JORNADA___3214EC27512CA59D");
+
                 entity.ToTable("JORNADA_BD_ANSWER_AVALIACAO");
 
                 entity.Property(e => e.CADERNO).HasMaxLength(255);
@@ -1597,6 +1602,12 @@ namespace Vivo_Apps_API.Data
                 entity.Property(e => e.DDD_AVALIADO).IsUnicode(false);
 
                 entity.Property(e => e.DT_AVALIACAO).HasMaxLength(255);
+
+                entity.Property(e => e.ID_SUB_TEMAS)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.ID_TEMAS).IsUnicode(false);
 
                 entity.Property(e => e.MATRICULA_APLICADOR).HasMaxLength(255);
 
@@ -1612,9 +1623,11 @@ namespace Vivo_Apps_API.Data
 
                 entity.Property(e => e.REDE_AVALIADA).IsUnicode(false);
 
-                entity.Property(e => e.RE_AVALIADO).IsUnicode(false);
+                entity.Property(e => e.REGIONAL)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
 
-                entity.Property(e => e.TEMA).IsUnicode(false);
+                entity.Property(e => e.RE_AVALIADO).IsUnicode(false);
 
                 entity.Property(e => e.TP_FORMS).HasMaxLength(255);
             });
@@ -1631,6 +1644,8 @@ namespace Vivo_Apps_API.Data
 
                 entity.Property(e => e.ID_QUESTION).HasMaxLength(255);
 
+                entity.Property(e => e.ID_TEMAS).HasMaxLength(255);
+
                 entity.Property(e => e.MATRICULA_APLICADOR).HasMaxLength(255);
 
                 entity.Property(e => e.PDV_AVALIADO).IsUnicode(false);
@@ -1643,11 +1658,13 @@ namespace Vivo_Apps_API.Data
 
                 entity.Property(e => e.REDE_AVALIADA).IsUnicode(false);
 
+                entity.Property(e => e.REGIONAL)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
                 entity.Property(e => e.RESPOSTA_USER).IsUnicode(false);
 
                 entity.Property(e => e.RE_AVALIADO).IsUnicode(false);
-
-                entity.Property(e => e.TEMA).HasMaxLength(255);
 
                 entity.Property(e => e.TP_FORMS).HasMaxLength(255);
             });
@@ -1661,6 +1678,39 @@ namespace Vivo_Apps_API.Data
                 entity.Property(e => e.CANAL).HasMaxLength(255);
 
                 entity.Property(e => e.CARGO).HasMaxLength(255);
+            });
+
+            modelBuilder.Entity<JORNADA_BD_HIERARQUIum>(entity =>
+            {
+                entity.ToTable("JORNADA_BD_HIERARQUIA");
+
+                entity.Property(e => e.ADABAS)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.DT_MOD)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.LOGIN_MOD)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.NOME_FANTASIA)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.REDE)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.REGIONAL)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.UF)
+                    .HasMaxLength(255)
+                    .IsUnicode(false);
             });
 
             modelBuilder.Entity<JORNADA_BD_QUESTION>(entity =>
@@ -1678,6 +1728,12 @@ namespace Vivo_Apps_API.Data
                     .HasMaxLength(100)
                     .IsUnicode(false);
 
+                entity.Property(e => e.ID_SUB_TEMAS)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.ID_TEMAS).HasMaxLength(255);
+
                 entity.Property(e => e.LOGIN_MOD)
                     .HasMaxLength(100)
                     .IsUnicode(false);
@@ -1686,12 +1742,6 @@ namespace Vivo_Apps_API.Data
 
                 entity.Property(e => e.RESPOSTA_CORRETA).IsUnicode(false);
 
-                entity.Property(e => e.SUB_TEMA)
-                    .HasMaxLength(100)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.TEMA).HasMaxLength(255);
-
                 entity.Property(e => e.TP_FORMS).HasMaxLength(255);
 
                 entity.Property(e => e.TP_QUESTAO).HasMaxLength(255);
@@ -1699,9 +1749,6 @@ namespace Vivo_Apps_API.Data
 
             modelBuilder.Entity<JORNADA_BD_QUESTION_HISTORICO>(entity =>
             {
-                entity.HasKey(e => e.ID_PROVA)
-                    .HasName("PK__JORNADA___79F0FBF3E6AFD006");
-
                 entity.ToTable("JORNADA_BD_QUESTION_HISTORICO");
 
                 entity.Property(e => e.CANAL).HasMaxLength(255);
@@ -1716,7 +1763,27 @@ namespace Vivo_Apps_API.Data
 
                 entity.Property(e => e.ID_CRIADOR).HasMaxLength(255);
 
+                entity.Property(e => e.REGIONAL)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
                 entity.Property(e => e.TP_FORMS).IsUnicode(false);
+            });
+
+            modelBuilder.Entity<JORNADA_BD_RELACAO_HISTORICO>(entity =>
+            {
+                entity.HasKey(e => e.ID_PROVA)
+                    .HasName("PK__JORNADA___3214EC27E49F91A7");
+
+                entity.ToTable("JORNADA_BD_RELACAO_HISTORICO");
+
+                entity.Property(e => e.DT_MOD)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
+
+                entity.Property(e => e.LOGIN_MOD)
+                    .HasMaxLength(100)
+                    .IsUnicode(false);
             });
 
             modelBuilder.Entity<JORNADA_BD_TEMAS_SUB_TEMA>(entity =>
@@ -1742,6 +1809,8 @@ namespace Vivo_Apps_API.Data
 
                 entity.ToTable("PERFIL_PLATAFORMAS_VIVO");
 
+                entity.Property(e => e.CARGO).IsUnicode(false);
+
                 entity.Property(e => e.Perfil)
                     .HasMaxLength(100)
                     .IsUnicode(false);
@@ -1764,23 +1833,11 @@ namespace Vivo_Apps_API.Data
                 entity.Property(e => e.Login)
                     .HasMaxLength(100)
                     .IsUnicode(false);
-
-                entity.Property(e => e.PLATAFORMA)
-                    .HasMaxLength(100)
-                    .IsUnicode(false);
-
-                entity.Property(e => e.Perfil)
-                    .HasMaxLength(100)
-                    .IsUnicode(false);
             });
 
-            modelBuilder.Entity<PERFIL_VIVO_TASK>(entity =>
+            modelBuilder.Entity<PERFIL_USUARIO_PENDENTE>(entity =>
             {
-                entity.ToTable("PERFIL_VIVO_TASK");
-
-                entity.Property(e => e.CARGO)
-                    .HasMaxLength(255)
-                    .IsUnicode(false);
+                entity.ToTable("PERFIL_USUARIO_PENDENTE");
             });
 
             modelBuilder.Entity<SUB_FILA>(entity =>
