@@ -1,3 +1,8 @@
+using AutoMapper;
+using Shared_Class_Vivo_Mais.Data;
+using Shared_Class_Vivo_Mais.DataGRC;
+using Shared_Class_Vivo_Mais.DataOracle;
+using Shared_Class_Vivo_Mais.DB_Context_Vivo_MAIS;
 using Vivo_Apps_API;
 using Vivo_Apps_API.Hubs;
 
@@ -9,7 +14,7 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-//builder.Services.AddSignalR();
+builder.Services.AddSignalR();
 builder.Services.AddHttpClient();
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
@@ -17,32 +22,36 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.IgnoreNullValues = true;
 });
 
+builder.Services.AddDbContext<Vivo_MAISContext>();
+
+
 //builder.Services.AddSingleton<TableDependencyService>();
 
 var app = builder.Build();
+
 app.UseSwagger();
 app.UseSwaggerUI();
+
 if (app.Environment.IsDevelopment())
 {
 }
 
+
 // Configure the HTTP request pipeline.
-//app.UseAuthentication();
-//app.UseAuthorization();
+app.UseAuthentication();
+app.UseAuthorization();
 app.MapControllers();
 app.UseHttpLogging();
 
 app.UseRouting();
 app.UseFileServer();
 app.UseRouting();
+
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
+    app.MapHub<VivoXHub>("/vivoxhub/{PDV}/{idBoleta}");
+    app.MapHub<VivoXHub>("/vivoxhub/{PDV}");
 });
-
-//app.UseEndpoints(endpoints =>
-//{
-//    app.MapHub<VivoXHub>("/vivoxhub");
-//});
 //app.Services.GetRequiredService<TableDependencyService>();
 app.Run();

@@ -2,14 +2,14 @@
 using System.Data;
 using System.Text;
 using Vivo_Apps_API.Models;
-using Api_Vivo_Apps.Data;
+using Shared_Class_Vivo_Mais.Data;
 using System.Drawing;
 using Newtonsoft.Json;
-using static System.Runtime.InteropServices.JavaScript.JSType;
-using Vivo_Apps_API.Enums;
+using Shared_Class_Vivo_Mais.Enums;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Linq;
+using Shared_Class_Vivo_Mais.DB_Context_Vivo_MAIS;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -56,7 +56,7 @@ namespace Vivo_Apps_API.Controllers
                     EXPLICACAO = null,
                     CARGO = cargos,
                     CANAL = canais,
-                    DT_MOD = DateTime.Now.ToString(),
+                    DT_MOD = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
                     LOGIN_MOD = question.matricula
                 }).Entity;
 
@@ -360,7 +360,7 @@ namespace Vivo_Apps_API.Controllers
                 question_criada.EXPLICACAO = null;
                 question_criada.CARGO = cargos;
                 question_criada.CANAL = canais;
-                question_criada.DT_MOD = DateTime.Now.ToString();
+                question_criada.DT_MOD = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
                 question_criada.LOGIN_MOD = question.matricula;
                 await CD.SaveChangesAsync();
 

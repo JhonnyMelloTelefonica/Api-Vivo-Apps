@@ -1,4 +1,4 @@
-﻿using Api_Vivo_Apps.Data;
+﻿using Shared_Class_Vivo_Mais.Data;
 
 namespace Vivo_Apps_API.Models
 {

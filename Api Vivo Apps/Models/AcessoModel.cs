@@ -1,5 +1,5 @@
-﻿using Api_Vivo_Apps.Data;
-using Vivo_Apps_API.Enums;
+﻿using Shared_Class_Vivo_Mais.Data;
+using Shared_Class_Vivo_Mais.Enums;
 
 namespace Vivo_Apps_API.Models
 {

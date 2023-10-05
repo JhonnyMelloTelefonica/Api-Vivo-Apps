@@ -7,7 +7,9 @@ namespace Vivo_Apps_API.Models
         public int PageNumber { get; set; }
         public int PageSize { get; set; }
         public string? Nome { get; set; }
+        public string? MatriculaDivisao { get; set; }
         public string? Matricula { get; set; }
+        public string? Pdv { get; set; }
         public string? email { get; set; }
         public bool? IsSuporte { get; set; }
         public List<string>? Cargo { get; set; }

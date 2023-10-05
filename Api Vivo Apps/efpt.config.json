@@ -1,229 +1,229 @@
 ﻿{
-   "CodeGenerationMode": 2,
-   "ContextClassName": "Vivo_MAISContext",
-   "ContextNamespace": null,
-   "DefaultDacpacSchema": null,
-   "FilterSchemas": false,
-   "IncludeConnectionString": true,
-   "ModelNamespace": null,
-   "OutputContextPath": null,
-   "OutputPath": "Data",
-   "PreserveCasingWithRegex": true,
-   "ProjectRootNamespace": "Shared_Class_Vivo_Mais",
-   "Schemas": null,
-   "SelectedHandlebarsLanguage": 0,
-   "SelectedToBeGenerated": 0,
-   "Tables": [
-      {
-         "Name": "[dbo].[ACESSO]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[ACESSO_PERMISSAO_MENU]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[ACESSO_TERCEIROS]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[ACESSOS_MOBILE]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[ACESSOS_MOBILE_PENDENTE]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CADASTRO_GERENTE_TERRITORIO]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CADASTRO_PDV]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CAMPOS_FILA]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[carteira_demais_canais_rede_colaborador]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[Carteira_NE]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_ARQUIVOS_RESPOSTA]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CAMPO_COMBOBOX_FILA]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CAMPO_LISTA_ICCID]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CAMPOS_CHAMADO]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CAMPOS_FILA]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CHAMADO]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CHAMADO_ARQUIVOS]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTA]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_FILA]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_OPERADORES]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADO]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADO_BKP]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_RELACAO_ITENS_CAMPO_COMBOBOX_FILA]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_RELACAO_STATUS_CHAMADO]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_RESPONSAVEL_FILA]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_STATUS_CHAMADO]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_SUGESTOES_NOMES_CAMPOS]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CONTROLE_DEMANDAS_ARQUIVOS_RESPOSTA]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[CREDENCIAMENTO_PROSPECT]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[FIXA_BASE_PRUMA]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[FIXA_VIEW_PAINEL_DE_ROTAS]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[HISTORICO_ACESSOS_MOBILE_PENDENTE]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[JORNADA_BD_ANSWER_ALTERNATIVAS]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[JORNADA_BD_ANSWER_AVALIACAO]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[JORNADA_BD_AVALIACAO_RETORNO]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[JORNADA_BD_CARGOS_CANAL]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[JORNADA_BD_HIERARQUIA]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[JORNADA_BD_QUESTION]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[JORNADA_BD_QUESTION_HISTORICO]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[JORNADA_BD_RELACAO_HISTORICO]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[JORNADA_BD_TEMAS_SUB_TEMAS]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[PERFIL_PLATAFORMAS_VIVO]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[PERFIL_USUARIO]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[PERFIL_USUARIO_PENDENTE]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[SUB_FILA]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[TAB_PESSOAS_SUPORTE]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[TIPO_FILA]",
-         "ObjectType": 0
-      },
-      {
-         "Name": "[dbo].[VALORES_CAMPOS_SUSPENSO]",
-         "ObjectType": 0
-      }
-   ],
-   "UiHint": "BRTDTBGS0081FU.Vivo_MAIS",
-   "UseBoolPropertiesWithoutDefaultSql": false,
-   "UseDatabaseNames": true,
-   "UseDbContextSplitting": false,
-   "UseFluentApiOnly": true,
-   "UseHandleBars": false,
-   "UseHierarchyId": false,
-   "UseInflector": true,
-   "UseLegacyPluralizer": false,
-   "UseManyToManyEntity": false,
-   "UseNoConstructor": true,
-   "UseNoDefaultConstructor": false,
-   "UseNoNavigations": true,
-   "UseNoObjectFilter": false,
-   "UseNodaTime": false,
-   "UseNullableReferences": false,
-   "UseSchemaFolders": false,
-   "UseSpatial": false,
-   "UseT4": false
+  "CodeGenerationMode": 2,
+  "ContextClassName": "Vivo_MAISContext",
+  "ContextNamespace": null,
+  "DefaultDacpacSchema": null,
+  "FilterSchemas": false,
+  "IncludeConnectionString": true,
+  "ModelNamespace": null,
+  "OutputContextPath": "DB_Context_Vivo_MAIS",
+  "OutputPath": "Data",
+  "PreserveCasingWithRegex": true,
+  "ProjectRootNamespace": "Shared_Class_Vivo_Mais",
+  "Schemas": null,
+  "SelectedHandlebarsLanguage": 0,
+  "SelectedToBeGenerated": 0,
+  "Tables": [
+    {
+      "Name": "[dbo].[ACESSO]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[ACESSO_PERMISSAO_MENU]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[ACESSO_TERCEIROS]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[ACESSOS_MOBILE]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[ACESSOS_MOBILE_PENDENTE]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[CADASTRO_GERENTE_TERRITORIO]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[CADASTRO_PDV]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[CAMPOS_FILA]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[carteira_demais_canais_rede_colaborador]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[Carteira_NE]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[CONTROLE_DE_DEMANDAS_ARQUIVOS_RESPOSTA]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CAMPO_COMBOBOX_FILA]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CAMPO_LISTA_ICCID]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CAMPOS_CHAMADO]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CAMPOS_FILA]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CHAMADO]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CHAMADO_ARQUIVOS]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTA]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[CONTROLE_DE_DEMANDAS_FILA]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[CONTROLE_DE_DEMANDAS_OPERADORES]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADO]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADO_BKP]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[CONTROLE_DE_DEMANDAS_RELACAO_ITENS_CAMPO_COMBOBOX_FILA]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[CONTROLE_DE_DEMANDAS_RELACAO_STATUS_CHAMADO]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[CONTROLE_DE_DEMANDAS_RESPONSAVEL_FILA]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[CONTROLE_DE_DEMANDAS_STATUS_CHAMADO]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[CONTROLE_DE_DEMANDAS_SUGESTOES_NOMES_CAMPOS]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[CONTROLE_DEMANDAS_ARQUIVOS_RESPOSTA]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[CREDENCIAMENTO_PROSPECT]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[FIXA_BASE_PRUMA]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[FIXA_VIEW_PAINEL_DE_ROTAS]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[HISTORICO_ACESSOS_MOBILE_PENDENTE]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[JORNADA_BD_ANSWER_ALTERNATIVAS]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[JORNADA_BD_ANSWER_AVALIACAO]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[JORNADA_BD_AVALIACAO_RETORNO]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[JORNADA_BD_CARGOS_CANAL]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[JORNADA_BD_HIERARQUIA]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[JORNADA_BD_QUESTION]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[JORNADA_BD_QUESTION_HISTORICO]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[JORNADA_BD_RELACAO_HISTORICO]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[JORNADA_BD_TEMAS_SUB_TEMAS]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[PERFIL_PLATAFORMAS_VIVO]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[PERFIL_USUARIO]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[PERFIL_USUARIO_PENDENTE]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[SUB_FILA]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[TAB_PESSOAS_SUPORTE]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[TIPO_FILA]",
+      "ObjectType": 0
+    },
+    {
+      "Name": "[dbo].[VALORES_CAMPOS_SUSPENSO]",
+      "ObjectType": 0
+    }
+  ],
+  "UiHint": "BRTDTBGS0081FU.Vivo_MAIS",
+  "UseBoolPropertiesWithoutDefaultSql": false,
+  "UseDatabaseNames": true,
+  "UseDbContextSplitting": false,
+  "UseFluentApiOnly": true,
+  "UseHandleBars": false,
+  "UseHierarchyId": false,
+  "UseInflector": true,
+  "UseLegacyPluralizer": false,
+  "UseManyToManyEntity": false,
+  "UseNoConstructor": true,
+  "UseNoDefaultConstructor": false,
+  "UseNoNavigations": true,
+  "UseNoObjectFilter": false,
+  "UseNodaTime": false,
+  "UseNullableReferences": false,
+  "UseSchemaFolders": false,
+  "UseSpatial": false,
+  "UseT4": false
 }

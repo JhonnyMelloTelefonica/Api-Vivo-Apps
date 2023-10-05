@@ -1,4 +1,4 @@
-﻿using Api_Vivo_Apps.Data;
+﻿using Shared_Class_Vivo_Mais.Data;
 
 namespace Vivo_Apps_API.Models
 {
@@ -22,7 +22,7 @@ namespace Vivo_Apps_API.Models
         public byte[]? UserAvatar { get; set; }
         public string? LOGIN_MOD { get; set; }
         public string? DT_MOD { get; set; }
-        public int? ID_Perfil_Usuario { get; set; }
+        public bool? ELEGIVEL { get; set; }
         public List<int?>? Perfil { get; set; }
     }
 }

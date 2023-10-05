@@ -1,4 +1,4 @@
-﻿using Vivo_Apps_API.Enums;
+﻿using Shared_Class_Vivo_Mais.Enums;
 
 namespace Vivo_Apps_API.Models
 {

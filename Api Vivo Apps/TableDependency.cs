@@ -3,8 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using System.Data.Entity;
 using TableDependency.SqlClient;
 using TableDependency.SqlClient.Base.EventArgs;
-using Api_Vivo_Apps.Data;
+using Shared_Class_Vivo_Mais.Data;
 using Vivo_Apps_API.Hubs;
+using Shared_Class_Vivo_Mais.DB_Context_Vivo_MAIS;
 
 namespace Vivo_Apps_API
 {

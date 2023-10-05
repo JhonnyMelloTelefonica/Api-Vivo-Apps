@@ -1,4 +1,4 @@
-﻿using Api_Vivo_Apps.Data;
+﻿using Shared_Class_Vivo_Mais.Data;
 
 namespace Vivo_Apps_API.Models
 {
@@ -15,10 +15,11 @@ namespace Vivo_Apps_API.Models
         public string UF { get; set; }
         public string CPF { get; set; }
         public string PDV { get; set; }
+        public string ULTIMO_STATUS { get; set; }
         public bool? APROVACAO { get; set; }
         public bool? FIXA { get; set; }
         public string TIPO { get; set; }
-        public ACESSO? SOLICITANTE { get; set; }
+        public ACESSOS_MOBILE? SOLICITANTE { get; set; }
         public string DT_SOLICITACAO { get; set; }
         public string LOGIN_RESPONSAVEL { get; set; }
         public string DT_RETORNO { get; set; }
