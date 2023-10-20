@@ -1,4 +1,4 @@
-﻿using Shared_Class_Vivo_Mais.Enums;
+﻿using Shared_Class_Vivo_Apps.Enums;
 
 namespace Vivo_Apps_API.ModelDTO
 {

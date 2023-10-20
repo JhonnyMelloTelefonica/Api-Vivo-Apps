@@ -1,8 +1,6 @@
 using AutoMapper;
-using Shared_Class_Vivo_Mais.Data;
-using Shared_Class_Vivo_Mais.DataGRC;
-using Shared_Class_Vivo_Mais.DataOracle;
-using Shared_Class_Vivo_Mais.DB_Context_Vivo_MAIS;
+using Shared_Class_Vivo_Apps.Data;
+using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
 using Vivo_Apps_API;
 using Vivo_Apps_API.Hubs;
 
@@ -23,7 +21,6 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 
 builder.Services.AddDbContext<Vivo_MAISContext>();
-
 
 //builder.Services.AddSingleton<TableDependencyService>();
 

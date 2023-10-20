@@ -2,10 +2,10 @@
 using System.Data;
 using System.Text;
 using Vivo_Apps_API.Models;
-using Shared_Class_Vivo_Mais.Data;
-using Shared_Class_Vivo_Mais.Enums;
+using Shared_Class_Vivo_Apps.Data;
+using Shared_Class_Vivo_Apps.Enums;
 using System.Linq;
-using Shared_Class_Vivo_Mais.DB_Context_Vivo_MAIS;
+using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
 
 
 namespace Vivo_Apps_API.Controllers
@@ -22,14 +22,7 @@ namespace Vivo_Apps_API.Controllers
         {
             _logger = logger;
         }
-        /// <summary>
-        ///
-        /// </summary>
-        /// <param name="old"></param>
-        /// <param name="newone"></param>
-        /// <param name="confirmnewone"></param>
-        /// <param name="matricula"></param>
-        /// <returns></returns>
+
         [HttpPost("UpdateSenhaUser")]
         [ProducesResponseType(typeof(Response<string>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
@@ -530,7 +523,8 @@ namespace Vivo_Apps_API.Controllers
             {
                 pagedData = pagedData.Where(x => 
                     CD.JORNADA_BD_CARTEIRA_DIVISAOs
-                        .Where(y => y.DIVISAO == filter.MatriculaDivisao)
+                        .Where(y => y.DIVISAO != null)
+                        .Where(y => y.DIVISAO.Value.ToString() == filter.MatriculaDivisao)
                         .Select(y=>y.Vendedor).Contains(x.PDV)
                     );
             }

@@ -1,4 +1,4 @@
-﻿using Shared_Class_Vivo_Mais.Model_DTO;
+﻿using Shared_Class_Vivo_Apps.Model_DTO;
 
 namespace Vivo_Apps_API.Hubs
 {
@@ -8,7 +8,7 @@ namespace Vivo_Apps_API.Hubs
         Task Echo(string name, string message);
         Task OnConnectedAsync();
         Task OnDisconnectedAsync(Exception exception);
-        void SendNewBoletaToPdv(BOLETA_PALITAGEM_DTO newboleta);
+        //void SendNewBoletaToPdv(BOLETA_PALITAGEM_DTO newboleta);
         void UsersOnlineCount();
     }
 }

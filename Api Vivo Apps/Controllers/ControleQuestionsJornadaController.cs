@@ -2,14 +2,14 @@
 using System.Data;
 using System.Text;
 using Vivo_Apps_API.Models;
-using Shared_Class_Vivo_Mais.Data;
+using Shared_Class_Vivo_Apps.Data;
 using System.Drawing;
 using Newtonsoft.Json;
-using Shared_Class_Vivo_Mais.Enums;
+using Shared_Class_Vivo_Apps.Enums;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Linq;
-using Shared_Class_Vivo_Mais.DB_Context_Vivo_MAIS;
+using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
 
 namespace Vivo_Apps_API.Controllers
 {
