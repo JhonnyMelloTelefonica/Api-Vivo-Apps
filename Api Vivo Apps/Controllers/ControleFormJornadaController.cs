@@ -147,6 +147,7 @@ namespace Vivo_Apps_API.Controllers
                            .Where(y => y.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains(TIPO_PROVA))
                            .Where(k => (FIXA == false ? k.FIXA == FIXA : k.FIXA != null))
                            .Where(x => x.ID_TEMAS == TEMA.ToString())
+                           .Where(x => x.STATUS_QUESTION == true)
                            .Count();
 
                 return new JsonResult(new Response<int>
@@ -195,6 +196,7 @@ namespace Vivo_Apps_API.Controllers
                            .Where(y => y.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains(TIPO_PROVA))
                            .Where(k => (FIXA == false ? k.FIXA == FIXA : k.FIXA != null))
                            .Where(x => x.ID_TEMAS == SUB_TEMA.ToString())
+                           .Where(x => x.STATUS_QUESTION == true)
                            .Count();
 
                 return new JsonResult(new Response<int>
@@ -226,7 +228,7 @@ namespace Vivo_Apps_API.Controllers
         public async Task<JsonResult> GetTemasCriarFormulario(
                 string TIPO_PROVA,
                 int CARGO,
-                bool FIXA)
+                bool FIXA)  
         {
             try
             {
@@ -1776,19 +1778,21 @@ namespace Vivo_Apps_API.Controllers
                         .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
                         .ToList();
 
-                    var provasEncontradas = actualquestionsjornadaGestor.Select(x => x.ID_PROVA).ToList();
-                    
-                    questionsjornadaGestor = actualquestionsjornadaGestor;
-                    
+                    var provasEncontradas = actualquestionsjornadaGestor.Select(x => x.ID_PROVA).Distinct().ToList();
+
+                    var loopingquestions = actualquestionsjornadaGestor;
+
                     foreach (var item in provasEncontradas)
                     {
                         if (CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
                         .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == MATRICULA)
                         .Any() == true)
                         {
-                            questionsjornadaGestor = actualquestionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();
+                            loopingquestions = actualquestionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();
                         }
                     }
+
+                    questionsjornadaGestor.AddRange(loopingquestions);
                 }
             }
         }
@@ -1802,7 +1806,7 @@ namespace Vivo_Apps_API.Controllers
             bool ELEGIVEL,
             out List<JORNADA_BD_QUESTION_HISTORICO> questionsjornadaGestor)
         {
-            if (((Cargos)int.Parse(usuario.CARGO)).HasFlag(Cargos.Gerente_Área))
+            if (((Cargos)int.Parse(usuario.CARGO)) == Cargos.Gerente_Área)
             {
                 JORNADA_BD_CARTEIRA_DIVISAO? PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
                 .Where(x => x.RE_GA != null)
@@ -1844,7 +1848,7 @@ namespace Vivo_Apps_API.Controllers
                     questionsjornadaGestor = new();
                 }
             }
-            else if (((Cargos)int.Parse(usuario.CARGO)).HasFlag(Cargos.Gerente_Parceiros))
+            else if (((Cargos)int.Parse(usuario.CARGO)) == Cargos.Gerente_Parceiros)
             {
                 JORNADA_BD_CARTEIRA_DIVISAO? PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
                 .Where(x => x.RE_GGP != null)
@@ -1868,8 +1872,7 @@ namespace Vivo_Apps_API.Controllers
                         .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
                         .ToList();
 
-                    var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).ToList();
-
+                    var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).Distinct().ToList();
 
                     foreach (var item in provasEncontradas)
                     {
@@ -1886,7 +1889,7 @@ namespace Vivo_Apps_API.Controllers
                     questionsjornadaGestor = new();
                 }
             }
-            else if (((Cargos)int.Parse(usuario.CARGO)).HasFlag(Cargos.Gerente_Vendas_B2C))
+            else if (((Cargos)int.Parse(usuario.CARGO)) == Cargos.Gerente_Vendas_B2C)
             {
                 JORNADA_BD_CARTEIRA_DIVISAO? PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
                 .Where(x => x.RE_GV != null)
@@ -1910,7 +1913,7 @@ namespace Vivo_Apps_API.Controllers
                         .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
                         .ToList();
 
-                    var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).ToList();
+                    var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).ToList().Distinct();
 
                     foreach (var item in provasEncontradas)
                     {
@@ -1949,7 +1952,7 @@ namespace Vivo_Apps_API.Controllers
                         .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
                         .ToList();
 
-                    var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).ToList();
+                    var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).Distinct().ToList();
 
                     foreach (var item in provasEncontradas)
                     {
@@ -1983,39 +1986,45 @@ namespace Vivo_Apps_API.Controllers
 
             if (PDVDivisão is not null)
             {
-                var actual = DateTime.Now;
+                if (PDVDivisão.RE_GA is not null)
+                {
+                    var actual = DateTime.Now;
 
-                questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
-                .Where(y => y.TP_FORMS == "Jornada Gestor")
-                .Where(y => y.ID_CRIADOR == PDVDivisão.RE_GA.ToString())
-                .Where(y => y.CARGO == CARGO.ToString())
-                .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
-                .Where(y => y.FIXA == FIXA)
-                .Where(y => y.REGIONAL == REGIONAL)
-                .ToList();
-
-                questionsjornadaGestor = questionsjornadaGestor
-                    .Where(x => Convert.ToDateTime(x.DT_INICIO_AVALIACAO) < actual) // Data inicial deve ser maior que hoje
-                    .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
+                    questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
+                    .Where(y => y.TP_FORMS == "Jornada Gestor")
+                    .Where(y => y.ID_CRIADOR == PDVDivisão.RE_GA.ToString())
+                    .Where(y => y.CARGO == CARGO.ToString())
+                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
+                    .Where(y => y.FIXA == FIXA)
+                    .Where(y => y.REGIONAL == REGIONAL)
                     .ToList();
 
-                var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).Distinct().ToList();
+                    questionsjornadaGestor = questionsjornadaGestor
+                        .Where(x => Convert.ToDateTime(x.DT_INICIO_AVALIACAO) < actual) // Data inicial deve ser maior que hoje
+                        .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
+                        .ToList();
 
+                    var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).Distinct().ToList();
 
-                foreach (var item in provasEncontradas)
-                {
-                    if (CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
-                    .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == MATRICULA)
-                    .Any() == true)
+                    foreach (var item in provasEncontradas)
                     {
-                        questionsjornadaGestor = questionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();
+                        if (CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
+                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == MATRICULA)
+                        .Any() == true)
+                        {
+                            questionsjornadaGestor = questionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();
+                        }
                     }
+                    //questionsjornadaGestor = questionsjornadaGestor.Where(y =>
+                    //    CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
+                    //    .Where(x => provasEncontradas.Contains(x.ID_PROVA) && x.RE_AVALIADO == MATRICULA)
+                    //    .Any() == true
+                    //).ToList();
                 }
-                //questionsjornadaGestor = questionsjornadaGestor.Where(y =>
-                //    CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
-                //    .Where(x => provasEncontradas.Contains(x.ID_PROVA) && x.RE_AVALIADO == MATRICULA)
-                //    .Any() == true
-                //).ToList();
+                else
+                {
+                    questionsjornadaGestor = new();
+                }
             }
             else
             {
@@ -2037,32 +2046,39 @@ namespace Vivo_Apps_API.Controllers
 
             if (PDVDivisão is not null)
             {
-                var actual = DateTime.Now;
+                if (PDVDivisão.RE_GGP is not null)
+                {
+                    var actual = DateTime.Now;
 
-                questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
-                .Where(y => y.TP_FORMS == "Jornada Gestor")
-                .Where(y => y.ID_CRIADOR == PDVDivisão.RE_GGP)
-                .Where(y => y.CARGO == CARGO.ToString())
-                .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
-                .Where(y => y.FIXA == FIXA)
-                .Where(y => y.REGIONAL == REGIONAL)
-                .ToList();
-
-                questionsjornadaGestor = questionsjornadaGestor
-                    .Where(x => Convert.ToDateTime(x.DT_INICIO_AVALIACAO) < actual) // Data inicial deve ser maior que hoje
-                    .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
+                    questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
+                    .Where(y => y.TP_FORMS == "Jornada Gestor")
+                    .Where(y => y.ID_CRIADOR == PDVDivisão.RE_GGP)
+                    .Where(y => y.CARGO == CARGO.ToString())
+                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
+                    .Where(y => y.FIXA == FIXA)
+                    .Where(y => y.REGIONAL == REGIONAL)
                     .ToList();
 
-                var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).Distinct().ToList();
+                    questionsjornadaGestor = questionsjornadaGestor
+                        .Where(x => Convert.ToDateTime(x.DT_INICIO_AVALIACAO) < actual) // Data inicial deve ser maior que hoje
+                        .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
+                        .ToList();
 
-                foreach (var item in provasEncontradas)
-                {
-                    if (CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
-                    .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == MATRICULA)
-                    .Any() == true)
+                    var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).Distinct().ToList();
+
+                    foreach (var item in provasEncontradas)
                     {
-                        questionsjornadaGestor = questionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();
+                        if (CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
+                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == MATRICULA)
+                        .Any() == true)
+                        {
+                            questionsjornadaGestor = questionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();
+                        }
                     }
+                }
+                else
+                {
+                    questionsjornadaGestor = new();
                 }
             }
             else
@@ -2084,32 +2100,39 @@ namespace Vivo_Apps_API.Controllers
 
             if (PDVDivisão is not null)
             {
-                var actual = DateTime.Now;
+                if (PDVDivisão.RE_GV is not null)
+                {
+                    var actual = DateTime.Now;
 
-                questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
-                .Where(y => y.TP_FORMS == "Jornada Gestor")
-                .Where(y => y.ID_CRIADOR == PDVDivisão.RE_GV)
-                .Where(y => y.CARGO == CARGO.ToString())
-                .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
-                .Where(y => y.FIXA == FIXA)
-                .Where(y => y.REGIONAL == REGIONAL)
-                .ToList();
-
-                questionsjornadaGestor = questionsjornadaGestor
-                    .Where(x => Convert.ToDateTime(x.DT_INICIO_AVALIACAO) < actual) // Data inicial deve ser maior que hoje
-                    .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
+                    questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
+                    .Where(y => y.TP_FORMS == "Jornada Gestor")
+                    .Where(y => y.ID_CRIADOR == PDVDivisão.RE_GV)
+                    .Where(y => y.CARGO == CARGO.ToString())
+                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
+                    .Where(y => y.FIXA == FIXA)
+                    .Where(y => y.REGIONAL == REGIONAL)
                     .ToList();
 
-                var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).Distinct().ToList();
+                    questionsjornadaGestor = questionsjornadaGestor
+                        .Where(x => Convert.ToDateTime(x.DT_INICIO_AVALIACAO) < actual) // Data inicial deve ser maior que hoje
+                        .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
+                        .ToList();
 
-                foreach (var item in provasEncontradas)
-                {
-                    if (CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
-                    .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == MATRICULA)
-                    .Any() == true)
+                    var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).Distinct().ToList();
+
+                    foreach (var item in provasEncontradas)
                     {
-                        questionsjornadaGestor = questionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();
+                        if (CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
+                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == MATRICULA)
+                        .Any() == true)
+                        {
+                            questionsjornadaGestor = questionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();
+                        }
                     }
+                }
+                else
+                {
+                    questionsjornadaGestor = new();
                 }
             }
             else
