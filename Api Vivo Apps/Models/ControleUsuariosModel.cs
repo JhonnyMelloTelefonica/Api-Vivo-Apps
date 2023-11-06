@@ -22,7 +22,9 @@ namespace Vivo_Apps_API.Models
         public byte[]? UserAvatar { get; set; }
         public string? LOGIN_MOD { get; set; }
         public string? DT_MOD { get; set; }
-        public bool? ELEGIVEL { get; set; }
+        public bool ELEGIVEL { get; set; } = false;
+        public int DDD { get; set; }
+        public string TP_STATUS { get; set; } = string.Empty;
         public List<int?>? Perfil { get; set; }
     }
 }

@@ -22,7 +22,11 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.IgnoreNullValues = true;
 });
 
-builder.Services.AddDbContext<Vivo_MAISContext>();
+builder.Services.AddDbContext<Vivo_MAISContext>(opt =>
+{
+    opt.EnableSensitiveDataLogging();
+    opt.EnableDetailedErrors();
+});
 
 
 //builder.Services.AddSingleton<TableDependencyService>();

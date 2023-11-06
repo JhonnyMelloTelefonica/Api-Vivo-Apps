@@ -11,5 +11,6 @@
         public List<int>? Sub_temas { get; set; }
         public List<int>? Cargos { get; set; }
         public List<int>? Canal { get; set; }
+        public bool? Status { get; set; }
     }
 }

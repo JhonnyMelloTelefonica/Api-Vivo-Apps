@@ -6,6 +6,7 @@ using Shared_Class_Vivo_Mais.Data;
 using Shared_Class_Vivo_Mais.Enums;
 using System.Linq;
 using Shared_Class_Vivo_Mais.DB_Context_Vivo_MAIS;
+using System.Net.NetworkInformation;
 
 
 namespace Vivo_Apps_API.Controllers
@@ -95,7 +96,7 @@ namespace Vivo_Apps_API.Controllers
             try
             {
                 var user = CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA == matricula).FirstOrDefault();
-                
+
                 if (newone != confirmnewone)
                 {
                     return new JsonResult(new Response<string>
@@ -322,6 +323,9 @@ namespace Vivo_Apps_API.Controllers
                     TIPO = x.TIPO,
                     CPF = x.CPF,
                     PDV = x.PDV,
+                    DDD = x.DDD,
+                    ELEGIVEL = x.ELEGIVEL,
+                    TP_STATUS = x.TP_STATUS,
                     ULTIMO_STATUS = CD.HISTORICO_ACESSOS_MOBILE_PENDENTEs.Where(y => y.ID_ACESSOS_PENDENTE == x.ID).OrderByDescending(y => y.ID).FirstOrDefault().STATUS,
                     SOLICITANTE = CD.ACESSOS_MOBILEs.Where(y => y.MATRICULA == x.LOGIN_SOLICITANTE).FirstOrDefault(),
                     DT_SOLICITACAO = x.DT_SOLICITACAO,
@@ -406,7 +410,9 @@ namespace Vivo_Apps_API.Controllers
                         UserAvatar = x.UserAvatar,
                         LOGIN_MOD = x.LOGIN_MOD,
                         DT_MOD = x.DT_MOD,
-                        ELEGIVEL = x.ELEGIVEL,
+                        DDD = x.DDD.Value,
+                        ELEGIVEL = x.ELEGIVEL.Value,
+                        TP_STATUS = x.TP_STATUS,
                         Perfil = CD.PERFIL_USUARIOs.Where(y => y.Login == x.MATRICULA).Select(y => y.id_Perfil).ToList(),
                     }).FirstOrDefault()
                     : null),
@@ -431,6 +437,9 @@ namespace Vivo_Apps_API.Controllers
                     DT_SOLICITACAO = acesso.DT_SOLICITACAO,
                     DT_RETORNO = acesso.DT_RETORNO,
                     STATUS = acesso.STATUS,
+                    DDD = acesso.DDD.Value,
+                    ELEGIVEL = acesso.ELEGIVEL.Value,
+                    TP_STATUS = acesso.TP_STATUS,
                     RESPOSTAS = respostas,
                     PERFIS_SOLICITADOS = perfis
                 };
@@ -498,40 +507,59 @@ namespace Vivo_Apps_API.Controllers
 
                     // Busca as matriculas que não pertencem a este perfil
                     pagedData = pagedData.Where(x => listaMatricula.Contains(x.MATRICULA));
-
                 }
             }
 
-            if (filter.Uf.Count() > 0)
+            if (filter.Uf is not null)
             {
-                pagedData = pagedData.Where(x => filter.Uf.Contains(x.UF));
+                if (filter.Uf.Any())
+                {
+                    pagedData = pagedData.Where(x => filter.Uf.Contains(x.UF));
+                }
             }
-            if (filter.Cargo.Count() > 0)
+
+            if (filter.Cargo is not null)
             {
-                pagedData = pagedData.Where(x => filter.Cargo.Contains(x.CARGO));
+                if (filter.Cargo.Count() > 0)
+                {
+                    pagedData = pagedData.Where(x => filter.Cargo.Contains(x.CARGO));
+                }
             }
-            if (filter.Canal.Count() > 0)
+
+            if (filter.Canal is not null)
             {
-                pagedData = pagedData.Where(x => filter.Canal.Contains(x.CANAL));
+                if (filter.Canal.Count() > 0)
+                {
+                    pagedData = pagedData.Where(x => filter.Canal.Contains(x.CANAL));
+                }
             }
-            if (filter.Regional.Count() > 0)
+
+            if (filter.Regional is not null)
             {
-                pagedData = pagedData.Where(x => filter.Regional.Contains(x.REGIONAL));
+                if (filter.Regional.Count() > 0)
+                {
+                    pagedData = pagedData.Where(x => filter.Regional.Contains(x.REGIONAL));
+                }
             }
-            if (filter.Fixa.Count() > 0)
+
+            if (filter.Fixa is not null)
             {
-                pagedData = pagedData.Where(x => filter.Fixa.Contains(x.FIXA.Value));
+                if (filter.Fixa.Count() > 0)
+                {
+                    pagedData = pagedData.Where(x => filter.Fixa.Contains(x.FIXA.Value));
+                }
             }
+
             if (!string.IsNullOrEmpty(filter.Nome))
             {
                 pagedData = pagedData.Where(x => x.NOME.ToLower().Contains(filter.Nome.ToLower()));
             }
             if (!string.IsNullOrEmpty(filter.MatriculaDivisao))
             {
-                pagedData = pagedData.Where(x => 
+                pagedData = pagedData.Where(x =>
                     CD.JORNADA_BD_CARTEIRA_DIVISAOs
                         .Where(y => y.DIVISAO == filter.MatriculaDivisao)
-                        .Select(y=>y.Vendedor).Contains(x.PDV)
+                        .Select(y => y.Vendedor).Contains(x.PDV)
                     );
             }
             if (!string.IsNullOrEmpty(filter.Matricula))
@@ -575,7 +603,9 @@ namespace Vivo_Apps_API.Controllers
                 UserAvatar = x.UserAvatar,
                 LOGIN_MOD = x.LOGIN_MOD,
                 DT_MOD = x.DT_MOD,
-                ELEGIVEL = x.ELEGIVEL,
+                DDD = x.DDD.Value,
+                ELEGIVEL = x.ELEGIVEL.Value,
+                TP_STATUS = x.TP_STATUS,
                 Perfil = CD.PERFIL_USUARIOs.Where(k => k.Login == x.MATRICULA).Select(x => x.id_Perfil).ToList()
             });
 
@@ -624,6 +654,9 @@ namespace Vivo_Apps_API.Controllers
                     LOGIN_SOLICITANTE = matricula,
                     ID_ACESSOS_MOBILE = ID_ACESSOS_MOBILE,
                     STATUS_USUARIO = usuario.STATUS,
+                    DDD = usuario.DDD,
+                    ELEGIVEL = usuario.ELEGIVEL,
+                    TP_STATUS = usuario.TP_STATUS,
                     STATUS = "ABERTO",
                     TIPO = "ALTERAÇÃO"
                 }).Entity;
@@ -845,6 +878,9 @@ namespace Vivo_Apps_API.Controllers
                     user.OBS = usuario.OBS;
                     user.UserAvatar = usuario.UserAvatar;
                     user.LOGIN_MOD = matricula;
+                    user.DDD = usuario.DDD;
+                    user.ELEGIVEL = usuario.ELEGIVEL;
+                    user.TP_STATUS = usuario.TP_STATUS;
                     user.DT_MOD = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
 
                     var ActualPerfis = CD.PERFIL_USUARIOs.Where(x => x.Login == user.MATRICULA); // Busco todos os Perfis que o usuário já tem
@@ -980,7 +1016,10 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                if (CD.ACESSOS_MOBILE_PENDENTEs.Where(x => x.TIPO.ToLower() != "alteração").Select(x => x.MATRICULA).Contains(matricula)
+                if (CD.ACESSOS_MOBILE_PENDENTEs.Where(x =>
+                    x.TIPO.ToLower() == "inclusão" &&
+                    (x.STATUS.ToLower() != "reprovado"
+                    && x.STATUS.ToLower() != "finalizado")).Select(x => x.MATRICULA).Contains(matricula)
                     || CD.ACESSOS_MOBILEs.Select(x => x.MATRICULA).Contains(matricula))
                 {
                     return new JsonResult(new Response<string>
@@ -1088,6 +1127,9 @@ namespace Vivo_Apps_API.Controllers
                     DT_RETORNO = null,
                     LOGIN_RESPONSAVEL = null,
                     LOGIN_SOLICITANTE = matricula,
+                    DDD = usuario.DDD,
+                    ELEGIVEL = false,
+                    TP_STATUS = "",
                     STATUS_USUARIO = false,
                     STATUS = "ABERTO",
                     TIPO = "INCLUSÃO"
@@ -1116,8 +1158,6 @@ namespace Vivo_Apps_API.Controllers
                     }
                     await CD.SaveChangesAsync();
                 }
-
-
 
                 return new JsonResult(new Response<ACESSOS_MOBILE_PENDENTE>
                 {
@@ -1208,7 +1248,9 @@ namespace Vivo_Apps_API.Controllers
                         UserAvatar = x.UserAvatar,
                         LOGIN_MOD = x.LOGIN_MOD,
                         DT_MOD = x.DT_MOD,
-                        ELEGIVEL = x.ELEGIVEL,
+                        DDD = x.DDD.Value,
+                        ELEGIVEL = x.ELEGIVEL.Value,
+                        TP_STATUS = x.TP_STATUS,
                         Perfil = CD.PERFIL_USUARIOs.Where(y => y.Login == x.MATRICULA).Select(y => y.id_Perfil).ToList(),
                     }).FirstOrDefault()
                     : null),
@@ -1233,6 +1275,9 @@ namespace Vivo_Apps_API.Controllers
                     DT_SOLICITACAO = acesso.DT_SOLICITACAO,
                     DT_RETORNO = acesso.DT_RETORNO,
                     STATUS = acesso.STATUS,
+                    DDD = acesso.DDD.Value,
+                    ELEGIVEL = acesso.ELEGIVEL.Value,
+                    TP_STATUS = acesso.TP_STATUS,
                     RESPOSTAS = respostas,
                     PERFIS_SOLICITADOS = perfis
                 };
@@ -1310,6 +1355,9 @@ namespace Vivo_Apps_API.Controllers
                     PDV = usuario.PDV,
                     STATUS = true,
                     FIXA = usuario.FIXA,
+                    DDD = usuario.DDD,
+                    TP_STATUS = usuario.TP_STATUS,
+                    ELEGIVEL = usuario.ELEGIVEL,
                     OBS = resposta,
                     LOGIN_MOD = matricula,
                     DT_MOD = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
@@ -1366,7 +1414,9 @@ namespace Vivo_Apps_API.Controllers
                         UserAvatar = x.UserAvatar,
                         LOGIN_MOD = x.LOGIN_MOD,
                         DT_MOD = x.DT_MOD,
-                        ELEGIVEL = x.ELEGIVEL,
+                        DDD = x.DDD.Value,
+                        ELEGIVEL = x.ELEGIVEL.Value,
+                        TP_STATUS = x.TP_STATUS,
                         Perfil = CD.PERFIL_USUARIOs.Where(y => y.Login == x.MATRICULA).Select(y => y.id_Perfil).ToList(),
                     }).FirstOrDefault()
                     : null),
@@ -1391,6 +1441,9 @@ namespace Vivo_Apps_API.Controllers
                     DT_SOLICITACAO = acesso.DT_SOLICITACAO,
                     DT_RETORNO = acesso.DT_RETORNO,
                     STATUS = acesso.STATUS,
+                    DDD = acesso.DDD.Value,
+                    ELEGIVEL = acesso.ELEGIVEL.Value,
+                    TP_STATUS = acesso.TP_STATUS,
                     RESPOSTAS = respostas,
                     PERFIS_SOLICITADOS = perfis
                 };
@@ -1459,6 +1512,9 @@ namespace Vivo_Apps_API.Controllers
                 acesso.APROVACAO = usuario.APROVACAO;
                 acesso.FIXA = usuario.FIXA;
                 acesso.STATUS = status;
+                acesso.DDD = usuario.DDD;
+                acesso.TP_STATUS = usuario.TP_STATUS;
+                acesso.ELEGIVEL = usuario.ELEGIVEL;
                 acesso.DT_RETORNO = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
 
                 var perfilbymatricula = CD.PERFIL_USUARIO_PENDENTEs.Where(x => x.ID_ACESSO_PENDENTE == acesso.ID);
@@ -1515,7 +1571,9 @@ namespace Vivo_Apps_API.Controllers
                         UserAvatar = x.UserAvatar,
                         LOGIN_MOD = x.LOGIN_MOD,
                         DT_MOD = x.DT_MOD,
-                        ELEGIVEL = x.ELEGIVEL,
+                        ELEGIVEL = x.ELEGIVEL.Value,
+                        DDD = x.DDD.Value,
+                        TP_STATUS = x.TP_STATUS,
                         Perfil = CD.PERFIL_USUARIOs.Where(y => y.Login == x.MATRICULA).Select(y => y.id_Perfil).ToList(),
                     }).FirstOrDefault()
                     : null),
@@ -1540,6 +1598,9 @@ namespace Vivo_Apps_API.Controllers
                     DT_SOLICITACAO = acesso.DT_SOLICITACAO,
                     DT_RETORNO = acesso.DT_RETORNO,
                     STATUS = acesso.STATUS,
+                    DDD = acesso.DDD.Value,
+                    TP_STATUS = acesso.TP_STATUS,
+                    ELEGIVEL = acesso.ELEGIVEL.Value,
                     RESPOSTAS = respostas,
                     PERFIS_SOLICITADOS = perfis
                 };
@@ -1606,6 +1667,9 @@ namespace Vivo_Apps_API.Controllers
                 acesso.DT_MOD = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
                 acesso.LOGIN_MOD = matricula;
                 acesso.OBS = resposta;
+                acesso.ELEGIVEL = usuario.ELEGIVEL;
+                acesso.TP_STATUS = usuario.TP_STATUS;
+                acesso.DDD = usuario.DDD;
 
                 var perfilbymatricula = CD.PERFIL_USUARIOs.Where(x => x.Login == acesso.MATRICULA);
 
@@ -1675,7 +1739,9 @@ namespace Vivo_Apps_API.Controllers
                         UserAvatar = x.UserAvatar,
                         LOGIN_MOD = x.LOGIN_MOD,
                         DT_MOD = x.DT_MOD,
-                        ELEGIVEL = x.ELEGIVEL,
+                        ELEGIVEL = x.ELEGIVEL.Value,
+                        DDD = x.DDD.Value,
+                        TP_STATUS = x.TP_STATUS,
                         Perfil = CD.PERFIL_USUARIOs.Where(y => y.Login == x.MATRICULA).Select(y => y.id_Perfil).ToList(),
                     }).FirstOrDefault()
                     : null),
@@ -1692,6 +1758,8 @@ namespace Vivo_Apps_API.Controllers
                     APROVACAO = acesso_pendente.APROVACAO,
                     FIXA = acesso_pendente.FIXA,
                     TIPO = acesso_pendente.TIPO,
+                    DDD = acesso_pendente.DDD.Value,
+                    ELEGIVEL = acesso_pendente.ELEGIVEL.Value,
                     STATUS_USUARIO = acesso_pendente.STATUS_USUARIO,
                     LOGIN_SOLICITANTE = CD.ACESSOs.Where(x => x.Login == acesso_pendente.LOGIN_SOLICITANTE).FirstOrDefault(),
                     LOGIN_RESPONSAVEL = (acesso_pendente.LOGIN_RESPONSAVEL == null ?
@@ -1700,6 +1768,7 @@ namespace Vivo_Apps_API.Controllers
                     DT_SOLICITACAO = acesso_pendente.DT_SOLICITACAO,
                     DT_RETORNO = acesso_pendente.DT_RETORNO,
                     STATUS = acesso_pendente.STATUS,
+                    TP_STATUS = acesso_pendente.TP_STATUS,
                     RESPOSTAS = respostas,
                     PERFIS_SOLICITADOS = perfis
                 };

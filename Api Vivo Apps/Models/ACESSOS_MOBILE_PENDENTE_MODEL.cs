@@ -18,6 +18,9 @@ namespace Vivo_Apps_API.Models
         public string ULTIMO_STATUS { get; set; }
         public bool? APROVACAO { get; set; }
         public bool? FIXA { get; set; }
+        public int? DDD { get; set; }
+        public string TP_STATUS { get; set; } = string.Empty;
+        public bool? ELEGIVEL { get; set; } = false;
         public string TIPO { get; set; }
         public ACESSOS_MOBILE? SOLICITANTE { get; set; }
         public string DT_SOLICITACAO { get; set; }

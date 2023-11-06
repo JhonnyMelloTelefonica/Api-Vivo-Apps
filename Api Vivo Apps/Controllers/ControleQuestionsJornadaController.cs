@@ -141,7 +141,12 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var Data = CD.JORNADA_BD_QUESTIONs.Where(x => x.STATUS_QUESTION == true);
+                var Data = CD.JORNADA_BD_QUESTIONs.AsQueryable();
+
+                if (filter.Value.Status.HasValue)
+                {
+                    Data = Data.Where(x => x.STATUS_QUESTION == filter.Value.Status.Value);
+                }
 
                 if (filter.Value.Pergunta is not null)
                 {
@@ -269,6 +274,38 @@ namespace Vivo_Apps_API.Controllers
                     Data = $"A Questão de ID: {ID_QUESTION} foi inativada com sucesso!",
                     Succeeded = true,
                     Message = $"A Questão de ID: {ID_QUESTION} foi inativada com sucesso!",
+                    Errors = null,
+                });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    },
+                });
+            }
+        }
+
+        [HttpDelete("EnableQuestion")]
+        public async Task<JsonResult> EnableQuestion(int ID_QUESTION)
+        {
+            try
+            {
+                var question = CD.JORNADA_BD_QUESTIONs.Find(ID_QUESTION);
+                question.STATUS_QUESTION = true;
+                await CD.SaveChangesAsync();
+                return new JsonResult(new Response<string>
+                {
+                    Data = $"A Questão de ID: {ID_QUESTION} foi ativada com sucesso!",
+                    Succeeded = true,
+                    Message = $"A Questão de ID: {ID_QUESTION} foi ativada com sucesso!",
                     Errors = null,
                 });
             }
