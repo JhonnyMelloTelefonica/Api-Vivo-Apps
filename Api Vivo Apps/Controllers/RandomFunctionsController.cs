@@ -2,15 +2,14 @@
 using DataTable = System.Data.DataTable;
 using System.Data;
 using Vivo_Apps_API.Models;
-using Shared_Class_Vivo_Mais.Data;
+using Shared_Class_Vivo_Apps.Data;
 using System.Data.SqlClient;
 using System.Text;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Oracle.ManagedDataAccess.Client;
 using ApiController = System.Web.Http.ApiController;
-using Shared_Class_Vivo_Mais.Enums;
-using Shared_Class_Vivo_Mais.DB_Context_Vivo_MAIS;
+using Shared_Class_Vivo_Apps.Enums;
+using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
 
 namespace Vivo_Apps_API.Controllers
 {

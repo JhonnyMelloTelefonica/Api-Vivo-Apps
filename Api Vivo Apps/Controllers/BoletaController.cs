@@ -5,18 +5,18 @@ using System.Globalization;
 using Vivo_Apps_API.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Shared_Class_Vivo_Mais.Data;
+using Shared_Class_Vivo_Apps.Data;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Drawing;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using Shared_Class_Vivo_Mais.Model_DTO;
+using Shared_Class_Vivo_Apps.Model_DTO;
 using Microsoft.AspNetCore.SignalR;
 using Vivo_Apps_API.Hubs;
 using System.Numerics;
 using TableDependency.SqlClient.Base.Messages;
-using Shared_Class_Vivo_Mais.DB_Context_Vivo_MAIS;
-
+using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -255,12 +255,16 @@ namespace Vivo_Apps_API.Controllers
 
             try
             {
+                var Pdv_Criador = CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA == matricula).FirstOrDefault()?.PDV;
+                var lastBoleta = CD.BOLETA_BD_PALITAGEMs.Where(x => x.PDV == Pdv_Criador).OrderBy(x=>x.ID_BOLETA).LastOrDefault();
                 var PrincipalData = CD.BOLETA_BD_PALITAGEMs.Add(new BOLETA_BD_PALITAGEM
                 {
                     DATA_INICIO = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
                     MET_PAGAMENTO = (int)data.Met_Pagamento,
                     MAT_CONSULTOR = matricula,
                     TOTAL_PAGAMENTO = data.Total_Pagamento,
+                    PDV = Pdv_Criador,
+                    ID_BOLETA_PDV =  lastBoleta is null ? 0 : lastBoleta.ID_BOLETA_PDV + 1,
                     STATUS = "BOLETA GERADA",
 
                 }).Entity;
@@ -302,11 +306,11 @@ namespace Vivo_Apps_API.Controllers
                                     {
                                         ID_BLOCAO_BOLETA = DadosBlocao.ID_BLOCAO_BOLETA,
                                         ID_BOLETA = PrincipalData.ID_BOLETA,
-                                        CATEGORIA = ((int)item.Categoria).ToString(),
-                                        MOVIMENTO = ((int)item.Movimento).ToString(),
+                                        CATEGORIA = item.Categoria is null ? "0" : ((int)item.Categoria).ToString(),
+                                        MOVIMENTO = item.Movimento is null ? "0" : ((int)item.Movimento).ToString(),
                                         PORTABILIDADE = item.Portabilidade,
                                         FIDELIZACAO = item.Fidelizacao,
-                                        PLANO = ((int)item.Plano).ToString(),
+                                        PLANO = item.Plano is null ? "0" : ((int)item.Plano).ToString(),     
                                         SVA = item.SVA,
                                         DESCRICAO = item.Descricao,
                                         PLATAFORMA = ((int)item.Plataforma).ToString()
@@ -337,11 +341,11 @@ namespace Vivo_Apps_API.Controllers
                                     {
                                         ID_BLOCAO_BOLETA = DadosBlocao.ID_BLOCAO_BOLETA,
                                         ID_BOLETA = PrincipalData.ID_BOLETA,
-                                        CATEGORIA = ((int)item.Categoria).ToString(),
-                                        MOVIMENTO = ((int)item.Movimento).ToString(),
+                                        CATEGORIA = item.Categoria is null ? "0" : ((int)item.Categoria).ToString(),
+                                        MOVIMENTO = item.Movimento is null ? "0" : ((int)item.Movimento).ToString(),
                                         PORTABILIDADE = item.Portabilidade,
                                         FIDELIZACAO = item.Fidelizacao,
-                                        PLANO = ((int)item.Plano).ToString(),
+                                        PLANO = item.Plano is null ? "0" : ((int)item.Plano).ToString(),
                                         SVA = item.SVA,
                                         DESCRICAO = item.Descricao,
                                         PLATAFORMA = ((int)item.Plataforma).ToString()
@@ -367,11 +371,11 @@ namespace Vivo_Apps_API.Controllers
                             {
                                 ID_BLOCAO_BOLETA = DadosBlocao.ID_BLOCAO_BOLETA,
                                 ID_BOLETA = PrincipalData.ID_BOLETA,
-                                CATEGORIA = ((int)item.Categoria).ToString(),
-                                MOVIMENTO = ((int)item.Movimento).ToString(),
+                                CATEGORIA = item.Categoria is null ? "0" : ((int)item.Categoria).ToString(),
+                                MOVIMENTO = item.Movimento is null ? "0" : ((int)item.Movimento).ToString(),
                                 PORTABILIDADE = item.Portabilidade,
                                 FIDELIZACAO = item.Fidelizacao,
-                                PLANO = ((int)item.Plano).ToString(),
+                                PLANO = item.Plano is null ? "0" : ((int)item.Plano).ToString(),
                                 SVA = item.SVA,
                                 DESCRICAO = item.Descricao,
                                 PLATAFORMA = ((int)item.Plataforma).ToString()
@@ -396,7 +400,6 @@ namespace Vivo_Apps_API.Controllers
                     }
                 }
                 CD.SaveChanges();
-
                 var newboleta = CD.BOLETA_BD_PALITAGEMs
                         .Include(x => x.HISTORICO_BOLETA_BD_PALITAGEMs)
                         .Include(x => x.BOLETA_BD_CLIENTEs)
@@ -412,22 +415,21 @@ namespace Vivo_Apps_API.Controllers
                         .ProjectTo<BOLETA_PALITAGEM_DTO>(_mapper.ConfigurationProvider) // Map to DTO
                         .FirstOrDefault(x => x.ID_BOLETA == PrincipalData.ID_BOLETA);
 
-                _hubContext.Clients.Group(newboleta.MAT_CONSULTOR.PDV).SendAsync("NewNotification", newboleta.MAT_CONSULTOR.NOME, $"Boleta {PrincipalData.ID_BOLETA} Gerada",
-                    $"Uma nova boleta acabou de ser gerada por {newboleta.MAT_CONSULTOR.NOME}, com o número {PrincipalData.ID_BOLETA}", $"/BoletaByID/{PrincipalData.ID_BOLETA}");
+                _hubContext.Clients.Group(newboleta.MAT_CONSULTOR.PDV).SendAsync("NewNotification", newboleta.MAT_CONSULTOR.NOME, $"Boleta {PrincipalData.ID_BOLETA_PDV} Gerada",
+                    $"Uma nova boleta acabou de ser gerada por {newboleta.MAT_CONSULTOR.NOME}, com o número {PrincipalData.ID_BOLETA_PDV}", $"/BoletaByID/{PrincipalData.ID_BOLETA}");
 
                 _hubContext.Clients.Group(newboleta.MAT_CONSULTOR.PDV).SendAsync("SendNewBoletaToPdv", newboleta);
                 //_hubContext.Clients.Group(id).SendAsync("SendNewBoletaToPdv", );
-
-
 
                 return new JsonResult(new Response<int>
                 {
                     Data = PrincipalData.ID_BOLETA,
                     Succeeded = true,
-                    Message = $"a boleta foi criada com sucesso, N° {PrincipalData.ID_BOLETA}",
+                    Message = $"a boleta foi criada com sucesso, N° {PrincipalData.ID_BOLETA_PDV}",
                     Errors = null,
                 });
             }
+
             catch (Exception ex)
             {
                 return new JsonResult(new Response<string>
@@ -926,13 +928,17 @@ namespace Vivo_Apps_API.Controllers
 
                 if (filter.Value.IsAnalista)
                 {
-                    boletas = boletas.Where(x => x.MAT_CONSULTOR.PDV == filter.Value.PDV);
+                    boletas = boletas.Where(x => x.PDV == filter.Value.PDV);
                 }
                 else
                 {
                     boletas = boletas.Where(x => x.MAT_CONSULTOR.MATRICULA == filter.Value.matricula);
                 }
 
+                if (filter.Value.Status.Any())
+                {
+                    boletas = boletas.Where(x => filter.Value.Status.Contains(x.STATUS));
+                }
 
                 var Data = boletas.OrderBy(x => x.ID_BOLETA)
                .Skip((filter.PageNumber - 1) * filter.PageSize)

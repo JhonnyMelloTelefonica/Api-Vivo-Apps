@@ -2,12 +2,12 @@
 using System.Data;
 using System.Text;
 using Vivo_Apps_API.Models;
-using Shared_Class_Vivo_Mais.Data;
+using Shared_Class_Vivo_Apps.Data;
 using System.Drawing;
 using Newtonsoft.Json;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Globalization;
-using Shared_Class_Vivo_Mais.Enums;
+using Shared_Class_Vivo_Apps.Enums;
 using Microsoft.AspNetCore.Components.Web;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Linq;
@@ -15,10 +15,10 @@ using System.Collections.Generic;
 using Vivo_Apps_API.ModelDTO;
 using System.IO;
 using AutoMapper;
-using static Shared_Class_Vivo_Mais.Model_DTO.JORNADA_DTO;
+using static Shared_Class_Vivo_Apps.Model_DTO.JORNADA_DTO;
 using AutoMapper.QueryableExtensions;
-using Shared_Class_Vivo_Mais.Model_DTO;
-using Shared_Class_Vivo_Mais.DB_Context_Vivo_MAIS;
+using Shared_Class_Vivo_Apps.Model_DTO;
+using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -191,6 +191,7 @@ namespace Vivo_Apps_API.Controllers
             }
             return enumList;
         }
+
         private static List<string> ConvertStringToStringList(string input)
         {
             var enumList = new List<string>();
@@ -290,6 +291,7 @@ namespace Vivo_Apps_API.Controllers
                            .Where(y => y.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains(TIPO_PROVA))
                            .Where(k => (FIXA == false ? k.FIXA == FIXA : k.FIXA != null))
                            .Where(x => x.ID_TEMAS == TEMA.ToString())
+                           .Where(x => x.STATUS_QUESTION == true)
                            .Count();
 
                 return new JsonResult(new Response<int>
@@ -338,6 +340,7 @@ namespace Vivo_Apps_API.Controllers
                            .Where(y => y.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains(TIPO_PROVA))
                            .Where(k => (FIXA == false ? k.FIXA == FIXA : k.FIXA != null))
                            .Where(x => x.ID_TEMAS == SUB_TEMA.ToString())
+                           .Where(x => x.STATUS_QUESTION == true)
                            .Count();
 
                 return new JsonResult(new Response<int>
@@ -369,7 +372,7 @@ namespace Vivo_Apps_API.Controllers
         public async Task<JsonResult> GetTemasCriarFormulario(
                 string TIPO_PROVA,
                 int CARGO,
-                bool FIXA)
+                bool FIXA)  
         {
             try
             {
@@ -700,6 +703,11 @@ namespace Vivo_Apps_API.Controllers
                 }
                 else if (rota.Equals("Jornada"))
                 {
+                    if (DT_FINAL is null)
+                    {
+                        DT_FINAL = DateTime.Now.ToString("dd/MM/yyyy hh:mm");
+                    }
+
                     FormularioExistente = CD.JORNADA_BD_QUESTION_HISTORICOs
                         .ToList()
                         .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains(CARGO))
@@ -729,6 +737,11 @@ namespace Vivo_Apps_API.Controllers
                 }
                 else if (rota.Equals("Jornada Gestor"))
                 {
+                    if (DT_FINAL is null)
+                    {
+                        DT_FINAL = DateTime.Now.ToString("dd/MM/yyyy hh:mm");
+                    }
+
                     FormularioExistente = CD.JORNADA_BD_QUESTION_HISTORICOs
                         .ToList()
                         .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains(CARGO))
@@ -840,22 +853,66 @@ namespace Vivo_Apps_API.Controllers
                 List<JORNADA_BD_QUESTION_HISTORICO> questionsjornadaGestor;
 
                 List<JORNADA_BD_QUESTION_HISTORICO> questionsjornadaGestorDivisao;
-                bool respostajornadaGestorDivisao;
 
                 List<JORNADA_BD_QUESTION_HISTORICO> questionsjornadaGA;
-                bool respostajornadaGA;
+
+                List<JORNADA_BD_QUESTION_HISTORICO> questionsjornadaGGP;
+
+                List<JORNADA_BD_QUESTION_HISTORICO> questionsjornadaGV;
 
                 var userGet = CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA == MATRICULA).FirstOrDefault();
 
-                IEnumerable<Cargos> CargosProvaGa = new List<Cargos> // Cargos que iram ver prova JornadaGestor de GA,GGP,GV e gestor imediato
+                IEnumerable<Cargos> CargosProvaGa = new List<Cargos> // Cargos que iram ver prova de GA
                 {
                     Cargos.Vendedor_PAP,
-                    Cargos.Gerente_Parceiros,
-                    Cargos.Gerente_Geral,
+                    Cargos.Supervisor_PAP,
+                    Cargos.Vendedor_Revenda,
+                    Cargos.Gerente_Revenda
+                };
+
+                IEnumerable<Cargos> CargosProvaGGP = new List<Cargos> // Cargos que iram ver prova de GA
+                {
+                    Cargos.Vendedor_PAP,
+                    Cargos.Supervisor_PAP,
+                    Cargos.Vendedor_Revenda,
+                    Cargos.Gerente_Revenda,
+                    Cargos.Gerente_Área
+                };
+
+                IEnumerable<Cargos> CargosProvaGV = new List<Cargos> // Cargos que iram ver prova de GA
+                {
+                    Cargos.Vendedor_PAP,
                     Cargos.Supervisor_PAP,
                     Cargos.Vendedor_Revenda,
                     Cargos.Gerente_Revenda,
                     Cargos.Gerente_Área,
+                    Cargos.Gerente_Geral,
+                    Cargos.Gerente_Operações,
+                    Cargos.Consultor_Negócios,
+                    Cargos.Consultor_Tecnológico,
+                };
+
+                IEnumerable<Cargos> CargosProvaDivisao = new List<Cargos> // Cargos que iram ver prova de Divisão
+                {
+                    Cargos.Vendedor_PAP,
+                    Cargos.Supervisor_PAP,
+                    Cargos.Vendedor_Revenda,
+                    Cargos.Gerente_Revenda,
+                    Cargos.Gerente_Área,
+                    Cargos.Gerente_Geral,
+                    Cargos.Gerente_Operações,
+                    Cargos.Gerente_Parceiros,
+                    Cargos.Consultor_Negócios,
+                    Cargos.Consultor_Tecnológico,
+                    Cargos.Gerente_Vendas_B2C,
+                };
+
+                IEnumerable<Cargos> CargosProvaJornadaGestorDireto = new List<Cargos> // Cargos que iram ver prova de Divisão
+                {
+                    Cargos.Vendedor_PAP,
+                    Cargos.Supervisor_PAP,
+                    Cargos.Vendedor_Revenda,
+                    Cargos.Gerente_Revenda,
                     Cargos.Gerente_Operações,
                     Cargos.Consultor_Negócios,
                     Cargos.Consultor_Tecnológico
@@ -867,28 +924,52 @@ namespace Vivo_Apps_API.Controllers
                 // Busca Provas de Jornada Regional
                 GetListaProvasJornadaDisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet.ELEGIVEL.Value, out questionsjornada, out resposta);
 
-                if (CargosProvaGa.Contains(((Cargos)int.Parse(userGet.CARGO))))
+                if (CargosProvaJornadaGestorDireto.Contains(((Cargos)int.Parse(userGet.CARGO))))
                 {
                     // Busca Provas de Jornada 1-1 em PDV
                     GetListaProvasJornadaGestorDisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet, out questionsjornadaGestor, userGet.ELEGIVEL.Value);
                 }
                 else
                 {
-                    questionsjornadaGestor = null;
+                    questionsjornadaGestor = new();
                 }
 
-                // Busca Provas de Jornada por Divisão
-                GetListaProvasJornadaGestorDivisaoDisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet, userGet.ELEGIVEL.Value, out questionsjornadaGestorDivisao, out respostajornadaGestorDivisao);
+                if (CargosProvaDivisao.Contains(((Cargos)int.Parse(userGet.CARGO))))
+                {
+                    // Busca Provas de Jornada por Divisão
+                    GetListaProvasJornadaGestorDivisaoDisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet, userGet.ELEGIVEL.Value, out questionsjornadaGestorDivisao);
+                }
+                else
+                {
+                    questionsjornadaGestorDivisao = new();
+                }
 
                 if (CargosProvaGa.Contains(((Cargos)int.Parse(userGet.CARGO))))
                 {
                     // Busca Provas de Jornada por GA
-                    GetListaProvasJornadaGestorGADisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet, userGet.ELEGIVEL.Value, out questionsjornadaGA, out respostajornadaGA);
+                    GetListaProvasJornadaGestorGADisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet, userGet.ELEGIVEL.Value, out questionsjornadaGA);
                 }
                 else
                 {
-                    respostajornadaGA = false;
                     questionsjornadaGA = new();
+                }
+                if (CargosProvaGGP.Contains(((Cargos)int.Parse(userGet.CARGO))))
+                {
+                    // Busca Provas de Jornada por GGP
+                    GetListaProvasJornadaGestorGGPDisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet, userGet.ELEGIVEL.Value, out questionsjornadaGGP);
+                }
+                else
+                {
+                    questionsjornadaGGP = new();
+                }
+                if (CargosProvaGV.Contains(((Cargos)int.Parse(userGet.CARGO))))
+                {
+                    // Busca Provas de Jornada por GV
+                    GetListaProvasJornadaGestorGVDisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet, userGet.ELEGIVEL.Value, out questionsjornadaGV);
+                }
+                else
+                {
+                    questionsjornadaGV = new();
                 }
 
                 if (!resposta)
@@ -904,17 +985,22 @@ namespace Vivo_Apps_API.Controllers
                     }
                 }
 
-                if (!respostajornadaGestorDivisao)
+                if (questionsjornadaGestorDivisao.Any())
                 {
                     questions.AddRange(questionsjornadaGestorDivisao);
                 }
 
-                if (!respostajornadaGA)
+                if (questionsjornadaGA.Any())
                 {
-                    if (questionsjornadaGA.Any())
-                    {
-                        questions.AddRange(questionsjornadaGA);
-                    }
+                    questions.AddRange(questionsjornadaGA);
+                }
+                if (questionsjornadaGGP.Any())
+                {
+                    questions.AddRange(questionsjornadaGGP);
+                }
+                if (questionsjornadaGV.Any())
+                {
+                    questions.AddRange(questionsjornadaGV);
                 }
 
                 return new JsonResult(new Response<IEnumerable<JORNADA_BD_QUESTION_HISTORICO>>
@@ -1391,12 +1477,8 @@ namespace Vivo_Apps_API.Controllers
                         DT_CRIACAO = x.Select(y => y.DT_CRIACAO).FirstOrDefault(),
                         DT_INICIO_AVALIACAO = x.Select(y => y.DT_INICIO_AVALIACAO).FirstOrDefault(),
                         DT_FINALIZACAO = x.Select(y => y.DT_FINALIZACAO).FirstOrDefault(),
-                        Temas = CD.JORNADA_BD_TEMAS_SUB_TEMAs
-                                    .Where(y => x.Select(k => k.ID_QUESTION.ID_TEMAS).Contains(y.ID_TEMAS.Value.ToString()))
-                                    .Select(p => p.TEMAS).Distinct().ToList(),
-                        SubTemas = CD.JORNADA_BD_TEMAS_SUB_TEMAs
-                                    .Where(y => x.Select(k => k.ID_QUESTION.ID_SUB_TEMAS).Contains(y.ID_SUB_TEMAS.ToString()))
-                                    .Select(p => p.SUB_TEMAS).Distinct().ToList(),
+                        Temas = new(),
+                        SubTemas = new(),
                         Qtd_Respostas = CD.JORNADA_BD_ANSWER_AVALIACAOs.Where(y => y.ID_PROVA == x.Select(k => k.ID_PROVA).FirstOrDefault()).Count(),
                         Qtd_Perguntas = x.Count(),
                         Sum_nota = CD.JORNADA_BD_ANSWER_AVALIACAOs
@@ -1856,7 +1938,6 @@ namespace Vivo_Apps_API.Controllers
             var questions = CD.JORNADA_BD_QUESTION_HISTORICOs
                             .Where(x => x.ID_CRIADOR == MATRICULA)
                             .Where(y => y.TP_FORMS == "Rota Cruzada")
-                            .Where(y => y.ID_PROVA != null)
                             .OrderByDescending(x => x.ID_PROVA)
                             .ToList();
 
@@ -1936,14 +2017,6 @@ namespace Vivo_Apps_API.Controllers
                 foreach (var Gestor in Criador)
                 {
                     var actual = DateTime.Now;
-                    var maxcadernojornada = CD.JORNADA_BD_QUESTION_HISTORICOs // Buscar o caderno maximo baseado nos parametros
-                    .Where(y => y.TP_FORMS == "Jornada Gestor")
-                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
-                    .Where(y => y.CARGO == CARGO.ToString())
-                    .Where(y => y.FIXA == FIXA)
-                    .Where(y => y.REGIONAL == REGIONAL)
-                    .Where(y => y.ID_CRIADOR == Gestor.MATRICULA)
-                    .Max(y => y.CADERNO);
 
                     var actualquestionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
                     .Where(y => y.TP_FORMS == "Jornada Gestor")
@@ -1952,7 +2025,6 @@ namespace Vivo_Apps_API.Controllers
                     .Where(y => y.FIXA == FIXA)
                     .Where(y => y.REGIONAL == REGIONAL)
                     .Where(y => y.ID_CRIADOR == Gestor.MATRICULA)
-                    .Where(y => y.CADERNO == maxcadernojornada)
                     .ToList();
 
                     actualquestionsjornadaGestor = actualquestionsjornadaGestor
@@ -1960,15 +2032,21 @@ namespace Vivo_Apps_API.Controllers
                         .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
                         .ToList();
 
-                    var provasEncontradas = actualquestionsjornadaGestor.Select(x => x.ID_PROVA).ToList();
-                    var ActualrespostajornadaGestor = CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
-                        .Where(x => provasEncontradas.Contains(x.ID_PROVA)
-                            && x.MATRICULA_APLICADOR == MATRICULA).Any();
+                    var provasEncontradas = actualquestionsjornadaGestor.Select(x => x.ID_PROVA).Distinct().ToList();
 
-                    if (!ActualrespostajornadaGestor)
+                    var loopingquestions = actualquestionsjornadaGestor;
+
+                    foreach (var item in provasEncontradas)
                     {
-                        questionsjornadaGestor.AddRange(actualquestionsjornadaGestor);
+                        if (CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
+                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == MATRICULA)
+                        .Any() == true)
+                        {
+                            loopingquestions = actualquestionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();
+                        }
                     }
+
+                    questionsjornadaGestor.AddRange(loopingquestions);
                 }
             }
         }
@@ -1980,12 +2058,133 @@ namespace Vivo_Apps_API.Controllers
             bool FIXA,
             ACESSOS_MOBILE usuario,
             bool ELEGIVEL,
-            out List<JORNADA_BD_QUESTION_HISTORICO> questionsjornadaGestor,
-            out bool respostajornadaGestor)
+            out List<JORNADA_BD_QUESTION_HISTORICO> questionsjornadaGestor)
         {
-            if (((Cargos)int.Parse(usuario.CARGO)) != Cargos.Gerente_Área
-                && ((Cargos)int.Parse(usuario.CARGO)) != Cargos.Gerente_Vendas_B2C
-                && ((Cargos)int.Parse(usuario.CARGO)) != Cargos.Gerente_Parceiros)
+            if (((Cargos)int.Parse(usuario.CARGO)) == Cargos.Gerente_Área)
+            {
+                JORNADA_BD_CARTEIRA_DIVISAO? PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
+                .Where(x => x.RE_GA != null)
+                .Where(x => x.RE_GA == usuario.MATRICULA).FirstOrDefault();
+
+                if (PDVDivisão is not null)
+                {
+                    var actual = DateTime.Now;
+
+                    questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
+                    .Where(y => y.TP_FORMS == "Jornada Gestor")
+                    .Where(y => y.ID_CRIADOR == PDVDivisão.DIVISAO.ToString())
+                    .Where(y => y.CARGO == CARGO.ToString())
+                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
+                    .Where(y => y.FIXA == FIXA)
+                    .Where(y => y.REGIONAL == REGIONAL)
+                    .ToList();
+
+                    questionsjornadaGestor = questionsjornadaGestor
+                        .Where(x => Convert.ToDateTime(x.DT_INICIO_AVALIACAO) < actual) // Data inicial deve ser maior que hoje
+                        .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
+                        .ToList();
+
+                    var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).ToList();
+
+
+                    foreach (var item in provasEncontradas)
+                    {
+                        if (CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
+                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == MATRICULA)
+                        .Any() == true)
+                        {
+                            questionsjornadaGestor = questionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();
+                        }
+                    }
+                }
+                else
+                {
+                    questionsjornadaGestor = new();
+                }
+            }
+            else if (((Cargos)int.Parse(usuario.CARGO)) == Cargos.Gerente_Parceiros)
+            {
+                JORNADA_BD_CARTEIRA_DIVISAO? PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
+                .Where(x => x.RE_GGP != null)
+                .Where(x => x.RE_GGP == usuario.MATRICULA).FirstOrDefault();
+
+                if (PDVDivisão is not null)
+                {
+                    var actual = DateTime.Now;
+
+                    questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
+                    .Where(y => y.TP_FORMS == "Jornada Gestor")
+                    .Where(y => y.ID_CRIADOR == PDVDivisão.DIVISAO.ToString())
+                    .Where(y => y.CARGO == CARGO.ToString())
+                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
+                    .Where(y => y.FIXA == FIXA)
+                    .Where(y => y.REGIONAL == REGIONAL)
+                    .ToList();
+
+                    questionsjornadaGestor = questionsjornadaGestor
+                        .Where(x => Convert.ToDateTime(x.DT_INICIO_AVALIACAO) < actual) // Data inicial deve ser maior que hoje
+                        .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
+                        .ToList();
+
+                    var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).Distinct().ToList();
+
+                    foreach (var item in provasEncontradas)
+                    {
+                        if (CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
+                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == MATRICULA)
+                        .Any() == true)
+                        {
+                            questionsjornadaGestor = questionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();
+                        }
+                    }
+                }
+                else
+                {
+                    questionsjornadaGestor = new();
+                }
+            }
+            else if (((Cargos)int.Parse(usuario.CARGO)) == Cargos.Gerente_Vendas_B2C)
+            {
+                JORNADA_BD_CARTEIRA_DIVISAO? PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
+                .Where(x => x.RE_GV != null)
+                .Where(x => x.RE_GV == usuario.MATRICULA).FirstOrDefault();
+
+                if (PDVDivisão is not null)
+                {
+                    var actual = DateTime.Now;
+
+                    questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
+                    .Where(y => y.TP_FORMS == "Jornada Gestor")
+                    .Where(y => y.ID_CRIADOR == PDVDivisão.DIVISAO.ToString())
+                    .Where(y => y.CARGO == CARGO.ToString())
+                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
+                    .Where(y => y.FIXA == FIXA)
+                    .Where(y => y.REGIONAL == REGIONAL)
+                    .ToList();
+
+                    questionsjornadaGestor = questionsjornadaGestor
+                        .Where(x => Convert.ToDateTime(x.DT_INICIO_AVALIACAO) < actual) // Data inicial deve ser maior que hoje
+                        .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
+                        .ToList();
+
+                    var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).ToList().Distinct();
+
+                    foreach (var item in provasEncontradas)
+                    {
+                        if (CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
+                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == MATRICULA)
+                        .Any() == true)
+                        {
+                            questionsjornadaGestor = questionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();
+                        }
+                    }
+                }
+                else
+                {
+                    questionsjornadaGestor = new();
+                }
+            }
+            else
             {
                 JORNADA_BD_CARTEIRA_DIVISAO PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
                     .Where(x => x.Vendedor == usuario.PDV).FirstOrDefault();
@@ -1993,15 +2192,6 @@ namespace Vivo_Apps_API.Controllers
                 if (PDVDivisão is not null)
                 {
                     var actual = DateTime.Now;
-                    //var maxcadernojornada = CD.JORNADA_BD_QUESTION_HISTORICOs // Buscar o caderno maximo baseado nos parametros
-                    //.Where(y => y.TP_FORMS == "Jornada Gestor")
-                    //.Where(y => y.ID_CRIADOR == PDVDivisão.DIVISAO.ToString())
-                    //.Where(y => y.CARGO == CARGO.ToString())
-                    //.Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
-                    //.Where(y => y.FIXA == FIXA)
-                    //.Where(y => y.REGIONAL == REGIONAL)
-                    //.Max(y => y.CADERNO);
-
                     questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
                     .Where(y => y.TP_FORMS == "Jornada Gestor")
                     .Where(y => y.ID_CRIADOR == PDVDivisão.DIVISAO.ToString())
@@ -2009,7 +2199,6 @@ namespace Vivo_Apps_API.Controllers
                     .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
                     .Where(y => y.FIXA == FIXA)
                     .Where(y => y.REGIONAL == REGIONAL)
-                    //.Where(y => y.CADERNO == maxcadernojornada)
                     .ToList();
 
                     questionsjornadaGestor = questionsjornadaGestor
@@ -2017,149 +2206,24 @@ namespace Vivo_Apps_API.Controllers
                         .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
                         .ToList();
 
-                    var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).ToList();
-                    respostajornadaGestor = CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
-                        .Where(x => provasEncontradas.Contains(x.ID_PROVA)
-                        && x.MATRICULA_APLICADOR == MATRICULA).Any();
+                    var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).Distinct().ToList();
+
+                    foreach (var item in provasEncontradas)
+                    {
+                        if (CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
+                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == MATRICULA)
+                        .Any() == true)
+                        {
+                            questionsjornadaGestor = questionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();
+                        }
+                    }
                 }
                 else
                 {
                     questionsjornadaGestor = new();
-                    respostajornadaGestor = false;
+
                 }
             }
-            else if (((Cargos)int.Parse(usuario.CARGO)) == Cargos.Gerente_Área)
-            {
-                JORNADA_BD_CARTEIRA_DIVISAO PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
-                .Where(x => x.RE_GA == usuario.MATRICULA).FirstOrDefault();
-                if (PDVDivisão is not null)
-                {
-                    var actual = DateTime.Now;
-                    var maxcadernojornada = CD.JORNADA_BD_QUESTION_HISTORICOs // Buscar o caderno maximo baseado nos parametros
-                    .Where(y => y.TP_FORMS == "Jornada Gestor")
-                    .Where(y => y.ID_CRIADOR == PDVDivisão.DIVISAO.ToString())
-                    .Where(y => y.CARGO == CARGO.ToString())
-                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
-                    .Where(y => y.FIXA == FIXA)
-                    .Where(y => y.REGIONAL == REGIONAL)
-                    .Max(y => y.CADERNO);
-
-                    questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
-                    .Where(y => y.TP_FORMS == "Jornada Gestor")
-                    .Where(y => y.ID_CRIADOR == PDVDivisão.DIVISAO.ToString())
-                    .Where(y => y.CARGO == CARGO.ToString())
-                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
-                    .Where(y => y.FIXA == FIXA)
-                    .Where(y => y.REGIONAL == REGIONAL)
-                    .Where(y => y.CADERNO == maxcadernojornada)
-                    .ToList();
-
-                    questionsjornadaGestor = questionsjornadaGestor
-                        .Where(x => Convert.ToDateTime(x.DT_INICIO_AVALIACAO) < actual) // Data inicial deve ser maior que hoje
-                        .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
-                        .ToList();
-
-                    var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).ToList();
-                    respostajornadaGestor = CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
-                        .Where(x => provasEncontradas.Contains(x.ID_PROVA)
-                        && x.MATRICULA_APLICADOR == MATRICULA).Any();
-                }
-                else
-                {
-                    questionsjornadaGestor = new();
-                    respostajornadaGestor = false;
-                }
-            }
-            else if (((Cargos)int.Parse(usuario.CARGO)) == Cargos.Gerente_Vendas_B2C)
-            {
-                JORNADA_BD_CARTEIRA_DIVISAO PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
-                .Where(x => x.RE_GV == usuario.MATRICULA).FirstOrDefault();
-                if (PDVDivisão is not null)
-                {
-                    var actual = DateTime.Now;
-                    var maxcadernojornada = CD.JORNADA_BD_QUESTION_HISTORICOs // Buscar o caderno maximo baseado nos parametros
-                    .Where(y => y.TP_FORMS == "Jornada Gestor")
-                    .Where(y => y.ID_CRIADOR == PDVDivisão.DIVISAO.ToString())
-                    .Where(y => y.CARGO == CARGO.ToString())
-                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
-                    .Where(y => y.FIXA == FIXA)
-                    .Where(y => y.REGIONAL == REGIONAL)
-                    .Max(y => y.CADERNO);
-
-                    questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
-                    .Where(y => y.TP_FORMS == "Jornada Gestor")
-                    .Where(y => y.ID_CRIADOR == PDVDivisão.DIVISAO.ToString())
-                    .Where(y => y.CARGO == CARGO.ToString())
-                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
-                    .Where(y => y.FIXA == FIXA)
-                    .Where(y => y.REGIONAL == REGIONAL)
-                    .Where(y => y.CADERNO == maxcadernojornada)
-                    .ToList();
-
-                    questionsjornadaGestor = questionsjornadaGestor
-                        .Where(x => Convert.ToDateTime(x.DT_INICIO_AVALIACAO) < actual) // Data inicial deve ser maior que hoje
-                        .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
-                        .ToList();
-
-                    var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).ToList();
-                    respostajornadaGestor = CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
-                        .Where(x => provasEncontradas.Contains(x.ID_PROVA)
-                        && x.MATRICULA_APLICADOR == MATRICULA).Any();
-                }
-                else
-                {
-                    questionsjornadaGestor = new();
-                    respostajornadaGestor = false;
-                }
-            }
-            else if (((Cargos)int.Parse(usuario.CARGO)) == Cargos.Gerente_Parceiros)
-            {
-                JORNADA_BD_CARTEIRA_DIVISAO PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
-                .Where(x => x.RE_GGP == usuario.MATRICULA).FirstOrDefault();
-                if (PDVDivisão is not null)
-                {
-                    var actual = DateTime.Now;
-                    var maxcadernojornada = CD.JORNADA_BD_QUESTION_HISTORICOs // Buscar o caderno maximo baseado nos parametros
-                    .Where(y => y.TP_FORMS == "Jornada Gestor")
-                    .Where(y => y.ID_CRIADOR == PDVDivisão.DIVISAO.ToString())
-                    .Where(y => y.CARGO == CARGO.ToString())
-                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
-                    .Where(y => y.FIXA == FIXA)
-                    .Where(y => y.REGIONAL == REGIONAL)
-                    .Max(y => y.CADERNO);
-
-                    questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
-                    .Where(y => y.TP_FORMS == "Jornada Gestor")
-                    .Where(y => y.ID_CRIADOR == PDVDivisão.DIVISAO.ToString())
-                    .Where(y => y.CARGO == CARGO.ToString())
-                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
-                    .Where(y => y.FIXA == FIXA)
-                    .Where(y => y.REGIONAL == REGIONAL)
-                    .Where(y => y.CADERNO == maxcadernojornada)
-                    .ToList();
-
-                    questionsjornadaGestor = questionsjornadaGestor
-                        .Where(x => Convert.ToDateTime(x.DT_INICIO_AVALIACAO) < actual) // Data inicial deve ser maior que hoje
-                        .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
-                        .ToList();
-
-                    var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).ToList();
-                    respostajornadaGestor = CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
-                        .Where(x => provasEncontradas.Contains(x.ID_PROVA)
-                        && x.MATRICULA_APLICADOR == MATRICULA).Any();
-                }
-                else
-                {
-                    questionsjornadaGestor = new();
-                    respostajornadaGestor = false;
-                }
-            }
-            else
-            {
-                questionsjornadaGestor = new();
-                respostajornadaGestor = false;
-            }
-
         }
 
         private void GetListaProvasJornadaGestorGADisponiveis(
@@ -2169,52 +2233,165 @@ namespace Vivo_Apps_API.Controllers
             bool FIXA,
             ACESSOS_MOBILE usuario,
             bool ELEGIVEL,
-            out List<JORNADA_BD_QUESTION_HISTORICO> questionsjornadaGestor,
-            out bool respostajornadaGestor)
+            out List<JORNADA_BD_QUESTION_HISTORICO> questionsjornadaGestor)
         {
             JORNADA_BD_CARTEIRA_DIVISAO PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
                 .Where(x => x.Vendedor == usuario.PDV).FirstOrDefault();
 
             if (PDVDivisão is not null)
             {
-                var actual = DateTime.Now;
+                if (PDVDivisão.RE_GA is not null)
+                {
+                    var actual = DateTime.Now;
 
-                //var maxcadernojornada = CD.JORNADA_BD_QUESTION_HISTORICOs // Buscar o caderno maximo baseado nos parametros
-                //.Where(y => y.TP_FORMS == "Jornada Gestor")
-                //.Where(y => y.ID_CRIADOR == PDVDivisão.RE_GA 
-                //    || y.ID_CRIADOR == PDVDivisão.RE_GV || y.ID_CRIADOR == PDVDivisão.RE_GGP)
-                //.Where(y => y.CARGO == CARGO.ToString())
-                //.Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
-                //.Where(y => y.FIXA == FIXA)
-                //.Where(y => y.REGIONAL == REGIONAL)
-                //.Max(y => y.CADERNO);
-
-                questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
-                .Where(y => y.TP_FORMS == "Jornada Gestor")
-                .Where(y => y.ID_CRIADOR == PDVDivisão.RE_GA
-                    || y.ID_CRIADOR == PDVDivisão.RE_GV
-                    || y.ID_CRIADOR == PDVDivisão.RE_GGP)
-                .Where(y => y.CARGO == CARGO.ToString())
-                .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
-                .Where(y => y.FIXA == FIXA)
-                .Where(y => y.REGIONAL == REGIONAL)
-                //.Where(y => y.CADERNO == maxcadernojornada)
-                .ToList();
-
-                questionsjornadaGestor = questionsjornadaGestor
-                    .Where(x => Convert.ToDateTime(x.DT_INICIO_AVALIACAO) < actual) // Data inicial deve ser maior que hoje
-                    .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
+                    questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
+                    .Where(y => y.TP_FORMS == "Jornada Gestor")
+                    .Where(y => y.ID_CRIADOR == PDVDivisão.RE_GA.ToString())
+                    .Where(y => y.CARGO == CARGO.ToString())
+                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
+                    .Where(y => y.FIXA == FIXA)
+                    .Where(y => y.REGIONAL == REGIONAL)
                     .ToList();
 
-                var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).ToList();
-                respostajornadaGestor = CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
-                    .Where(x => provasEncontradas.Contains(x.ID_PROVA) && x.MATRICULA_APLICADOR == MATRICULA).Any();
+                    questionsjornadaGestor = questionsjornadaGestor
+                        .Where(x => Convert.ToDateTime(x.DT_INICIO_AVALIACAO) < actual) // Data inicial deve ser maior que hoje
+                        .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
+                        .ToList();
 
+                    var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).Distinct().ToList();
+
+                    foreach (var item in provasEncontradas)
+                    {
+                        if (CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
+                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == MATRICULA)
+                        .Any() == true)
+                        {
+                            questionsjornadaGestor = questionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();
+                        }
+                    }
+                    //questionsjornadaGestor = questionsjornadaGestor.Where(y =>
+                    //    CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
+                    //    .Where(x => provasEncontradas.Contains(x.ID_PROVA) && x.RE_AVALIADO == MATRICULA)
+                    //    .Any() == true
+                    //).ToList();
+                }
+                else
+                {
+                    questionsjornadaGestor = new();
+                }
             }
             else
             {
                 questionsjornadaGestor = new();
-                respostajornadaGestor = false;
+            }
+        }
+
+        private void GetListaProvasJornadaGestorGGPDisponiveis(
+            string REGIONAL,
+            int CARGO,
+            string MATRICULA,
+            bool FIXA,
+            ACESSOS_MOBILE usuario,
+            bool ELEGIVEL,
+            out List<JORNADA_BD_QUESTION_HISTORICO> questionsjornadaGestor)
+        {
+            JORNADA_BD_CARTEIRA_DIVISAO PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
+                .Where(x => x.Vendedor == usuario.PDV).FirstOrDefault();
+
+            if (PDVDivisão is not null)
+            {
+                if (PDVDivisão.RE_GGP is not null)
+                {
+                    var actual = DateTime.Now;
+
+                    questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
+                    .Where(y => y.TP_FORMS == "Jornada Gestor")
+                    .Where(y => y.ID_CRIADOR == PDVDivisão.RE_GGP)
+                    .Where(y => y.CARGO == CARGO.ToString())
+                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
+                    .Where(y => y.FIXA == FIXA)
+                    .Where(y => y.REGIONAL == REGIONAL)
+                    .ToList();
+
+                    questionsjornadaGestor = questionsjornadaGestor
+                        .Where(x => Convert.ToDateTime(x.DT_INICIO_AVALIACAO) < actual) // Data inicial deve ser maior que hoje
+                        .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
+                        .ToList();
+
+                    var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).Distinct().ToList();
+
+                    foreach (var item in provasEncontradas)
+                    {
+                        if (CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
+                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == MATRICULA)
+                        .Any() == true)
+                        {
+                            questionsjornadaGestor = questionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();
+                        }
+                    }
+                }
+                else
+                {
+                    questionsjornadaGestor = new();
+                }
+            }
+            else
+            {
+                questionsjornadaGestor = new();
+            }
+        }
+        private void GetListaProvasJornadaGestorGVDisponiveis(
+            string REGIONAL,
+            int CARGO,
+            string MATRICULA,
+            bool FIXA,
+            ACESSOS_MOBILE usuario,
+            bool ELEGIVEL,
+            out List<JORNADA_BD_QUESTION_HISTORICO> questionsjornadaGestor)
+        {
+            JORNADA_BD_CARTEIRA_DIVISAO PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
+                .Where(x => x.Vendedor == usuario.PDV).FirstOrDefault();
+
+            if (PDVDivisão is not null)
+            {
+                if (PDVDivisão.RE_GV is not null)
+                {
+                    var actual = DateTime.Now;
+
+                    questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
+                    .Where(y => y.TP_FORMS == "Jornada Gestor")
+                    .Where(y => y.ID_CRIADOR == PDVDivisão.RE_GV)
+                    .Where(y => y.CARGO == CARGO.ToString())
+                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
+                    .Where(y => y.FIXA == FIXA)
+                    .Where(y => y.REGIONAL == REGIONAL)
+                    .ToList();
+
+                    questionsjornadaGestor = questionsjornadaGestor
+                        .Where(x => Convert.ToDateTime(x.DT_INICIO_AVALIACAO) < actual) // Data inicial deve ser maior que hoje
+                        .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
+                        .ToList();
+
+                    var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).Distinct().ToList();
+
+                    foreach (var item in provasEncontradas)
+                    {
+                        if (CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
+                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == MATRICULA)
+                        .Any() == true)
+                        {
+                            questionsjornadaGestor = questionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();
+                        }
+                    }
+                }
+                else
+                {
+                    questionsjornadaGestor = new();
+                }
+            }
+            else
+            {
+                questionsjornadaGestor = new();
             }
         }
     }

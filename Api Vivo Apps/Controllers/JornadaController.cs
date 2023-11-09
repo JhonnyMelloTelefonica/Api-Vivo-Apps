@@ -5,8 +5,8 @@ using System.Globalization;
 using Vivo_Apps_API.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Shared_Class_Vivo_Mais.Data;
-using Shared_Class_Vivo_Mais.DB_Context_Vivo_MAIS;
+using Shared_Class_Vivo_Apps.Data;
+using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
 
 namespace Vivo_Apps_API.Controllers
 {

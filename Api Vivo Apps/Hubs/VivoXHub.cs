@@ -1,7 +1,7 @@
 ﻿
 using Microsoft.AspNetCore.SignalR;
-using Shared_Class_Vivo_Mais.Data;
-using Shared_Class_Vivo_Mais.Model_DTO;
+using Shared_Class_Vivo_Apps.Data;
+using Shared_Class_Vivo_Apps.Model_DTO;
 
 namespace Vivo_Apps_API.Hubs
 {

@@ -2,18 +2,17 @@
 using Vivo_Apps_API.Models;
 using Vivo_Apps_API.Hubs;
 using Microsoft.AspNetCore.Mvc;
-using Shared_Class_Vivo_Mais.Data;
-using Shared_Class_Vivo_Mais.Model_DTO;
+using Shared_Class_Vivo_Apps.Data;
+using Shared_Class_Vivo_Apps.Model_DTO;
 using AutoMapper;
 using Microsoft.AspNetCore.SignalR;
 using AutoMapper.QueryableExtensions;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using System.Drawing;
-using Shared_Class_Vivo_Mais.Enums;
-using Shared_Class_Vivo_Mais.DataGRC;
+using Shared_Class_Vivo_Apps.Enums;
 using System.Data;
-using Shared_Class_Vivo_Mais.DB_Context_Vivo_MAIS;
+using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -503,6 +502,106 @@ namespace Vivo_Apps_API.Controllers
                     Message = "A sub-fila foi alterada com sucesso, o sistema já irá disponibiliza-la para o público correspondente",
                     Errors = null,
                 });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    },
+                });
+            }
+        }
+
+
+        [HttpGet("AtivarFilaById")]
+        [ProducesResponseType(typeof(Response<DEMANDA_SUB_FILA_DTO>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public JsonResult AtivarFilaById(int id)
+        {
+            try
+            {
+                var fila = CD.DEMANDA_SUB_FILAs.Find(id);
+                if (fila is not null)
+                {
+                    fila.STATUS_SUB_FILA = true;
+                    var resultado = CD.SaveChanges();
+                    return new JsonResult(new Response<bool>
+                    {
+                        Data = resultado > 0 ? true : false,
+                        Succeeded = true,
+                        Message = $"A fila {fila.NOME_SUB_FILA} foi ativada com sucesso!"
+                    });
+                }
+                else
+                {
+                    return new JsonResult(new Response<bool>
+                    {
+                        Data = false,
+                        Succeeded = true,
+                        Message = "Houve algum erro, não foi possivél encontrar esta fila",
+                        Errors = new string[]
+                        {
+                            "Houve algum erro, não foi possivél encontrar esta fila"
+                        }
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    },
+                });
+            }
+        }
+
+
+        [HttpGet("InativarFilaById")]
+        [ProducesResponseType(typeof(Response<DEMANDA_SUB_FILA_DTO>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public JsonResult InativarFilaById(int id)
+        {
+            try
+            {
+                var fila = CD.DEMANDA_SUB_FILAs.Find(id);
+                if (fila is not null)
+                {
+                    fila.STATUS_SUB_FILA = false;
+                    var resultado = CD.SaveChanges();
+                    return new JsonResult(new Response<bool>
+                    {
+                        Data = resultado > 0 ? true : false,
+                        Succeeded = true,
+                        Message = $"A fila {fila.NOME_SUB_FILA} foi inativada com sucesso!"
+                    });
+                }
+                else
+                {
+                    return new JsonResult(new Response<bool>
+                    {
+                        Data = false,
+                        Succeeded = true,
+                        Message = "Houve algum erro, não foi possivél encontrar esta fila",
+                        Errors = new string[]
+                        {
+                            "Houve algum erro, não foi possivél encontrar esta fila"
+                        }
+                    });
+                }
             }
             catch (Exception ex)
             {

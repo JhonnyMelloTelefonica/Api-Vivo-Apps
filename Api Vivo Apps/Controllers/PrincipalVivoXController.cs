@@ -1,11 +1,11 @@
-﻿using Shared_Class_Vivo_Mais.Data;
+﻿using Shared_Class_Vivo_Apps.Data;
 using Vivo_Apps_API.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using Shared_Class_Vivo_Mais.Enums;
+using Shared_Class_Vivo_Apps.Enums;
 using Vivo_Apps_API.Hubs;
 using Microsoft.AspNetCore.SignalR;
-using Shared_Class_Vivo_Mais.DB_Context_Vivo_MAIS;
+using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
 
 namespace Vivo_Apps_API.Controllers
 {
