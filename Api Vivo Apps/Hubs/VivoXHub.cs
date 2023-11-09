@@ -23,16 +23,16 @@ namespace Vivo_Apps_API.Hubs
         {
             Clients.All.SendAsync("UsersOnlineCount", _connectionCount.ToString());
         }
-        public void SendNewBoletaToPdv(BOLETA_PALITAGEM_DTO newboleta)
-        {
-            var id = Context?.GetHttpContext()?.GetRouteValue("PDV") as string;
-            Clients.Group(id).SendAsync("SendNewBoletaToPdv", newboleta);
-        }
-        public void UpdateStatusBoleta(BOLETA_PALITAGEM_DTO newboleta)
-        {
-            var id = Context?.GetHttpContext()?.GetRouteValue("PDV") as string;
-            Clients.Group(id).SendAsync("UpdateStatusBoleta", newboleta);
-        }
+        //public void SendNewBoletaToPdv(BOLETA_PALITAGEM_DTO newboleta)
+        //{
+        //    var id = Context?.GetHttpContext()?.GetRouteValue("PDV") as string;
+        //    Clients.Group(id).SendAsync("SendNewBoletaToPdv", newboleta);
+        //}
+        //public void UpdateStatusBoleta(BOLETA_PALITAGEM_DTO newboleta)
+        //{
+        //    var id = Context?.GetHttpContext()?.GetRouteValue("PDV") as string;
+        //    Clients.Group(id).SendAsync("UpdateStatusBoleta", newboleta);
+        //}
 
         public override async Task OnConnectedAsync()
         {

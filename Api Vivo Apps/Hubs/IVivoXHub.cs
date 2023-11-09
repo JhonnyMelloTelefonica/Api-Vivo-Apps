@@ -8,7 +8,7 @@ namespace Vivo_Apps_API.Hubs
         Task Echo(string name, string message);
         Task OnConnectedAsync();
         Task OnDisconnectedAsync(Exception exception);
-        void SendNewBoletaToPdv(BOLETA_PALITAGEM_DTO newboleta);
+        //void SendNewBoletaToPdv(BOLETA_PALITAGEM_DTO newboleta);
         void UsersOnlineCount();
     }
 }
