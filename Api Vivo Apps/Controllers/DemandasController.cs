@@ -740,7 +740,7 @@ namespace Vivo_Apps_API.Controllers
                     {
                         dataBeforeFilter = dataBeforeFilter.Where(k =>
                             CD.CONTROLE_DE_DEMANDAS_FILAs
-                                .Where(postAndMeta => filter.Value.tipo_fila.Contains(postAndMeta.TIPO_CHAMADO))
+                                .Where(postAndMeta => filter.Value.tipo_fila.Select(x=>x.TIPO_FILA).Contains(postAndMeta.TIPO_CHAMADO))
                                 .Select(l => l.ID).Contains(k.ID_FILA_CHAMADO));
 
                         if (filter.Value.fila is not null)
@@ -749,7 +749,7 @@ namespace Vivo_Apps_API.Controllers
                             {
                                 dataBeforeFilter = dataBeforeFilter.Where(k =>
                                 CD.CONTROLE_DE_DEMANDAS_FILAs
-                                    .Where(postAndMeta => filter.Value.fila.Contains(postAndMeta.FILA))
+                                    .Where(postAndMeta => filter.Value.fila.Select(x => x.FILA).Contains(postAndMeta.FILA))
                                     .Select(l => l.ID).Contains(k.ID_FILA_CHAMADO));
                             }
                         }
@@ -760,7 +760,7 @@ namespace Vivo_Apps_API.Controllers
                 {
                     if (filter.Value.responsável.Any())
                     {
-                        dataBeforeFilter = dataBeforeFilter.Where(x => filter.Value.responsável.Contains(x.MATRICULA_RESPONSAVEL));
+                        dataBeforeFilter = dataBeforeFilter.Where(x => filter.Value.responsável.Select(y=>y.Login).Contains(x.MATRICULA_RESPONSAVEL));
                     }
                 }
 
@@ -835,7 +835,7 @@ namespace Vivo_Apps_API.Controllers
                     {
                         dataBeforeFilter = dataBeforeFilter.Where(k =>
                             CD.DEMANDA_TIPO_FILAs
-                                .Where(postAndMeta => filter.Value.tipo_fila.Contains(postAndMeta.ID_TIPO_FILA))
+                                .Where(postAndMeta => filter.Value.tipo_fila.Select(x => x.ID_TIPO_FILA).Contains(postAndMeta.ID_TIPO_FILA))
                                 .Select(l => l.ID_TIPO_FILA).Contains(k.ID_TIPO_FILA));
 
                         if (filter.Value.fila is not null)
@@ -844,7 +844,7 @@ namespace Vivo_Apps_API.Controllers
                             {
                                 dataBeforeFilter = dataBeforeFilter.Where(k =>
                                 CD.DEMANDA_SUB_FILAs
-                                    .Where(postAndMeta => filter.Value.fila.Contains(postAndMeta.ID_SUB_FILA))
+                                    .Where(postAndMeta => filter.Value.fila.Select(x => x.ID_SUB_FILA).Contains(postAndMeta.ID_SUB_FILA))
                                     .Select(l => l.ID_TIPO_FILA).Contains(k.ID_TIPO_FILA));
                             }
                         }
@@ -857,7 +857,7 @@ namespace Vivo_Apps_API.Controllers
                     {
                         dataBeforeFilter = dataBeforeFilter.Where(k =>
                                 CD.DEMANDA_RESPONSAVEL_FILAs
-                                    .Where(postAndMeta => filter.Value.responsável.Contains(postAndMeta.MATRICULA_RESPONSAVEL))
+                                    .Where(postAndMeta => filter.Value.responsável.Select(x=>x.Login).Contains(postAndMeta.MATRICULA_RESPONSAVEL))
                                     .Select(l => l.ID_SUB_FILA).Contains(k.ID_SUB_FILA)
                         );
                     }
@@ -902,18 +902,22 @@ namespace Vivo_Apps_API.Controllers
         [HttpGet("GetFiltersFilas")]
         [ProducesResponseType(typeof(Response<FilterFilaDemandasModel>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult GetFiltersFilas()
+        public JsonResult GetFiltersFilas(string regional)
         {
             try
             {
                 var datafilters = new FilterFilaDemandasModel();
 
                 datafilters.filas = CD.DEMANDA_TIPO_FILAs
+                    .Where(x => x.REGIONAL == regional)
                     .IgnoreAutoIncludes()
-                    .ProjectTo<DEMANDA_TIPO_FILA_DTO>(_mapper.ConfigurationProvider).ToList();
+                    .ProjectTo<DEMANDA_TIPO_FILA_DTO>(_mapper.ConfigurationProvider);
+                
                 datafilters.tipo_filas = CD.DEMANDA_SUB_FILAs
+                    .Where(x=>x.REGIONAL == regional)
                     .IgnoreAutoIncludes()
-                    .ProjectTo<DEMANDA_SUB_FILA_DTO>(_mapper.ConfigurationProvider).ToList();
+                    .ProjectTo<DEMANDA_SUB_FILA_DTO>(_mapper.ConfigurationProvider);
+
                 datafilters.AnalistaSuporte = CD.ACESSOs.Where(x =>
                     CD.DEMANDA_RESPONSAVEL_FILAs
                             .Select(x => x.MATRICULA_RESPONSAVEL)

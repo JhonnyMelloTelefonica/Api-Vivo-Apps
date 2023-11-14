@@ -80,6 +80,7 @@ namespace Vivo_Apps_API.Controllers
                 });
             }
         }
+
         [HttpPost("UpdateSenhaUserByMatricula")]
         [ProducesResponseType(typeof(Response<string>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
@@ -575,6 +576,7 @@ namespace Vivo_Apps_API.Controllers
 
             return new JsonResult(PagedResponse.CreatePagedReponse<ControleUsuariosModel>(DataFinal, filter, totalRecords));
         }
+
         // GET LISTA DE ACESSOS PENDENTES //
 
         // SOLICITANTE //
@@ -922,6 +924,7 @@ namespace Vivo_Apps_API.Controllers
                 throw ex;
             }
         }
+
         // SUPORTE //
 
         // VALIDAÇÕES //
@@ -964,6 +967,7 @@ namespace Vivo_Apps_API.Controllers
                 });
             }
         }
+
         /// <summary>
         /// 
         /// </summary>
@@ -1008,6 +1012,7 @@ namespace Vivo_Apps_API.Controllers
                 });
             }
         }
+
         [HttpGet("GetPerfilByCargo")]
         public async Task<JsonResult> GetPerfilByCargo(string cargo)
         {
