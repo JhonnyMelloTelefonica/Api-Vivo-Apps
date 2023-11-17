@@ -70,6 +70,7 @@ namespace Vivo_Apps_API.Controllers
                 });
             }
         }
+
         [HttpPost("BroadcastMessage")]
         public async Task<JsonResult> BroadcastMessage(string message,string name)
         {
