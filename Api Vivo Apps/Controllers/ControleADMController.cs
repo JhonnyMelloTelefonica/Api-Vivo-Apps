@@ -570,7 +570,7 @@ namespace Vivo_Apps_API.Controllers
                 UserAvatar = x.UserAvatar,
                 LOGIN_MOD = x.LOGIN_MOD,
                 DT_MOD = x.DT_MOD,
-                ELEGIVEL = x.ELEGIVEL.Value,
+                ELEGIVEL = x.ELEGIVEL == null ? false : x.ELEGIVEL.Value,
                 Perfil = CD.PERFIL_USUARIOs.Where(k => k.Login == x.MATRICULA).Select(x => x.id_Perfil).ToList()
             });
 
