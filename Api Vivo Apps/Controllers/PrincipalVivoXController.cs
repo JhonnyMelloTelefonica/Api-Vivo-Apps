@@ -78,7 +78,6 @@ namespace Vivo_Apps_API.Controllers
             {
                 await _hubContext.Clients.All.SendAsync("broadcastMessage",name, message).ConfigureAwait(false);
 
-
                 return new JsonResult(new Response<string>
                 {
                     Data = "Tudo Certo",

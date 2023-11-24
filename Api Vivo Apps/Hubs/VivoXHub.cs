@@ -6,6 +6,7 @@ using Shared_Class_Vivo_Apps.Data;
 using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
 using Shared_Class_Vivo_Apps.Enums;
 using Shared_Class_Vivo_Apps.Model_DTO;
+using System.Linq;
 using Vivo_Apps_API.Controllers;
 
 namespace Vivo_Apps_API.Hubs
@@ -14,7 +15,6 @@ namespace Vivo_Apps_API.Hubs
     {
         public VivoXHub()
         {
-
             var config = new MapperConfiguration(cfg =>
             {
                 cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_DTO>()
@@ -46,9 +46,15 @@ namespace Vivo_Apps_API.Hubs
             Clients.Group(id).SendAsync("NewNotification", senderName, title, message, link);
         }
 
+        public void UsersConnected()
+        {
+            Clients.All.SendAsync("UsersConnected", Users);
+        }
+
         public void UsersOnlineCount()
         {
             Clients.All.SendAsync("UsersOnlineCount", Users.Count.ToString());
+            UsersConnected();
         }
 
         //public void SendNewBoletaToPdv(BOLETA_PALITAGEM_DTO newboleta)
