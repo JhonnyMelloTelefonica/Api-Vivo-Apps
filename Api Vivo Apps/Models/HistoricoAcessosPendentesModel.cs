@@ -29,6 +29,7 @@ namespace Vivo_Apps_API.Models
         public int DDD { get; set; }
         public bool ELEGIVEL { get; set; } = false;
         public string TP_STATUS { get; set; } = string.Empty;
+        public byte[] UserAvatar { get; set; }
         public IEnumerable<RespostasAcessosPendentesModel> RESPOSTAS { get; set; }
         public IEnumerable<PERFIL_PLATAFORMAS_VIVO> PERFIS_SOLICITADOS { get; set; }
 

@@ -49,7 +49,8 @@ namespace Vivo_Apps_API.Controllers
             {
                 var solicitacao = CD.ACESSOS_MOBILE_PENDENTEs
                     .Where(x => x.TIPO.ToLower() != "alteração"
-                            && x.STATUS.ToLower() != "reprovado")
+                            && x.STATUS.ToLower() != "reprovado"
+                            || (x.TIPO.ToLower() != "inclusão" && x.STATUS.ToLower() != "finalizado"))
                     .OrderByDescending(x => x.ID).FirstOrDefault();
 
                 if (solicitacao is not null)

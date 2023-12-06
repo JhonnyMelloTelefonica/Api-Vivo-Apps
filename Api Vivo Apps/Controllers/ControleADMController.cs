@@ -425,6 +425,7 @@ namespace Vivo_Apps_API.Controllers
                     DT_SOLICITACAO = acesso.DT_SOLICITACAO,
                     DT_RETORNO = acesso.DT_RETORNO,
                     STATUS = acesso.STATUS,
+                    UserAvatar = acesso.UserAvatar,
                     RESPOSTAS = respostas,
                     PERFIS_SOLICITADOS = perfis
                 };
@@ -620,6 +621,7 @@ namespace Vivo_Apps_API.Controllers
                     LOGIN_SOLICITANTE = matricula,
                     ID_ACESSOS_MOBILE = ID_ACESSOS_MOBILE,
                     STATUS_USUARIO = usuario.STATUS,
+                    UserAvatar = usuario.UserAvatar,
                     STATUS = "ABERTO",
                     TIPO = "ALTERAÇÃO"
                 }).Entity;
@@ -1088,6 +1090,7 @@ namespace Vivo_Apps_API.Controllers
                     LOGIN_RESPONSAVEL = null,
                     LOGIN_SOLICITANTE = matricula,
                     STATUS_USUARIO = false,
+                    UserAvatar = usuario.UserAvatar,
                     STATUS = "ABERTO",
                     TIPO = "INCLUSÃO"
                 }).Entity;
@@ -1148,8 +1151,7 @@ namespace Vivo_Apps_API.Controllers
               string matricula,
               int id,
               string resposta,
-              string status,
-              bool? aprovacaosuporte)
+              string status)
         {
             try
             //Este tipo de resposta apenas insere mais uma linha de histórico no banco
@@ -1232,6 +1234,7 @@ namespace Vivo_Apps_API.Controllers
                     DT_SOLICITACAO = acesso.DT_SOLICITACAO,
                     DT_RETORNO = acesso.DT_RETORNO,
                     STATUS = acesso.STATUS,
+                    UserAvatar = acesso.UserAvatar,
                     RESPOSTAS = respostas,
                     PERFIS_SOLICITADOS = perfis
                 };
@@ -1267,8 +1270,7 @@ namespace Vivo_Apps_API.Controllers
               string matricula,
               int id,
               string resposta,
-              string status,
-              bool? aprovacaosuporte)
+              string status)
         {
             try
             //Independente do tipo de usuário/status ele insere a resposta com a respectiva matricula
@@ -1310,6 +1312,7 @@ namespace Vivo_Apps_API.Controllers
                     STATUS = true,
                     FIXA = usuario.FIXA,
                     OBS = resposta,
+                    UserAvatar = usuario.UserAvatar,
                     LOGIN_MOD = matricula,
                     DT_MOD = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
                 });
@@ -1390,6 +1393,7 @@ namespace Vivo_Apps_API.Controllers
                     DT_SOLICITACAO = acesso.DT_SOLICITACAO,
                     DT_RETORNO = acesso.DT_RETORNO,
                     STATUS = acesso.STATUS,
+                    UserAvatar = acesso.UserAvatar,
                     RESPOSTAS = respostas,
                     PERFIS_SOLICITADOS = perfis
                 };
@@ -1426,8 +1430,7 @@ namespace Vivo_Apps_API.Controllers
               string matricula,
               int id,
               string resposta,
-              string status,
-              bool? aprovacaosuporte)
+              string status)
         {
             try
             //Independente do tipo de usuário/status ele insere a resposta com a respectiva matricula
@@ -1457,6 +1460,7 @@ namespace Vivo_Apps_API.Controllers
                 acesso.PDV = usuario.PDV;
                 acesso.APROVACAO = usuario.APROVACAO;
                 acesso.FIXA = usuario.FIXA;
+                acesso.UserAvatar = usuario.UserAvatar;
                 acesso.STATUS = status;
                 acesso.DT_RETORNO = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
 
@@ -1539,6 +1543,7 @@ namespace Vivo_Apps_API.Controllers
                     DT_SOLICITACAO = acesso.DT_SOLICITACAO,
                     DT_RETORNO = acesso.DT_RETORNO,
                     STATUS = acesso.STATUS,
+                    UserAvatar = acesso.UserAvatar,
                     RESPOSTAS = respostas,
                     PERFIS_SOLICITADOS = perfis
                 };
@@ -1574,8 +1579,7 @@ namespace Vivo_Apps_API.Controllers
               string matricula,
               int id,
               string resposta,
-              string status,
-              bool? aprovacaosuporte)
+              string status)
         {
             try
             //Independente do tipo de usuário/status ele insere a resposta com a respectiva matricula
@@ -1602,6 +1606,7 @@ namespace Vivo_Apps_API.Controllers
                 acesso.PDV = usuario.PDV;
                 acesso.FIXA = usuario.FIXA;
                 acesso.STATUS = usuario.STATUS_USUARIO;
+                acesso.UserAvatar = usuario.UserAvatar;
                 acesso.DT_MOD = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
                 acesso.LOGIN_MOD = matricula;
                 acesso.OBS = resposta;
@@ -1690,6 +1695,7 @@ namespace Vivo_Apps_API.Controllers
                     PDV = acesso_pendente.PDV,
                     APROVACAO = acesso_pendente.APROVACAO,
                     FIXA = acesso_pendente.FIXA,
+                    UserAvatar = acesso_pendente.UserAvatar,
                     TIPO = acesso_pendente.TIPO,
                     STATUS_USUARIO = acesso_pendente.STATUS_USUARIO,
                     LOGIN_SOLICITANTE = CD.ACESSOs.Where(x => x.Login == acesso_pendente.LOGIN_SOLICITANTE).FirstOrDefault(),

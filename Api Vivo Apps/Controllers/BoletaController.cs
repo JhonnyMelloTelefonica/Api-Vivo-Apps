@@ -1176,6 +1176,8 @@ namespace Vivo_Apps_API.Controllers
                     }
                 }
 
+                filter.PageSize = boletas.Count();
+
                 var Data = boletas.OrderBy(x => x.ID_BOLETA)
                     .Skip((filter.PageNumber - 1) * filter.PageSize)
                     .Take(filter.PageSize);

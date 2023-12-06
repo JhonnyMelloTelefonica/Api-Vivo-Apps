@@ -1,7 +1,6 @@
 ﻿using Newtonsoft.Json;
 using DataTable = System.Data.DataTable;
 using System.Data;
-using System.Data.OracleClient;
 using Vivo_Apps_API.Models;
 using Shared_Class_Vivo_Apps.Data;
 using System.Data.SqlClient;

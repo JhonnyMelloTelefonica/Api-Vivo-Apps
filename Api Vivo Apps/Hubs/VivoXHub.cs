@@ -1,5 +1,4 @@
-﻿
-using AutoMapper;
+﻿using AutoMapper;
 using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
 using Shared_Class_Vivo_Apps.Data;
@@ -17,7 +16,7 @@ namespace Vivo_Apps_API.Hubs
         {
             var config = new MapperConfiguration(cfg =>
             {
-                cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_DTO>()
+                cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_CHAT_DTO>()
                 .ForMember(
                     dest => dest.CARGO,
                     opt => opt.MapFrom(src => ((Cargos)int.Parse(src.CARGO)))
@@ -34,11 +33,16 @@ namespace Vivo_Apps_API.Hubs
 
         public Vivo_MAISContext CD;
         public static int _connectionCount = 0;
-        public static IDictionary<string, ACESSOS_MOBILE_DTO> Users = new Dictionary<string,ACESSOS_MOBILE_DTO>();
+        public static IDictionary<string, ACESSOS_MOBILE_CHAT_DTO> Users = new Dictionary<string, ACESSOS_MOBILE_CHAT_DTO>();
 
-        public Task BroadcastMessage(string name, string message) => Clients.All.SendAsync("broadcastMessage", name, message);
-
-        public Task Echo(string name, string message) => Clients.Client(Context.ConnectionId).SendAsync("echo", name, $"{message} (echo from server)");
+        public void MessageToUserChat(string mat_remetente, string mat_destinatario, string message)
+        {
+            foreach (var UserConnected in Users.Where(x => x.Value.MATRICULA == mat_destinatario))
+            {
+                Clients.Client(UserConnected.Key).SendAsync("MessageToUserChat",
+                    mat_remetente, mat_destinatario, message);
+            }
+        }
 
         public void NewNotification(string senderName, string title, string message, string link)
         {
@@ -46,15 +50,10 @@ namespace Vivo_Apps_API.Hubs
             Clients.Group(id).SendAsync("NewNotification", senderName, title, message, link);
         }
 
-        public void UsersConnected()
-        {
-            Clients.All.SendAsync("UsersConnected", Users);
-        }
-
         public void UsersOnlineCount()
         {
             Clients.All.SendAsync("UsersOnlineCount", Users.Count.ToString());
-            UsersConnected();
+            Clients.All.SendAsync("UsersConnected", Users);
         }
 
         //public void SendNewBoletaToPdv(BOLETA_PALITAGEM_DTO newboleta)
@@ -72,6 +71,7 @@ namespace Vivo_Apps_API.Hubs
         {
             var id = Context?.GetHttpContext()?.GetRouteValue("PDV") as string;
             var idBoleta = Context?.GetHttpContext()?.GetRouteValue("idBoleta") as string;
+
             if (idBoleta is not null)
             {
                 await Groups.AddToGroupAsync(Context?.ConnectionId, $"{id}/{idBoleta}");
@@ -81,21 +81,21 @@ namespace Vivo_Apps_API.Hubs
                 await Groups.AddToGroupAsync(Context?.ConnectionId, $"{id}");
             }
             _connectionCount++;
-            UsersOnlineCount();
         }
 
         public void SendUserInfo(string jsonuserinfo)
         {
             if (!string.IsNullOrEmpty(jsonuserinfo))
             {
-                Users.Add(Context.ConnectionId, JsonConvert.DeserializeObject<ACESSOS_MOBILE_DTO>(jsonuserinfo));
+                Users.Add(Context.ConnectionId, JsonConvert.DeserializeObject<ACESSOS_MOBILE_CHAT_DTO>(jsonuserinfo));
             }
+            UsersOnlineCount();
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
             _connectionCount--;
-            Users.Remove(Context.ConnectionId); 
+            Users.Remove(Context.ConnectionId);
             UsersOnlineCount();
         }
     }
