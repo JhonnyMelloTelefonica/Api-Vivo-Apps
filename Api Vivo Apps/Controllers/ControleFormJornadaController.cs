@@ -24,9 +24,9 @@ namespace Vivo_Apps_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ControleFormJornadaController
+    public class ControleFormJornadaController : ControllerBase
     {
-        private Vivo_MAISContext CD = new Vivo_MAISContext();
+        private Vivo_MaisContext CD = new Vivo_MaisContext();
 
         private readonly ILogger<ControleFormJornadaController> _logger;
         private readonly IMapper _mapper;
@@ -101,12 +101,12 @@ namespace Vivo_Apps_API.Controllers
                 .ForMember(
                     dest => dest.TEMA,
                     opt => opt.MapFrom(src => CD.JORNADA_BD_TEMAS_SUB_TEMAs
-                                            .Where(x => x.ID_TEMAS.ToString() == src.ID_TEMAS)
+                                            .Where(x => x.ID_TEMAS.Value == src.ID_TEMAS.Value)
                                             .FirstOrDefault().TEMAS))
                 .ForMember(
                     dest => dest.SUB_TEMA,
                     opt => opt.MapFrom(src => CD.JORNADA_BD_TEMAS_SUB_TEMAs
-                                            .Where(x => x.ID_SUB_TEMAS.ToString() == src.ID_SUB_TEMAS)
+                                            .Where(x => x.ID_SUB_TEMAS == src.ID_SUB_TEMAS.Value)
                                             .FirstOrDefault().SUB_TEMAS))
                 .ForMember(
                     dest => dest.CANAL,
@@ -290,7 +290,7 @@ namespace Vivo_Apps_API.Controllers
                            .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains(CARGO))
                            .Where(y => y.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains(TIPO_PROVA))
                            .Where(k => (FIXA == false ? k.FIXA == FIXA : k.FIXA != null))
-                           .Where(x => x.ID_TEMAS == TEMA.ToString())
+                           .Where(x => x.ID_TEMAS.Value == TEMA)
                            .Where(x => x.STATUS_QUESTION == true)
                            .Count();
 
@@ -339,7 +339,7 @@ namespace Vivo_Apps_API.Controllers
                            .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains(CARGO))
                            .Where(y => y.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains(TIPO_PROVA))
                            .Where(k => (FIXA == false ? k.FIXA == FIXA : k.FIXA != null))
-                           .Where(x => x.ID_TEMAS == SUB_TEMA.ToString())
+                           .Where(x => x.ID_TEMAS.Value == SUB_TEMA)
                            .Where(x => x.STATUS_QUESTION == true)
                            .Count();
 
@@ -404,10 +404,10 @@ namespace Vivo_Apps_API.Controllers
                         ID_TEMAS = x.ID_TEMAS,
                         TEMAS = x.TEMAS,
                         QTD_TEMA = dadosDoBancoFiltrados
-                            .Where(f => f.ID_TEMAS == x.ID_TEMAS.ToString())
+                            .Where(f => f.ID_TEMAS == x.ID_TEMAS)
                             .Count(),
                         QTD_SUB_TEMA = dadosDoBancoFiltrados
-                            .Where(f => f.ID_SUB_TEMAS == x.ID_SUB_TEMAS.ToString())
+                            .Where(f => f.ID_SUB_TEMAS == x.ID_SUB_TEMAS)
                             .Count()
                     })
                     .ToList();
@@ -924,7 +924,7 @@ namespace Vivo_Apps_API.Controllers
                 // Busca Provas de Jornada Regional
                 GetListaProvasJornadaDisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet.ELEGIVEL.Value, out questionsjornada, out resposta);
 
-                if (CargosProvaJornadaGestorDireto.Contains(((Cargos)int.Parse(userGet.CARGO))))
+                if (CargosProvaJornadaGestorDireto.Contains((Cargos)userGet.CARGO))
                 {
                     // Busca Provas de Jornada 1-1 em PDV
                     GetListaProvasJornadaGestorDisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet, out questionsjornadaGestor, userGet.ELEGIVEL.Value);
@@ -934,7 +934,7 @@ namespace Vivo_Apps_API.Controllers
                     questionsjornadaGestor = new();
                 }
 
-                if (CargosProvaDivisao.Contains(((Cargos)int.Parse(userGet.CARGO))))
+                if (CargosProvaDivisao.Contains((Cargos)userGet.CARGO))
                 {
                     // Busca Provas de Jornada por Divisão
                     GetListaProvasJornadaGestorDivisaoDisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet, userGet.ELEGIVEL.Value, out questionsjornadaGestorDivisao);
@@ -944,7 +944,7 @@ namespace Vivo_Apps_API.Controllers
                     questionsjornadaGestorDivisao = new();
                 }
 
-                if (CargosProvaGa.Contains(((Cargos)int.Parse(userGet.CARGO))))
+                if (CargosProvaGa.Contains((Cargos)userGet.CARGO))
                 {
                     // Busca Provas de Jornada por GA
                     GetListaProvasJornadaGestorGADisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet, userGet.ELEGIVEL.Value, out questionsjornadaGA);
@@ -953,7 +953,7 @@ namespace Vivo_Apps_API.Controllers
                 {
                     questionsjornadaGA = new();
                 }
-                if (CargosProvaGGP.Contains(((Cargos)int.Parse(userGet.CARGO))))
+                if (CargosProvaGGP.Contains((Cargos)userGet.CARGO))
                 {
                     // Busca Provas de Jornada por GGP
                     GetListaProvasJornadaGestorGGPDisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet, userGet.ELEGIVEL.Value, out questionsjornadaGGP);
@@ -962,7 +962,7 @@ namespace Vivo_Apps_API.Controllers
                 {
                     questionsjornadaGGP = new();
                 }
-                if (CargosProvaGV.Contains(((Cargos)int.Parse(userGet.CARGO))))
+                if (CargosProvaGV.Contains((Cargos)userGet.CARGO))
                 {
                     // Busca Provas de Jornada por GV
                     GetListaProvasJornadaGestorGVDisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet, userGet.ELEGIVEL.Value, out questionsjornadaGV);
@@ -1090,7 +1090,7 @@ namespace Vivo_Apps_API.Controllers
                 .Select(x => new QUESTIONS
                 {
                     ID_QUESTION = x.ID_QUESTION,
-                    TEMA = CD.JORNADA_BD_TEMAS_SUB_TEMAs.Where(y => y.ID_TEMAS.ToString() == x.ID_TEMAS).ToList(),
+                    TEMA = CD.JORNADA_BD_TEMAS_SUB_TEMAs.Where(y => y.ID_TEMAS == x.ID_TEMAS).ToList(),
                     TP_FORMS = x.TP_FORMS,
                     TP_QUESTAO = x.TP_QUESTAO,
                     PERGUNTA = x.PERGUNTA,
@@ -1099,9 +1099,9 @@ namespace Vivo_Apps_API.Controllers
                     CARGO = x.CARGO,
                     STATUS_QUESTION = x.STATUS_QUESTION,
                     FIXA = x.FIXA,
-                    SUB_TEMA = x.ID_SUB_TEMAS,
-                    DT_MOD = x.DT_MOD,
-                    LOGIN_MOD = x.LOGIN_MOD,
+                    SUB_TEMA = x.ID_SUB_TEMAS.Value,
+                    DT_MOD = x.DT_MOD.Value,
+                    LOGIN_MOD = x.LOGIN_MOD.Value,
                     ALTERNATIVAS = CD.JORNADA_BD_ANSWER_ALTERNATIVAs.Where(y => y.ID_QUESTION == x.ID_QUESTION).AsEnumerable(),
                 }).ToList();
 
@@ -1712,8 +1712,8 @@ namespace Vivo_Apps_API.Controllers
                     .Where(x => x.STATUS_QUESTION == true)
                     .Where(x => x.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains("Jornada"))
                     .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains(CARGO))
-                    .Where(k => k.ID_TEMAS == tema.ToString())
-                    .Where(y => y.ID_SUB_TEMAS == subtema.ToString())
+                    .Where(k => k.ID_TEMAS == tema)
+                    .Where(y => y.ID_SUB_TEMAS == subtema)
                     .OrderBy(item => random.Next())
                     .GroupBy(x => new { x.PERGUNTA }).Select(x => x.FirstOrDefault())
                     .Where(x => (FIXA == false ? x.FIXA == FIXA : x.FIXA != null))
@@ -1729,8 +1729,8 @@ namespace Vivo_Apps_API.Controllers
                         jornadaQuestion.Add(CD.JORNADA_BD_QUESTIONs.AsEnumerable().ToList()
                         .Where(x => x.STATUS_QUESTION == true)
                         .Where(x => x.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains("Jornada"))
-                        .Where(k => k.ID_TEMAS == tema.ToString())
-                        .Where(y => y.ID_SUB_TEMAS == subtema.ToString())
+                        .Where(k => k.ID_TEMAS == tema)
+                        .Where(y => y.ID_SUB_TEMAS == subtema)
                         .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains(CARGO))
                         .Where(x => (FIXA == false ? x.FIXA == FIXA : x.FIXA != null))
                         .OrderBy(item => random.Next())
@@ -1746,8 +1746,8 @@ namespace Vivo_Apps_API.Controllers
                     .Where(x => x.STATUS_QUESTION == true)
                     .Where(x => x.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains("Jornada"))
                     .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains(CARGO))
-                    .Where(k => k.ID_TEMAS == tema.ToString())
-                    .Where(y => y.ID_SUB_TEMAS == subtema.ToString())
+                    .Where(k => k.ID_TEMAS == tema)
+                    .Where(y => y.ID_SUB_TEMAS == subtema)
                     .OrderBy(item => random.Next())
                     .GroupBy(x => x.PERGUNTA).Select(x => x.FirstOrDefault()).ToList()
                     .Where(x => (FIXA == false ? x.FIXA == FIXA : x.FIXA != null))
@@ -1797,8 +1797,8 @@ namespace Vivo_Apps_API.Controllers
                     .Where(x => x.STATUS_QUESTION == true)
                     .Where(x => x.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains("Jornada"))
                     .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains(CARGO))
-                    .Where(k => k.ID_TEMAS == tema.ToString())
-                    .Where(y => y.ID_SUB_TEMAS == subtema.ToString())
+                    .Where(k => k.ID_TEMAS == tema)
+                    .Where(y => y.ID_SUB_TEMAS == subtema)
                     .OrderBy(item => random.Next())
                     .GroupBy(x => new { x.PERGUNTA }).Select(x => x.FirstOrDefault())
                     .Where(x => (FIXA == false ? x.FIXA == FIXA : x.FIXA != null))
@@ -1814,8 +1814,8 @@ namespace Vivo_Apps_API.Controllers
                         jornadaQuestion.Add(CD.JORNADA_BD_QUESTIONs.AsEnumerable().ToList()
                         .Where(x => x.STATUS_QUESTION == true)
                         .Where(x => x.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains("Jornada"))
-                        .Where(k => k.ID_TEMAS == tema.ToString())
-                        .Where(y => y.ID_SUB_TEMAS == subtema.ToString())
+                        .Where(k => k.ID_TEMAS == tema)
+                        .Where(y => y.ID_SUB_TEMAS == subtema)
                         .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains(CARGO))
                         .Where(x => (FIXA == false ? x.FIXA == FIXA : x.FIXA != null))
                         .OrderBy(item => random.Next())
@@ -1831,8 +1831,8 @@ namespace Vivo_Apps_API.Controllers
                     .Where(x => x.STATUS_QUESTION == true)
                     .Where(x => x.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains("Jornada"))
                     .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains(CARGO))
-                    .Where(k => k.ID_TEMAS == tema.ToString())
-                    .Where(y => y.ID_SUB_TEMAS == subtema.ToString())
+                    .Where(k => k.ID_TEMAS == tema)
+                    .Where(y => y.ID_SUB_TEMAS == subtema)
                     .OrderBy(item => random.Next())
                     .GroupBy(x => x.PERGUNTA).Select(x => x.FirstOrDefault()).ToList()
                     .Where(x => (FIXA == false ? x.FIXA == FIXA : x.FIXA != null))
@@ -1883,8 +1883,8 @@ namespace Vivo_Apps_API.Controllers
                     .Where(x => x.STATUS_QUESTION == true)
                     .Where(y => y.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains("Rota Cruzada"))
                     .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains(CARGO))
-                    .Where(k => k.ID_TEMAS == tema.ToString())
-                    .Where(k => k.ID_SUB_TEMAS == subtema.ToString())
+                    .Where(k => k.ID_TEMAS == tema)
+                    .Where(k => k.ID_SUB_TEMAS == subtema)
                     .OrderBy(item => random.Next())
                     .GroupBy(x => x.PERGUNTA)
                     .Select(x => x.FirstOrDefault()).ToList()
@@ -1901,8 +1901,8 @@ namespace Vivo_Apps_API.Controllers
                         jornadaQuestion.Add(CD.JORNADA_BD_QUESTIONs.AsEnumerable().ToList()
                             .Where(x => x.STATUS_QUESTION == true)
                             .Where(y => y.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains("Rota Cruzada"))
-                            .Where(k => k.ID_TEMAS == tema.ToString())
-                            .Where(k => k.ID_SUB_TEMAS == subtema.ToString())
+                            .Where(k => k.ID_TEMAS == tema)
+                            .Where(k => k.ID_SUB_TEMAS == subtema)
                             .OrderBy(item => random.Next())
                             .GroupBy(x => x.PERGUNTA).Select(x => x.FirstOrDefault()).ToList()
                             .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains(CARGO))
@@ -1917,8 +1917,8 @@ namespace Vivo_Apps_API.Controllers
                             .ToList()
                     .Where(x => x.STATUS_QUESTION == true)
                     .Where(y => y.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains("Rota Cruzada"))
-                    .Where(k => k.ID_TEMAS == tema.ToString())
-                    .Where(k => k.ID_SUB_TEMAS == subtema.ToString())
+                    .Where(k => k.ID_TEMAS == tema)
+                    .Where(k => k.ID_SUB_TEMAS == subtema)
                     .OrderBy(item => random.Next())
                     .GroupBy(x => x.PERGUNTA).Select(x => x.FirstOrDefault()).ToList()
                     .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains(CARGO))
@@ -2003,7 +2003,7 @@ namespace Vivo_Apps_API.Controllers
             bool ELEGIVEL)
         {
             questionsjornadaGestor = new();
-            var cargosGestor = new List<string> { "3", "6", "8" };
+            var cargosGestor = new List<int> { 3, 6, 8 };
             IEnumerable<ACESSOS_MOBILE> Criador = CD.ACESSOS_MOBILEs.Where(y =>
                 CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => x.TP_FORMS == "Jornada Gestor")
                     .Select(x => x.ID_CRIADOR)
@@ -2060,7 +2060,7 @@ namespace Vivo_Apps_API.Controllers
             bool ELEGIVEL,
             out List<JORNADA_BD_QUESTION_HISTORICO> questionsjornadaGestor)
         {
-            if (((Cargos)int.Parse(usuario.CARGO)) == Cargos.Gerente_Área)
+            if ((Cargos)usuario.CARGO == Cargos.Gerente_Área)
             {
                 JORNADA_BD_CARTEIRA_DIVISAO? PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
                 .Where(x => x.RE_GA != null)
@@ -2102,7 +2102,7 @@ namespace Vivo_Apps_API.Controllers
                     questionsjornadaGestor = new();
                 }
             }
-            else if (((Cargos)int.Parse(usuario.CARGO)) == Cargos.Gerente_Parceiros)
+            else if (((Cargos)usuario.CARGO) == Cargos.Gerente_Parceiros)
             {
                 JORNADA_BD_CARTEIRA_DIVISAO? PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
                 .Where(x => x.RE_GGP != null)
@@ -2143,7 +2143,7 @@ namespace Vivo_Apps_API.Controllers
                     questionsjornadaGestor = new();
                 }
             }
-            else if (((Cargos)int.Parse(usuario.CARGO)) == Cargos.Gerente_Vendas_B2C)
+            else if ((Cargos)usuario.CARGO == Cargos.Gerente_Vendas_B2C)
             {
                 JORNADA_BD_CARTEIRA_DIVISAO? PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
                 .Where(x => x.RE_GV != null)

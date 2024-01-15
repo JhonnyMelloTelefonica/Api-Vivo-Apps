@@ -15,9 +15,9 @@ namespace Vivo_Apps_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")] 
-    public class FixaController
+    public class FixaController : ControllerBase
     {
-        private Vivo_MAISContext CD = new Vivo_MAISContext();
+        private Vivo_MaisContext CD = new Vivo_MaisContext();
 
         private readonly ILogger<FixaController> _logger;
 

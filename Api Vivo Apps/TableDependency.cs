@@ -10,7 +10,7 @@ namespace Vivo_Apps_API
 {
     public class TableDependencyService
     {
-        Vivo_MAISContext _context = new();
+        Vivo_MaisContext _context = new();
         private readonly IHubContext<VivoXHub> HubContext;
         private readonly SqlTableDependency<ACESSOS_MOBILE> _dependency;
 

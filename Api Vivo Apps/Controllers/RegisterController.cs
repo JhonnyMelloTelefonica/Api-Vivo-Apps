@@ -17,9 +17,9 @@ namespace Vivo_Apps_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class Register
+    public class Register : ControllerBase
     {
-        private Vivo_MAISContext CD = new Vivo_MAISContext();
+        private Vivo_MaisContext CD = new Vivo_MaisContext();
 
         private readonly ILogger<RandomFunctions> _logger;
         private readonly IMapper _mapper;
@@ -47,29 +47,31 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var solicitacao = CD.ACESSOS_MOBILE_PENDENTEs
-                    .Where(x => x.TIPO.ToLower() != "alteração"
-                            && x.STATUS.ToLower() != "reprovado"
-                            || (x.TIPO.ToLower() != "inclusão" && x.STATUS.ToLower() != "finalizado"))
-                    .OrderByDescending(x => x.ID).FirstOrDefault();
+                var UltimaSolicitacao = CD.ACESSOS_MOBILE_PENDENTEs
+                    .Where(x => x.MATRICULA == matricula).OrderByDescending(x => x.ID).FirstOrDefault();
+                // Busco a última solicitação para esta matrícula
 
-                if (solicitacao is not null)
+                if (UltimaSolicitacao is not null)
                 {
-                    if (solicitacao.MATRICULA == matricula)
+                    var solicitacaoAndamento = (!string.Equals(UltimaSolicitacao.STATUS, "REPROVADO")
+                                && !string.Equals(UltimaSolicitacao.STATUS, "FINALIZADO"));
+                    // verifico se possui os Status não é finalizado nem reprovado, caso não seja nenhum dos 2 siginifica que ainda está em andamento
+
+                    if (solicitacaoAndamento)
                     {
-                        // Se houver alguma solicitação pra esse usuário onde o Status é diferente de reprovado
-                        // ele retorna um aviso que já existe uma solicitação em andamento
                         var user = CD.ACESSOS_MOBILE_PENDENTEs.Where(x => x.MATRICULA == matricula).First();
 
                         return new JsonResult(new Response<ACESSOS_MOBILE_PENDENTE?>
                         {
+                            // ele retorna um aviso que já existe uma solicitação em andamento
                             Data = user,
                             Succeeded = true,
-                            Message = "Já existe uma solicitação de acesso em andamento, por favor aguarde o retorno do responsável",
+                            Message = "solicitação em andamento, aguarde o retorno do responsável",
                             Errors = new string[] { "Matrícula existente!" },
                         });
                     }
                 }
+
                 return new JsonResult(new Response<ACESSOS_MOBILE_PENDENTE?>
                 {
                     Data = new(),

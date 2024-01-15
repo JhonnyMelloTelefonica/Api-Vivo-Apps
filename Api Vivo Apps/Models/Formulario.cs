@@ -30,9 +30,9 @@ namespace Vivo_Apps_API.ModelDTO
         public string CARGO { get; set; }
         public bool? STATUS_QUESTION { get; set; }
         public bool? FIXA { get; set; }
-        public string SUB_TEMA { get; set; }
-        public string DT_MOD { get; set; }
-        public string LOGIN_MOD { get; set; }
+        public int SUB_TEMA { get; set; }
+        public DateTime DT_MOD { get; set; }
+        public int LOGIN_MOD { get; set; }
         public IEnumerable<JORNADA_BD_ANSWER_ALTERNATIVA> ALTERNATIVAS { get; set; }
     }
 

@@ -12,9 +12,9 @@ namespace Vivo_Apps_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ControleADMController
+    public class ControleADMController : ControllerBase
     {
-        private Vivo_MAISContext CD = new Vivo_MAISContext();
+        private Vivo_MaisContext CD = new Vivo_MaisContext();
 
         private readonly ILogger<ControleADMController> _logger;
 
@@ -89,7 +89,7 @@ namespace Vivo_Apps_API.Controllers
             try
             {
                 var user = CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA == matricula).FirstOrDefault();
-                
+
                 if (newone != confirmnewone)
                 {
                     return new JsonResult(new Response<string>
@@ -223,7 +223,7 @@ namespace Vivo_Apps_API.Controllers
                 {
                     if (filter.Value.Canal.Any())
                     {
-                        users = users.Where(x => filter.Value.Canal.Select(x => ((int)x).ToString()).Contains(x.CANAL));
+                        users = users.Where(x => filter.Value.Canal.Contains((Canal)x.CANAL));
                     }
                 }
 
@@ -231,7 +231,7 @@ namespace Vivo_Apps_API.Controllers
                 {
                     if (filter.Value.Cargos.Any())
                     {
-                        users = users.Where(x => filter.Value.Cargos.Select(x => ((int)x).ToString()).Contains(x.CARGO));
+                        users = users.Where(x => filter.Value.Cargos.Contains((Cargos)x.CARGO));
                     }
                 }
 
@@ -477,17 +477,17 @@ namespace Vivo_Apps_API.Controllers
             {
                 if (filter.IsSuporte == false)
                 {
-                    var listaPerfisADM = new List<string>{
-                        "1",
-                        "2",
-                        "3",
-                        "4",
-                        "5",
-                        "6",
-                        "7",
-                        "8",
-                        "9",
-                        "10",
+                    var listaPerfisADM = new List<int>{
+                        1,
+                        2,
+                        3,
+                        4,
+                        5,
+                        6,
+                        7,
+                        8,
+                        9,
+                        10
                     };
                     var listaMatricula = CD.ACESSOS_MOBILEs.Where(x => listaPerfisADM.Contains(x.CARGO)).Select(x => x.MATRICULA);
 
@@ -503,11 +503,11 @@ namespace Vivo_Apps_API.Controllers
             }
             if (filter.Cargo.Count() > 0)
             {
-                pagedData = pagedData.Where(x => filter.Cargo.Contains(x.CARGO));
+                pagedData = pagedData.Where(x => filter.Cargo.Contains(x.CARGO.ToString()));
             }
             if (filter.Canal.Count() > 0)
             {
-                pagedData = pagedData.Where(x => filter.Canal.Contains(x.CANAL));
+                pagedData = pagedData.Where(x => filter.Canal.Contains(x.CANAL.ToString()));
             }
             if (filter.Regional.Count() > 0)
             {
@@ -523,11 +523,11 @@ namespace Vivo_Apps_API.Controllers
             }
             if (!string.IsNullOrEmpty(filter.MatriculaDivisao))
             {
-                pagedData = pagedData.Where(x => 
+                pagedData = pagedData.Where(x =>
                     CD.JORNADA_BD_CARTEIRA_DIVISAOs
                         .Where(y => y.DIVISAO != null)
                         .Where(y => y.DIVISAO.Value.ToString() == filter.MatriculaDivisao)
-                        .Select(y=>y.Vendedor).Contains(x.PDV)
+                        .Select(y => y.Vendedor).Contains(x.PDV)
                     );
             }
             if (!string.IsNullOrEmpty(filter.Matricula))
@@ -607,7 +607,7 @@ namespace Vivo_Apps_API.Controllers
                     SENHA = usuario.SENHA,
                     REGIONAL = usuario.REGIONAL,
                     CARGO = usuario.CARGO,
-                    CANAL = ((int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString(),
+                    CANAL = (int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO)),
                     NOME = usuario.NOME,
                     UF = usuario.UF,
                     CPF = usuario.CPF,
@@ -691,7 +691,7 @@ namespace Vivo_Apps_API.Controllers
                     SENHA = usuario.SENHA,
                     REGIONAL = usuario.REGIONAL,
                     CARGO = usuario.CARGO,
-                    CANAL = ((int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString(),
+                    CANAL = (int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO)),
                     NOME = usuario.NOME,
                     UF = usuario.UF,
                     CPF = usuario.CPF,
@@ -761,7 +761,7 @@ namespace Vivo_Apps_API.Controllers
                     SENHA = usuario.SENHA,
                     REGIONAL = usuario.REGIONAL,
                     CARGO = usuario.CARGO,
-                    CANAL = ((int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString(),
+                    CANAL = (int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO)),
                     NOME = usuario.NOME,
                     UF = usuario.UF,
                     CPF = usuario.CPF,
@@ -812,7 +812,7 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                using (CD = new Vivo_MAISContext())
+                using (CD = new Vivo_MaisContext())
                 {
                     ACESSOS_MOBILE user = CD.ACESSOS_MOBILEs.Find(usuario.ID);
 
@@ -832,7 +832,7 @@ namespace Vivo_Apps_API.Controllers
                     user.SENHA = CryptSenha(usuario.SENHA);
                     user.REGIONAL = usuario.REGIONAL;
                     user.CARGO = usuario.CARGO;
-                    user.CANAL = ((int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString();
+                    user.CANAL = (int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO));
                     user.PDV = usuario.PDV;
                     user.CPF = usuario.CPF;
                     user.NOME = usuario.NOME;
@@ -1077,7 +1077,7 @@ namespace Vivo_Apps_API.Controllers
                     SENHA = usuario.SENHA,
                     REGIONAL = usuario.REGIONAL,
                     CARGO = usuario.CARGO,
-                    CANAL = ((int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString(),
+                    CANAL = (int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO)),
                     NOME = usuario.NOME,
                     UF = usuario.UF,
                     CPF = usuario.CPF,
@@ -1303,8 +1303,8 @@ namespace Vivo_Apps_API.Controllers
                     MATRICULA = usuario.MATRICULA,
                     SENHA = CryptSenha(usuario.SENHA),
                     REGIONAL = usuario.REGIONAL,
-                    CARGO = ((int)usuario.CARGO).ToString(),
-                    CANAL = ((int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString(),
+                    CARGO = (int)usuario.CARGO,
+                    CANAL = (int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO)),
                     NOME = usuario.NOME,
                     UF = usuario.UF,
                     CPF = usuario.CPF,
@@ -1452,8 +1452,8 @@ namespace Vivo_Apps_API.Controllers
                 acesso.MATRICULA = usuario.MATRICULA;
                 acesso.SENHA = usuario.SENHA;
                 acesso.REGIONAL = usuario.REGIONAL;
-                acesso.CARGO = ((int)usuario.CARGO).ToString();
-                acesso.CANAL = ((int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString();
+                acesso.CARGO = (int)usuario.CARGO;
+                acesso.CANAL = (int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO));
                 acesso.NOME = usuario.NOME;
                 acesso.UF = usuario.UF;
                 acesso.CPF = usuario.CPF;
@@ -1598,8 +1598,8 @@ namespace Vivo_Apps_API.Controllers
                 acesso.MATRICULA = usuario.MATRICULA;
                 acesso.SENHA = CryptSenha(usuario.SENHA);
                 acesso.REGIONAL = usuario.REGIONAL;
-                acesso.CARGO = ((int)usuario.CARGO).ToString();
-                acesso.CANAL = ((int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString();
+                acesso.CARGO = (int)usuario.CARGO;
+                acesso.CANAL = (int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO));
                 acesso.NOME = usuario.NOME;
                 acesso.UF = usuario.UF;
                 acesso.CPF = usuario.CPF;
@@ -1772,7 +1772,7 @@ namespace Vivo_Apps_API.Controllers
                         SENHA = CryptSenha(usuario.SENHA),
                         REGIONAL = usuario.REGIONAL,
                         CARGO = usuario.CARGO,
-                        CANAL = ((int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO))).ToString(),
+                        CANAL = (int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO)),
                         NOME = usuario.NOME,
                         UF = usuario.UF,
                         CPF = usuario.CPF,
@@ -1803,7 +1803,7 @@ namespace Vivo_Apps_API.Controllers
                     var perfilbycargo = CD.PERFIL_PLATAFORMAS_VIVOs
                                             .Where(x => x.CARGO != null)
                                             .ToList()
-                                            .Where(x => x.CARGO.Split(new[] { ';' }).Select(p => int.Parse(p)).Contains(int.Parse(usuario.CARGO)));
+                                            .Where(x => x.CARGO.Split(new[] { ';' }).Select(p => int.Parse(p)).Contains(usuario.CARGO));
 
                     foreach (var item in perfilbycargo)
                     {
