@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using ApiController = System.Web.Http.ApiController;
 using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
 using Oracle.ManagedDataAccess.Client;
+using Shared_Class_Vivo_Apps.Models;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -222,7 +223,6 @@ namespace Vivo_Apps_API.Controllers
                 OCUPAÇÃO = OCUPAÇÃO
             });
         }
-
         [HttpPost("GetDataFiltersPruma")]
         public string GetDataFiltersPruma([FromBody] PainelRotaFilterModel data)
         {
@@ -275,155 +275,6 @@ namespace Vivo_Apps_API.Controllers
                 CAIXA = CAIXA,
             });
         }
-
-        [HttpPost("GetDataPruma")]
-        public async Task<string> GetDataPruma([FromBody] PaginationPainelRotaModel filter)
-        {
-            var pagedData = CD.FIXA_BASE_PRUMAs.AsQueryable();
-
-            if (filter.UF.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.UF.Contains(x.UF));
-            }
-            if (filter.CIDADE.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.CIDADE.Contains(x.CIDADE));
-            }
-            if (filter.CEP.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.CEP.Contains(x.CEP.ToString()));
-            }
-            if (filter.BAIRRO.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.BAIRRO.Contains(x.BAIRRO));
-            }
-            if (filter.LOGRADOURO.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.LOGRADOURO.Contains(x.LOGRADOURO));
-            }
-            if (filter.NUMERO.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.NUMERO.Contains(x.NUMERO.ToString()));
-            }
-            if (filter.CAIXA.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.CAIXA.Contains(x.CAIXA));
-            }
-
-            var Data = pagedData.OrderBy(x => x.ID)
-                .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
-                .ToList();
-
-            var totalRecords = pagedData.Count();
-            var totalPages = ((double)totalRecords / (double)filter.PageSize);
-
-            return JsonConvert.SerializeObject(
-                PagedResponse.CreatePagedReponse<FIXA_BASE_PRUMA>(
-                    Data, filter, totalRecords)
-                );
-        }
-
-        [HttpPost("GetData")]
-        public async Task<string> GetData([FromBody] PaginationPainelRotaModel filter)
-        {
-            var pagedData = CD.FIXA_VIEW_PAINEL_DE_ROTAs.AsQueryable();
-
-            if (filter.Território.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.Território.Contains(x.TERRITÓRIO));
-            }
-            if (filter.UF.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.UF.Contains(x.UF));
-            }
-            if (filter.DDD.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.DDD.Contains(x.DDD));
-            }
-            if (filter.CIDADE.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.CIDADE.Contains(x.CIDADE));
-            }
-            if (filter.MICROREGIÃO.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.MICROREGIÃO.Contains(x.MICRORREGIÃO));
-            }
-            if (filter.CEP.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.CEP.Contains(x.CEP));
-            }
-            if (filter.BAIRRO.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.BAIRRO.Contains(x.BAIRRO));
-            }
-            if (filter.LOGRADOURO.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.LOGRADOURO.Contains(x.LOGRADOURO));
-            }
-            if (filter.NUMERO.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.NUMERO.Contains(x.NÚMERO));
-            }
-            if (filter.CAIXA.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.CAIXA.Contains(x.CAIXA));
-            }
-            if (filter.TIPO_RESIDENCIA.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.TIPO_RESIDENCIA.Contains(x.TIPO_RESIDENCIA));
-            }
-            if (filter.OCUPAÇÃO.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.OCUPAÇÃO.Contains(x.OCUPAÇÃO));
-            }
-
-            double Pcr_ocp = 0;
-            double Pcr_disp = 0;
-            int qtd_casas = 0;
-            int qtd_predio = 0;
-            int media_fttc = 0;
-            int total_BADDEBT = 0;
-            int total_FRAUDE = 0;
-
-            var capacidade = 0;
-            var usados = 0;
-            var disponivel = 0;
-
-            if (filter.GetDash)
-            {
-                capacidade = await GetSomaAVGCOLUMN(filter, "CAPACIDADE");
-                usados = await GetSomaAVGCOLUMN(filter, "USADOS");
-                disponivel = await GetSomaAVGCOLUMN(filter, "DISPONÍVEL");
-
-                Pcr_ocp = ((double)usados / (double)capacidade) * 100;
-                Pcr_disp = ((double)disponivel / (double)capacidade) * 100;
-
-                qtd_casas = pagedData.Where(y => y.TIPO_RESIDENCIA.Equals("CASA")).Select(x => x.CEP_NUM).Distinct().Count();
-                qtd_predio = pagedData.Where(y => y.TIPO_RESIDENCIA.Equals("PRÉDIO")).Select(x => x.CEP_NUM).Distinct().Count();
-
-                media_fttc = await GetMediaFTTC(filter);
-
-                total_BADDEBT = pagedData.Where(y => !string.IsNullOrEmpty(y.BADDEBT)).Select(x => x.CEP_NUM).Distinct().Count();
-                total_FRAUDE = pagedData.Where(y => !string.IsNullOrEmpty(y.FRAUDE)).Select(x => x.CEP_NUM).Distinct().Count();
-            }
-
-            var Data = pagedData.OrderBy(x => x.ID)
-                .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
-                .ToList();
-
-            var totalRecords = pagedData.Count();
-            var totalPages = ((double)totalRecords / (double)filter.PageSize);
-
-            return JsonConvert.SerializeObject(
-                PagedResponse.CreatePagedReponse<FIXA_VIEW_PAINEL_DE_ROTA>(
-                    Data, filter, totalRecords, Math.Round(Pcr_ocp, 2), Math.Round(Pcr_disp, 2),
-                    qtd_casas, qtd_predio, media_fttc,
-                    total_BADDEBT, total_FRAUDE)
-                );
-        }
-
         private DataTable ExecutarCommandRetornaDataTable(string comando)
         {
             DataTable dt = new DataTable();
@@ -444,7 +295,6 @@ namespace Vivo_Apps_API.Controllers
             }
             return dt;
         }
-
         private async Task<int> GetSomaAVGCOLUMN(PaginationPainelRotaModel filter, string column)
         {
             try

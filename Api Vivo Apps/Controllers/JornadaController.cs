@@ -22,7 +22,8 @@ using DataTable = System.Data.DataTable;
 using Microsoft.AspNetCore.StaticFiles;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using OfficeOpenXml;
-using HtmlAgilityPack;
+using static Vivo_Apps_API.Converters.Converters;
+using Shared_Class_Vivo_Apps.Models;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -174,20 +175,20 @@ namespace Vivo_Apps_API.Controllers
                 {
                     CD.JORNADA_BD_AVALIACAO_RETORNOs.Add(new JORNADA_BD_AVALIACAO_RETORNO
                     {
-                        ID_QUESTION = item.ID_QUESTION,
-                        ID_TEMAS = item.TEMA,
+                        ID_QUESTION = int.Parse(item.ID_QUESTION),
+                        TEMAS = item.TEMA,
                         TP_FORMS = item.TP_FORMS,
                         PESO = item.PESO,
-                        PUBLICO_CANAL = item.PUBLICO_CANAL,
-                        PUBLICO_CARGO = item.PUBLICO_CARGO,
-                        DT_AVALIACAO = item.DT_AVALIACAO,
-                        MATRICULA_APLICADOR = item.MATRICULA_APLICADOR,
-                        CADERNO = item.CADERNO,
+                        PUBLICO_CANAL = int.Parse(item.PUBLICO_CANAL),
+                        PUBLICO_CARGO = int.Parse(item.PUBLICO_CARGO),
+                        DT_AVALIACAO = DateTime.Parse(item.DT_AVALIACAO),
+                        MATRICULA_APLICADOR = int.Parse(item.MATRICULA_APLICADOR),
+                        CADERNO = int.Parse(item.CADERNO),
                         RESPOSTA_USER = item.RESPOSTA_USER,
                         REDE_AVALIADA = item.REDE_AVALIADA,
-                        DDD_AVALIADO = item.DDD_AVALIADO,
+                        DDD_AVALIADO = int.Parse(item.DDD_AVALIADO),
                         PDV_AVALIADO = item.PDV_AVALIADO,
-                        RE_AVALIADO = item.RE_AVALIADO,
+                        RE_AVALIADO = int.Parse(item.RE_AVALIADO),
                         ID_PROVA = item.ID_PROVA,
                         STATUS_RESPOSTA = item.STATUS_RESPOSTA
                     });
@@ -209,17 +210,17 @@ namespace Vivo_Apps_API.Controllers
                 {
                     ID_TEMAS = data.TEMA,
                     TP_FORMS = data.TP_FORMS,
-                    PUBLICO_CANAL = data.PUBLICO_CANAL,
-                    PUBLICO_CARGO = data.PUBLICO_CARGO,
-                    DT_AVALIACAO = data.DT_AVALIACAO,
-                    MATRICULA_APLICADOR = data.MATRICULA_APLICADOR,
+                    PUBLICO_CANAL = int.Parse(data.PUBLICO_CANAL),
+                    PUBLICO_CARGO = int.Parse(data.PUBLICO_CARGO),
+                    DT_AVALIACAO = DateTime.Parse(data.DT_AVALIACAO),
+                    MATRICULA_APLICADOR = int.Parse(data.MATRICULA_APLICADOR),
                     NOME_APLICADOR = data.NOME_APLICADOR,
-                    CADERNO = data.CADERNO,
+                    CADERNO = int.Parse(data.CADERNO),
                     NOTA = decimal.Parse(data.NOTA),
                     REDE_AVALIADA = data.REDE_AVALIADA,
-                    DDD_AVALIADO = data.DDD_AVALIADO,
+                    DDD_AVALIADO = int.Parse(data.DDD_AVALIADO),
                     PDV_AVALIADO = data.PDV_AVALIADO,
-                    RE_AVALIADO = data.RE_AVALIADO
+                    RE_AVALIADO = int.Parse(data.RE_AVALIADO)
                 });
 
                 CD.SaveChanges();
@@ -278,12 +279,12 @@ namespace Vivo_Apps_API.Controllers
         public string GetFormRota([FromBody] FormDisponivel data)
         {
             var questions = CD.JORNADA_BD_QUESTION_HISTORICOs
-            .Where(x => x.TP_FORMS == "Rota Cruzada" && x.ID_CRIADOR == data.MATRICULA).OrderByDescending(x => x.CADERNO).ToList();
+            .Where(x => x.TP_FORMS == "Rota Cruzada" && x.ID_CRIADOR == int.Parse(data.MATRICULA)).OrderByDescending(x => x.CADERNO).ToList();
 
 
             questions = questions.Where(x =>
-            string.IsNullOrEmpty(x.DT_FINALIZACAO) &&
-            Convert.ToDateTime(x.DT_INICIO_AVALIACAO) <= DateTime.Now).ToList();
+            x.DT_FINALIZACAO.HasValue &&
+            x.DT_INICIO_AVALIACAO.Value <= DateTime.Now).ToList();
 
             questions.ConvertAll(x => x.DT_FINALIZACAO = null);
 
@@ -293,9 +294,10 @@ namespace Vivo_Apps_API.Controllers
         [HttpPost("Get_List_Resultado_Prova")]
         public string Get_List_Resultado_Prova(string matricula, string cargo)
         {
+            int matriculaint = int.Parse(matricula);
             return listaAdm.Contains(cargo) ?
-                JsonConvert.SerializeObject(CD.JORNADA_BD_ANSWER_AVALIACAOs.Where(x => x.MATRICULA_APLICADOR == matricula || x.RE_AVALIADO == matricula).AsEnumerable()) :
-                JsonConvert.SerializeObject(CD.JORNADA_BD_ANSWER_AVALIACAOs.Where(x => x.RE_AVALIADO == matricula).AsEnumerable());
+                JsonConvert.SerializeObject(CD.JORNADA_BD_ANSWER_AVALIACAOs.Where(x => x.MATRICULA_APLICADOR == matriculaint || x.RE_AVALIADO == matriculaint).AsEnumerable()) :
+                JsonConvert.SerializeObject(CD.JORNADA_BD_ANSWER_AVALIACAOs.Where(x => x.RE_AVALIADO == matriculaint).AsEnumerable());
         }
 
         [HttpPost("GetQuestionsById_Prova")]
@@ -349,7 +351,7 @@ namespace Vivo_Apps_API.Controllers
 
         [HttpGet("GetAllRotaByMAT")]
         public string GetAllRotaByMAT(string matricula) =>
-            JsonConvert.SerializeObject(CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => x.TP_FORMS == "Rota Cruzada" && x.ID_CRIADOR == matricula && x.DT_FINALIZACAO == null));
+            JsonConvert.SerializeObject(CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => x.TP_FORMS == "Rota Cruzada" && x.ID_CRIADOR == int.Parse(matricula) && x.DT_FINALIZACAO == null));
 
         [HttpPost("GetFormulario")]
         public string GetFormulario([FromBody] IEnumerable<int> Questions)
@@ -382,13 +384,31 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var dataBeforeFilter = CD.JORNADA_BD_HIERARQUIAs.AsQueryable();
+                var dataBeforeFilter = CD.JORNADA_BD_HIERARQUIAs
+                    .Where(x => x.STATUS == filter.Value.STATUS)
+                    .AsQueryable();
 
                 if (!string.IsNullOrEmpty(filter.Value.AnyColumnMatch))
                 {
                     dataBeforeFilter = dataBeforeFilter.Where(x =>
                         filter.Value.AnyColumnMatch.Contains(x.ADABAS)
+                        || filter.Value.AnyColumnMatch.Contains(x.NOME_FANTASIA)
+                        || filter.Value.AnyColumnMatch.Contains(x.REDE)
+                        || filter.Value.AnyColumnMatch.Contains(x.UF)
+                        || filter.Value.AnyColumnMatch.Contains(x.DDD.ToString())
+                        || filter.Value.AnyColumnMatch.Contains(x.LOGIN_MOD.ToString())
+                        || filter.Value.AnyColumnMatch.Contains(x.DT_MOD.ToString())
+                        || filter.Value.AnyColumnMatch.Contains(x.RE_DIVISAO.ToString())
+                        || filter.Value.AnyColumnMatch.Contains(x.RE_GA)
+                        || filter.Value.AnyColumnMatch.Contains(x.RE_GP)
+                        || filter.Value.AnyColumnMatch.Contains(x.RE_GV)
+                        || filter.Value.AnyColumnMatch.Contains(x.CANAL)
                     );
+                }
+
+                if (filter.Value.CANAL.Any())
+                {
+                    dataBeforeFilter = dataBeforeFilter.Where(x => filter.Value.CANAL.Contains(x.CANAL));
                 }
 
                 if (filter.Value.REGIONAL.Any())
@@ -738,13 +758,31 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var dataBeforeFilter = CD.JORNADA_BD_HIERARQUIAs.AsQueryable();
+                var dataBeforeFilter = CD.JORNADA_BD_HIERARQUIAs
+                    .Where(x=> x.STATUS == filter.Value.STATUS)
+                    .AsQueryable();
 
                 if (!string.IsNullOrEmpty(filter.Value.AnyColumnMatch))
                 {
                     dataBeforeFilter = dataBeforeFilter.Where(x =>
                         filter.Value.AnyColumnMatch.Contains(x.ADABAS)
+                        || filter.Value.AnyColumnMatch.Contains(x.NOME_FANTASIA)
+                        || filter.Value.AnyColumnMatch.Contains(x.REDE)
+                        || filter.Value.AnyColumnMatch.Contains(x.UF)
+                        || filter.Value.AnyColumnMatch.Contains(x.DDD.ToString())
+                        || filter.Value.AnyColumnMatch.Contains(x.LOGIN_MOD.ToString())
+                        || filter.Value.AnyColumnMatch.Contains(x.DT_MOD.ToString())
+                        || filter.Value.AnyColumnMatch.Contains(x.RE_DIVISAO.ToString())
+                        || filter.Value.AnyColumnMatch.Contains(x.RE_GA)
+                        || filter.Value.AnyColumnMatch.Contains(x.RE_GP)
+                        || filter.Value.AnyColumnMatch.Contains(x.RE_GV)
+                        || filter.Value.AnyColumnMatch.Contains(x.CANAL)
                     );
+                }
+
+                if (filter.Value.CANAL.Any())
+                {
+                    dataBeforeFilter = dataBeforeFilter.Where(x => filter.Value.CANAL.Contains(x.CANAL));
                 }
 
                 if (filter.Value.REGIONAL.Any())
@@ -830,76 +868,6 @@ namespace Vivo_Apps_API.Controllers
                         ex.StackTrace
                     },
                 });
-            }
-        }
-
-        static DataTable ConvertHtmlTableToDataTable(string html)
-        {
-            HtmlDocument doc = new HtmlDocument();
-            doc.LoadHtml(html);
-
-            DataTable table = new DataTable();
-
-            // Obtendo a primeira linha para criar colunas
-            HtmlNodeCollection headerRows = doc.DocumentNode.SelectNodes("//table/tr");
-            if (headerRows != null)
-            {
-                foreach (HtmlNode headerRow in headerRows.Take(1))
-                {
-                    foreach (HtmlNode cell in headerRow.SelectNodes("th|td"))
-                    {
-                        table.Columns.Add(cell.InnerText.Trim());
-                    }
-                }
-            }
-
-            // Adicionando linhas de dados
-            HtmlNodeCollection dataRows = doc.DocumentNode.SelectNodes("//table/tr[position()>1]");
-            if (dataRows != null)
-            {
-                foreach (HtmlNode dataRow in dataRows)
-                {
-                    DataRow row = table.NewRow();
-                    int columnIndex = 0;
-
-                    foreach (HtmlNode cell in dataRow.SelectNodes("th|td"))
-                    {
-                        row[columnIndex] = cell.InnerText.Trim();
-                        columnIndex++;
-                    }
-
-                    table.Rows.Add(row);
-                }
-            }
-
-            return table;
-        }
-
-        static void ExportToExcel(DataTable dataTable, string outputPath)
-        {
-            FileInfo newFile = new FileInfo(outputPath);
-
-            using (ExcelPackage package = new ExcelPackage(newFile))
-            {
-                ExcelWorksheet worksheet = package.Workbook.Worksheets.Add("Sheet1");
-
-                // Adicionando cabeçalho
-                for (int i = 0; i < dataTable.Columns.Count; i++)
-                {
-                    worksheet.Cells[1, i + 1].Value = dataTable.Columns[i].ColumnName;
-                }
-
-                // Adicionando dados
-                for (int i = 0; i < dataTable.Rows.Count; i++)
-                {
-                    for (int j = 0; j < dataTable.Columns.Count; j++)
-                    {
-                        worksheet.Cells[i + 2, j + 1].Value = dataTable.Rows[i][j];
-                    }
-                }
-
-                // Salvar o arquivo XLSX
-                package.Save();
             }
         }
 

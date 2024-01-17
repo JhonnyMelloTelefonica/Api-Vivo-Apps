@@ -10,6 +10,8 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Linq;
 using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
+using static Vivo_Apps_API.Converters.Converters;
+using Shared_Class_Vivo_Apps.Models;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -300,10 +302,10 @@ namespace Vivo_Apps_API.Controllers
                     regional = getquestion.REGIONAL,
                     TEMA = getquestion.ID_TEMAS.Value,
                     SUB_TEMA = getquestion.ID_SUB_TEMAS.Value,
-                    TP_FORMS = getquestion.TP_FORMS.Split(new[] { ';' }),
+                    TP_FORMS = getquestion.TP_FORMS.Split(new[] { ';' }).ToList(),
                     TP_QUESTAO = getquestion.TP_QUESTAO,
                     PERGUNTA = getquestion.PERGUNTA,
-                    CARGO = GetCargosFromStringList(getquestion.CARGO).Cast<int>(),
+                    CARGO = GetCargosFromStringList(getquestion.CARGO).Cast<int>().ToList(),
                     FIXA = getquestion.FIXA,
                     ALTERNATIVAS = CD.JORNADA_BD_ANSWER_ALTERNATIVAs.Where(x => x.ID_QUESTION == ID_QUESTION).ToList()
                 };
@@ -407,24 +409,6 @@ namespace Vivo_Apps_API.Controllers
                     },
                 });
             }
-        }
-
-        private static IEnumerable<Cargos> GetCargosFromStringList(string cargo)
-        {
-            var delimiter = new[] { ';' };
-            var cargosArray = cargo.Split(delimiter, StringSplitOptions.RemoveEmptyEntries)
-                                   .Select(x => (Cargos)int.Parse(x))
-                                   .ToList();
-
-            return cargosArray;
-        }
-
-        private static IEnumerable<Canal> GetCanaisFromCargos(string cargo)
-        {
-            var cargosList = GetCargosFromStringList(cargo);
-            var canaisArray = cargosList.Select(x => DePara.CanalCargoEnum(x)).ToList();
-
-            return canaisArray;
         }
 
     }

@@ -20,6 +20,8 @@ using Shared_Class_Vivo_Apps.Enums;
 using Microsoft.AspNetCore.Http.HttpResults;
 using System.Linq;
 using Microsoft.AspNetCore.StaticFiles;
+using static Vivo_Apps_API.Converters.Converters;
+using Shared_Class_Vivo_Apps.Models;
 
 
 namespace Vivo_Apps_API.Controllers
@@ -184,47 +186,6 @@ namespace Vivo_Apps_API.Controllers
             });
 
             _mapper = config.CreateMapper();
-        }
-        private static DateTime? StringToDateTime(string date) => (date is not null ? Convert.ToDateTime(date) : null);
-        private static string RemoveNonNumericCharacters(string input) => new string(input.ToCharArray().Where(c => Char.IsDigit(c)).ToArray());
-        private static List<TEnum> ConvertStringToEnumList<TEnum>(string input) where TEnum : struct
-        {
-            var enumList = new List<TEnum>();
-
-            if (!string.IsNullOrEmpty(input))
-            {
-                if (input.Contains(";"))
-                {
-                    // Multiple values separated by semicolon
-                    var enumValues = input.Split(';').Select(x => x.Trim());
-
-                    foreach (var value in enumValues)
-                    {
-                        if (Enum.TryParse(typeof(TEnum), value, out var categoriaValue) && categoriaValue is TEnum)
-                        {
-                            enumList.Add((TEnum)categoriaValue);
-                        }
-                        else
-                        {
-                            // Handle the case where parsing fails or provide a default value
-                        }
-                    }
-                }
-                else
-                {
-                    // Single value without semicolon
-                    if (Enum.TryParse(typeof(TEnum), input.Trim(), out var categoriaValue) && categoriaValue is TEnum)
-                    {
-                        enumList.Add((TEnum)categoriaValue);
-                    }
-                    else
-                    {
-                        // Handle the case where parsing fails or provide a default value
-                    }
-                }
-            }
-
-            return enumList;
         }
 
         private Vivo_MaisContext CD = new Vivo_MaisContext();
@@ -968,7 +929,6 @@ namespace Vivo_Apps_API.Controllers
 
                 return new JsonResult(new Response<PagedModelResponse<IEnumerable<BOLETA_PALITAGEM_DTO>>>
                 {
-
                     Data = PagedResponse.CreatePagedReponse<BOLETA_PALITAGEM_DTO, FilterBoletaModel>(Data, filter, totalRecords),
                     Succeeded = true,
                     Message = $"Tudo certo!",
@@ -1206,7 +1166,7 @@ namespace Vivo_Apps_API.Controllers
 
                 var totalRecords = boletas.Count();
                 var totalPages = ((double)totalRecords / (double)filter.PageSize);
-
+                
                 return new JsonResult(new Response<PagedModelResponse<IEnumerable<BOLETA_PALITAGEM_DTO>>>
                 {
                     Data = PagedResponse.CreatePagedReponse<BOLETA_PALITAGEM_DTO, FilterDetalhadoBoletaModel>(Data, filter, totalRecords),

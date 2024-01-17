@@ -19,6 +19,7 @@ using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using System.Runtime.ConstrainedExecution;
 using System.Text.Json.Serialization;
 using static System.Runtime.InteropServices.JavaScript.JSType;
+using static Vivo_Apps_API.Converters.Converters;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -135,60 +136,5 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
-        static DataTable ReadExcelToDataTable(byte[] content)
-        {
-            using (MemoryStream memoryStream = new MemoryStream(content))
-            {
-                using (SpreadsheetDocument spreadsheetDocument = SpreadsheetDocument.Open(memoryStream, false))
-                {
-                    WorkbookPart workbookPart = spreadsheetDocument.WorkbookPart;
-                    Sheet sheet = workbookPart.Workbook.Descendants<Sheet>().FirstOrDefault();
-                    WorksheetPart worksheetPart = (WorksheetPart)workbookPart.GetPartById(sheet.Id);
-
-                    SharedStringTablePart sharedStringTablePart = workbookPart.GetPartsOfType<SharedStringTablePart>().FirstOrDefault();
-
-                    DataTable dataTable = new DataTable();
-
-                    foreach (Row row in worksheetPart.Worksheet.Descendants<Row>())
-                    {
-                        if (row.RowIndex == 1)
-                        {
-                            // Assuming the first row contains column names
-                            foreach (Cell cell in row.Elements<Cell>())
-                            {
-                                string columnName = GetCellValue(cell, sharedStringTablePart);
-                                dataTable.Columns.Add(columnName);
-                            }
-                        }
-                        else
-                        {
-                            DataRow dataRow = dataTable.NewRow();
-                            int columnIndex = 0;
-
-                            foreach (Cell cell in row.Elements<Cell>())
-                            {
-                                dataRow[columnIndex] = GetCellValue(cell, sharedStringTablePart);
-                                columnIndex++;
-                            }
-
-                            dataTable.Rows.Add(dataRow);
-                        }
-                    }
-
-                    return dataTable;
-                }
-            }
-        }
-        static string GetCellValue(Cell cell, SharedStringTablePart sharedStringTablePart)
-        {
-            if (cell.DataType != null && cell.DataType.Value == CellValues.SharedString)
-            {
-                return sharedStringTablePart.SharedStringTable.ChildElements[int.Parse(cell.InnerText)].InnerText;
-            }
-            else
-            {
-                return cell.InnerText;
-            }
-        }
     }
 }

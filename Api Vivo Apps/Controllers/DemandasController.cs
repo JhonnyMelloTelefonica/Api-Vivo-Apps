@@ -13,6 +13,7 @@ using System.Drawing;
 using Shared_Class_Vivo_Apps.Enums;
 using System.Data;
 using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
+using Shared_Class_Vivo_Apps.Models;
 
 namespace Vivo_Apps_API.Controllers
 {

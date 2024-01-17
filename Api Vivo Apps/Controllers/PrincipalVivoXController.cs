@@ -6,6 +6,7 @@ using Shared_Class_Vivo_Apps.Enums;
 using Vivo_Apps_API.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
+using Shared_Class_Vivo_Apps.Models;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -128,7 +129,7 @@ namespace Vivo_Apps_API.Controllers
                     UserAvatar = y.UserAvatar,
                     LOGIN_MOD = y.LOGIN_MOD,
                     DT_MOD = y.DT_MOD,
-                    Perfil = _context.PERFIL_USUARIOs.Where(x => x.Login == y.MATRICULA).Select(k => new Perfil
+                    Perfil = _context.PERFIL_USUARIOs.Where(x => x.Login == y.MATRICULA).Select(k => new Perfil 
                     {
                         ID = k.ID,
                         Login = k.Login,
@@ -322,7 +323,7 @@ namespace Vivo_Apps_API.Controllers
                         ID_CHAMADO = y.ID_CHAMADO,
                         RESPONSAVEL = _context.ACESSOs.Where(x => x.Login == y.MATRICULA_RESPONSAVEL).FirstOrDefault(),
                         DATA_RESPOSTA = y.DATA_RESPOSTA,
-                        ANEXOS = _context.CONTROLE_DE_DEMANDAS_ARQUIVOS_RESPOSTAs
+                        ANEXOS = _context.CONTROLE_DEMANDAS_ARQUIVOS_RESPOSTAs
                         .Where(k => k.ID_RESPOSTA == y.ID).ToList()
                     }).ToList();
 

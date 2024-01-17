@@ -6,6 +6,7 @@ using Shared_Class_Vivo_Apps.Data;
 using Shared_Class_Vivo_Apps.Enums;
 using System.Linq;
 using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
+using Shared_Class_Vivo_Apps.Models;
 
 
 namespace Vivo_Apps_API.Controllers
@@ -194,7 +195,7 @@ namespace Vivo_Apps_API.Controllers
                 }
 
                 // BUSCA PELO LOGIN DO SOLICITANTE
-                if (!filter.Value.IsSuporte)
+                if (!filter.Value.IsSuporte.Value)
                 {
                     users = users.Where(x => x.LOGIN_SOLICITANTE == filter.Value.LOGIN_SOLICITANTE);
                 }
@@ -401,7 +402,7 @@ namespace Vivo_Apps_API.Controllers
                         LOGIN_MOD = x.LOGIN_MOD,
                         DT_MOD = x.DT_MOD,
                         ELEGIVEL = x.ELEGIVEL.Value,
-                        Perfil = CD.PERFIL_USUARIOs.Where(y => y.Login == x.MATRICULA).Select(y => y.id_Perfil).ToList(),
+                        Perfil = CD.PERFIL_USUARIOs.Where(y => y.Login == x.MATRICULA).Select(y => y.id_Perfil.Value).ToList(),
                     }).FirstOrDefault()
                     : null),
                     EMAIL = acesso.EMAIL,
@@ -572,7 +573,7 @@ namespace Vivo_Apps_API.Controllers
                 LOGIN_MOD = x.LOGIN_MOD,
                 DT_MOD = x.DT_MOD,
                 ELEGIVEL = x.ELEGIVEL == null ? false : x.ELEGIVEL.Value,
-                Perfil = CD.PERFIL_USUARIOs.Where(k => k.Login == x.MATRICULA).Select(x => x.id_Perfil).ToList()
+                Perfil = CD.PERFIL_USUARIOs.Where(k => k.Login == x.MATRICULA).Select(x => x.id_Perfil.Value).ToList()
             });
 
             return new JsonResult(PagedResponse.CreatePagedReponse<ControleUsuariosModel>(DataFinal, filter, totalRecords));
@@ -1210,7 +1211,7 @@ namespace Vivo_Apps_API.Controllers
                         LOGIN_MOD = x.LOGIN_MOD,
                         DT_MOD = x.DT_MOD,
                         ELEGIVEL = x.ELEGIVEL.Value,
-                        Perfil = CD.PERFIL_USUARIOs.Where(y => y.Login == x.MATRICULA).Select(y => y.id_Perfil).ToList(),
+                        Perfil = CD.PERFIL_USUARIOs.Where(y => y.Login == x.MATRICULA).Select(y => y.id_Perfil.Value).ToList(),
                     }).FirstOrDefault()
                     : null),
                     EMAIL = acesso.EMAIL,
@@ -1369,7 +1370,7 @@ namespace Vivo_Apps_API.Controllers
                         LOGIN_MOD = x.LOGIN_MOD,
                         DT_MOD = x.DT_MOD,
                         ELEGIVEL = x.ELEGIVEL.Value,
-                        Perfil = CD.PERFIL_USUARIOs.Where(y => y.Login == x.MATRICULA).Select(y => y.id_Perfil).ToList(),
+                        Perfil = CD.PERFIL_USUARIOs.Where(y => y.Login == x.MATRICULA).Select(y => y.id_Perfil.Value).ToList(),
                     }).FirstOrDefault()
                     : null),
                     EMAIL = acesso.EMAIL,
@@ -1519,7 +1520,7 @@ namespace Vivo_Apps_API.Controllers
                         LOGIN_MOD = x.LOGIN_MOD,
                         DT_MOD = x.DT_MOD,
                         ELEGIVEL = x.ELEGIVEL.Value,
-                        Perfil = CD.PERFIL_USUARIOs.Where(y => y.Login == x.MATRICULA).Select(y => y.id_Perfil).ToList(),
+                        Perfil = CD.PERFIL_USUARIOs.Where(y => y.Login == x.MATRICULA).Select(y => y.id_Perfil.Value).ToList(),
                     }).FirstOrDefault()
                     : null),
                     EMAIL = acesso.EMAIL,
@@ -1680,7 +1681,7 @@ namespace Vivo_Apps_API.Controllers
                         LOGIN_MOD = x.LOGIN_MOD,
                         DT_MOD = x.DT_MOD,
                         ELEGIVEL = x.ELEGIVEL.Value,
-                        Perfil = CD.PERFIL_USUARIOs.Where(y => y.Login == x.MATRICULA).Select(y => y.id_Perfil).ToList(),
+                        Perfil = CD.PERFIL_USUARIOs.Where(y => y.Login == x.MATRICULA).Select(y => y.id_Perfil.Value).ToList(),
                     }).FirstOrDefault()
                     : null),
                     EMAIL = acesso_pendente.EMAIL,
@@ -1769,7 +1770,7 @@ namespace Vivo_Apps_API.Controllers
                         ID_ACESSOS_MOBILE = null,
                         EMAIL = usuario.EMAIL,
                         MATRICULA = usuario.MATRICULA,
-                        SENHA = CryptSenha(usuario.SENHA),
+                        SENHA = CryptSenha("Vivo@2024"),
                         REGIONAL = usuario.REGIONAL,
                         CARGO = usuario.CARGO,
                         CANAL = (int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO)),
@@ -1779,6 +1780,9 @@ namespace Vivo_Apps_API.Controllers
                         PDV = usuario.PDV,
                         APROVACAO = false,
                         FIXA = usuario.FIXA,
+                        DDD = usuario.DDD,
+                        ELEGIVEL = usuario.ELEGIVEL,
+                        UserAvatar = System.IO.File.ReadAllBytes(Path.Combine(Directory.GetCurrentDirectory(),"FilesTemplates","usericon.png")),
                         DT_SOLICITACAO = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
                         DT_PRIMEIRO_RETORNO = null,
                         DT_RETORNO = null,
@@ -1791,6 +1795,15 @@ namespace Vivo_Apps_API.Controllers
 
                     await CD.SaveChangesAsync();
 
+                    foreach (var perfil in usuario.Perfil)
+                    {
+                        CD.PERFIL_USUARIO_PENDENTEs.Add(new PERFIL_USUARIO_PENDENTE
+                        {
+                            ID_ACESSO_PENDENTE = user.ID,
+                            ID_PERFIL = perfil,
+                        });
+                    }
+
                     CD.HISTORICO_ACESSOS_MOBILE_PENDENTEs.Add(new HISTORICO_ACESSOS_MOBILE_PENDENTE
                     {
                         ID_ACESSOS_PENDENTE = user.ID,
@@ -1800,22 +1813,8 @@ namespace Vivo_Apps_API.Controllers
                         DATA = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
                     });
 
-                    var perfilbycargo = CD.PERFIL_PLATAFORMAS_VIVOs
-                                            .Where(x => x.CARGO != null)
-                                            .ToList()
-                                            .Where(x => x.CARGO.Split(new[] { ';' }).Select(p => int.Parse(p)).Contains(usuario.CARGO));
-
-                    foreach (var item in perfilbycargo)
-                    {
-                        CD.PERFIL_USUARIO_PENDENTEs.Add(new PERFIL_USUARIO_PENDENTE
-                        {
-                            ID_ACESSO_PENDENTE = user.ID,
-                            ID_PERFIL = item.ID_PERFIL,
-                        });
-                    }
-
-                    await CD.SaveChangesAsync();
                 }
+                    await CD.SaveChangesAsync();
 
                 return new JsonResult(new Response<string>
                 {
