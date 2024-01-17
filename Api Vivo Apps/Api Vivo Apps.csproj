@@ -1,39 +1,78 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <RootNamespace>Vivo_Apps_API</RootNamespace>
-    <UserSecretsId>acfdd39b-5641-46aa-87dd-6e6b243f875d</UserSecretsId>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net8.0</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<RootNamespace>Vivo_Apps_API</RootNamespace>
+		<UserSecretsId>acfdd39b-5641-46aa-87dd-6e6b243f875d</UserSecretsId>
+	</PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="AutoMapper" Version="12.0.1" />
-    <PackageReference Include="Microsoft.AspNet.WebApi" Version="5.3.0" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="8.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.0">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      <TreatAsUsed>true</TreatAsUsed>
-    </PackageReference>
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3">
-      <TreatAsUsed>true</TreatAsUsed>
-    </PackageReference>
-    <PackageReference Include="Oracle.ManagedDataAccess" Version="21.12.0" />
-    <PackageReference Include="SqlTableDependency" Version="8.5.8" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
-    <PackageReference Include="Z.EntityFramework.Extensions.EFCore" Version="8.101.1.1" />
-  </ItemGroup>
+	<ItemGroup>
+		<Content Include="FilesTemplates\**\*" CopyToOutputDirectory="PreserveNewest" />
+	</ItemGroup>
 
+	<ItemGroup>
+	  <None Remove="FilesTemplates\Jornada_bd_hierarquia_Model.html" />
+	  <None Remove="FilesTemplates\Jornada_bd_hierarquia_Model.xls" />
+	  <None Remove="FilesTemplates\usericon.png" />
+	</ItemGroup>
+
+
+	<ItemGroup>
+		<PackageReference Include="AutoMapper" Version="12.0.1" />
+		<PackageReference Include="Blazored.TextEditor" Version="1.1.0" />
+		<PackageReference Include="Blazorise.Bootstrap" Version="1.4.0" />
+		<PackageReference Include="DocumentFormat.OpenXml" Version="3.0.0" />
+		<PackageReference Include="EfCore.SchemaCompare" Version="8.0.1" />
+		<PackageReference Include="EPPlus" Version="7.0.6" />
+		<PackageReference Include="HtmlAgilityPack" Version="1.11.55" />
+		<PackageReference Include="Microsoft.AspNet.WebApi" Version="5.3.0" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="8.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
+		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+		  <PrivateAssets>all</PrivateAssets>
+		</PackageReference>
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.0">
+			<PrivateAssets>all</PrivateAssets>
+			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+			<TreatAsUsed>true</TreatAsUsed>
+		</PackageReference>
+		<PackageReference Include="Newtonsoft.Json" Version="13.0.3">
+			<TreatAsUsed>true</TreatAsUsed>
+		</PackageReference>
+		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.120" />
+		<PackageReference Include="SqlTableDependency" Version="8.5.8" />
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+		<PackageReference Include="Syncfusion.Blazor.Navigations" Version="24.1.41" />
+		<PackageReference Include="Z.EntityFramework.Extensions.EFCore" Version="8.101.1.3" />
+		<PublishFile Include="FilesTemplates" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Update="FilesTemplates\usericon.png">
+	    <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+	    <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Folder Include="DB_Context_Vivo_MAIS\" />
+	</ItemGroup>
+
+	<Import Project="..\..\Shared_Class_Vivo_Apps\Shared_Class_Vivo_Apps\Shared_Class_Vivo_Apps.projitems" Label="Shared" />
+
+<<<<<<< HEAD
   <ItemGroup>
     <Folder Include="Data\" />
     <Folder Include="DB_Context_Vivo_MAIS\" />
   </ItemGroup>
 
   <Import Project="..\..\Shared_Class_Vivo_Apps\Shared_Class_Vivo_Apps.projitems" Label="Shared" />
+=======
+>>>>>>> 8d038bd3923d2a6ddf633f531af7c98163ea6a04
 
 
-	
 </Project>

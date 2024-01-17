@@ -20,7 +20,7 @@ builder.Services.AddControllers().AddJsonOptions(options =>
     options.JsonSerializerOptions.IgnoreNullValues = true;
 });
 
-builder.Services.AddDbContext<Vivo_MAISContext>(opt =>
+builder.Services.AddDbContext<Vivo_MaisContext>(opt =>
 {
     opt.EnableSensitiveDataLogging();
     opt.EnableDetailedErrors();

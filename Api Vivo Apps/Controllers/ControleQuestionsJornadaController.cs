@@ -15,9 +15,9 @@ namespace Vivo_Apps_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ControleQuestionsJornadaController
+    public class ControleQuestionsJornadaController : ControllerBase
     {
-        private Vivo_MAISContext CD = new Vivo_MAISContext();
+        private Vivo_MaisContext CD = new Vivo_MaisContext();
 
         private readonly ILogger<ControleQuestionsJornadaController> _logger;
 
@@ -51,12 +51,12 @@ namespace Vivo_Apps_API.Controllers
                     STATUS_QUESTION = true,
                     PERGUNTA = question.PERGUNTA,
                     PESO = 1,
-                    RESPOSTA_CORRETA = null,
+                    REGIONAL = question.regional,
                     FIXA = question.FIXA,
                     EXPLICACAO = null,
                     CARGO = cargos,
                     CANAL = canais,
-                    DT_MOD = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
+                    DT_MOD = DateTime.Now,
                     LOGIN_MOD = question.matricula
                 }).Entity;
 
@@ -163,13 +163,13 @@ namespace Vivo_Apps_API.Controllers
                 {
                     if (filter.Value.Temas.Any())
                     {
-                        Data = Data.Where(x => filter.Value.Temas.Select(x => x.ToString()).Contains(x.ID_TEMAS));
+                        Data = Data.Where(x => filter.Value.Temas.Contains(x.ID_TEMAS.Value));
 
                         if (filter.Value.Sub_temas is not null)
                         {
                             if (filter.Value.Sub_temas.Any())
                             {
-                                Data = Data.Where(x => filter.Value.Sub_temas.Select(x => x.ToString()).Contains(x.ID_SUB_TEMAS));
+                                Data = Data.Where(x => filter.Value.Sub_temas.Contains(x.ID_SUB_TEMAS.Value));
                             }
                         }
                     }
@@ -215,18 +215,18 @@ namespace Vivo_Apps_API.Controllers
                 IEnumerable<QuestionModel> listaModel = lista.Select(x => new QuestionModel
                 {
                     ID_QUESTION = x.ID_QUESTION,
-                    TEMA = CD.JORNADA_BD_TEMAS_SUB_TEMAs.Where(k => k.ID_TEMAS.ToString() == x.ID_TEMAS).FirstOrDefault().TEMAS,
+                    TEMA = CD.JORNADA_BD_TEMAS_SUB_TEMAs.Where(k => k.ID_TEMAS == x.ID_TEMAS).FirstOrDefault().TEMAS,
                     TP_FORMS = x.TP_FORMS,
                     TP_QUESTAO = x.TP_QUESTAO,
                     PERGUNTA = x.PERGUNTA,
-                    RESPOSTA_CORRETA = x.RESPOSTA_CORRETA,
+                    REGIONAL = x.REGIONAL,
                     PESO = x.PESO,
                     EXPLICACAO = x.EXPLICACAO,
                     CANAIS = GetCanaisFromCargos(x.CARGO),
                     CARGOS = GetCargosFromStringList(x.CARGO),
                     STATUS_QUESTION = x.STATUS_QUESTION,
                     FIXA = x.FIXA,
-                    SUB_TEMA = CD.JORNADA_BD_TEMAS_SUB_TEMAs.Where(k => k.ID_SUB_TEMAS.ToString() == x.ID_SUB_TEMAS).FirstOrDefault().SUB_TEMAS,
+                    SUB_TEMA = CD.JORNADA_BD_TEMAS_SUB_TEMAs.Where(k => k.ID_SUB_TEMAS == x.ID_SUB_TEMAS).FirstOrDefault().SUB_TEMAS,
                     DT_MOD = Convert.ToDateTime(x.DT_MOD),
                     LOGIN_MOD = CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA == x.LOGIN_MOD).FirstOrDefault()
                 }).ToList();
@@ -297,8 +297,9 @@ namespace Vivo_Apps_API.Controllers
 
                 CreateQuestionModel question = new CreateQuestionModel
                 {
-                    TEMA = getquestion.ID_TEMAS,
-                    SUB_TEMA = getquestion.ID_SUB_TEMAS,
+                    regional = getquestion.REGIONAL,
+                    TEMA = getquestion.ID_TEMAS.Value,
+                    SUB_TEMA = getquestion.ID_SUB_TEMAS.Value,
                     TP_FORMS = getquestion.TP_FORMS.Split(new[] { ';' }),
                     TP_QUESTAO = getquestion.TP_QUESTAO,
                     PERGUNTA = getquestion.PERGUNTA,
@@ -355,12 +356,12 @@ namespace Vivo_Apps_API.Controllers
                 question_criada.STATUS_QUESTION = true;
                 question_criada.PERGUNTA = question.PERGUNTA;
                 question_criada.PESO = 1;
-                question_criada.RESPOSTA_CORRETA = null;
+                question_criada.REGIONAL = question.regional;
                 question_criada.FIXA = question.FIXA;
                 question_criada.EXPLICACAO = null;
                 question_criada.CARGO = cargos;
                 question_criada.CANAL = canais;
-                question_criada.DT_MOD = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+                question_criada.DT_MOD = DateTime.Now;
                 question_criada.LOGIN_MOD = question.matricula;
                 await CD.SaveChangesAsync();
 

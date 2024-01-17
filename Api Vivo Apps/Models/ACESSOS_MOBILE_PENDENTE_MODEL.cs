@@ -9,8 +9,8 @@ namespace Vivo_Apps_API.Models
         public string MATRICULA { get; set; }
         public string SENHA { get; set; }
         public string REGIONAL { get; set; }
-        public string CARGO { get; set; }
-        public string CANAL { get; set; }
+        public int CARGO { get; set; }
+        public int CANAL { get; set; }
         public string NOME { get; set; }
         public string UF { get; set; }
         public string CPF { get; set; }

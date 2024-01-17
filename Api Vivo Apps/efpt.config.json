@@ -1,6 +1,6 @@
 ﻿{
-   "CodeGenerationMode": 2,
-   "ContextClassName": "Vivo_PBIContext",
+   "CodeGenerationMode": 4,
+   "ContextClassName": "Vivo_MaisContext",
    "ContextNamespace": null,
    "DefaultDacpacSchema": null,
    "FilterSchemas": false,
@@ -13,29 +13,1641 @@
    "Schemas": null,
    "SelectedHandlebarsLanguage": 0,
    "SelectedToBeGenerated": 0,
+   "T4TemplatePath": null,
    "Tables": [
       {
-         "Name": "[dbo].[fGOESTOQUE]",
+         "Name": "[dbo].[A_QUEM_RECORRER]",
          "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ACAO_ACOMPANHAMENTO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ACAO_CADASTRO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ACAO_DOCUMENTACAO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ACAO_HISTORICO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ACAO_LAYOUT]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ACAO_MIDIA_DETALHADA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ACAO_SALDO_REDE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ACAO_STATUS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ACAO_TIPO_MIDIA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ACAO_VALOR]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ACESSO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ACESSO_CARGO_PERFIL]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ACESSO_PERMISSAO_MENU]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ACESSO_TERCEIROS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ACESSO_TERCEIROS_ALIADOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ACESSO_TERCEIROS_OBSERVACAO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ACESSO_TERCEIROS_SISTEMAS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ACESSO_TERCEIROS_SLA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ACESSO_TERCEIROS_TESTE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ACESSOS_DANI]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ACESSOS_MOBILE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ACESSOS_MOBILE_PENDENTE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ADMISSAO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ALTA_SEM_TRAFEGO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ALTA_SEM_TRAFEGO_STATUS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[APARELHO_CHIP_BOLETA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[APROVADORES$]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ARQUIVOS_FAT_MANUAL]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ARQUIVOS_PRESTACAO_COMPROVANTE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BAIRROS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BASE CONTROLE DE DEMANDAS MG]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BASE_DEPOSITO_DASH]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BASE_FFCARGO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BASE_GSS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BASE_META_CN]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BASE_NOMECLATURA_SAP_LLPP]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BASE_PARCEIROS_PAP]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BASE_PROJETO_LORENA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BASE_SIGITIM]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BASE_SIGITIM_SUL]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BASE_TERCEIROS_SAP_GT]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BASE_VAT]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BASE_VAT_ARQUIVOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BASE_VAT_BKP]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BASE_ZMM34]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BASE$]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_ALTA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_BD_BLOCAO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_BD_CATEGORIA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_BD_CLIENTES]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_BD_DADOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_BD_EQUIPAMENTOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_BD_LINHA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_BD_MOVIMENTO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_BD_PALITAGEM]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_BD_PLANO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_BD_SVA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_CHECKLIST_QUALIDADE_VENDA_ALTA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_CHECKLIST_QUALIDADE_VENDA_MIGRACAO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_CHECKLIST_QUALIDADE_VENDA_RESGATE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_CHECKLIST_QUALIDADE_VENDA_TERMINAIS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_CHECKLIST_QUALIDADE_VENDA_TRANSFERENCIA_TITULARIDADE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_CHECKLIST_QUALIDADE_VENDA_UPGRADE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_CURVA_META_DIA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_DADOS_ALTA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_DADOS_APARELHO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_DADOS_DEMAIS_SERVICOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_DADOS_DEVICE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_DADOS_FIBRA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_DADOS_MIGRACAO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_DADOS_RESGATE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_DADOS_SEGURO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_DADOS_SVA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_DADOS_TERMINAIS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_DADOS_UPGRADE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_DADOS_VENDA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_DADOS_VENDA_ALTA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_DADOS_VENDA_APARELHO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_DADOS_VENDA_DEMAIS_SERVICOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_DADOS_VENDA_MIGRACAO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_DADOS_VENDA_RESGATE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_DADOS_VENDA_SVA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_DADOS_VENDA_TERMINAIS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_DADOS_VENDA_UPGRADE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_ITEM_VENDA_ALTA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_ITEM_VENDA_CANCELAMENTO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_ITEM_VENDA_CONTESTACAO_FATURA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_ITEM_VENDA_DOWNGRADE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_ITEM_VENDA_INFORMACOES]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_ITEM_VENDA_MIGRACAO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_ITEM_VENDA_RECARGA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_ITEM_VENDA_RESGATE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_ITEM_VENDA_SEGUNDA_VIA_FATURA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_ITEM_VENDA_SVA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_ITEM_VENDA_TERMINAIS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_ITEM_VENDA_TRANSFERENCIA_TITULARIDADE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_ITEM_VENDA_UPGRADE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_MIGRACAO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_MOTIVOS_NAO_VENDA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_NAO_VENDA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_RESGATE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_STATUS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_SVA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_TERMINAIS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_TIPO_VENDA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_UPGRADE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_VALOR_PLANOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOLETA_VENDA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOOK_PLANOS_7X]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOOK_PLANOS_8X]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[BOOKSAP_ARQUIVOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CADASTRO_DRN]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CADASTRO_GERAL_COLABORADORES]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CADASTRO_GERAL_COLABORADORES_PENDENTES]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CADASTRO_GERENTE_TERRITORIO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CADASTRO_PDV]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CADASTRO_SELL_IN]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CADASTRO_SIMCARD]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CADASTRO_UNICO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CADASTRO_UNICO_ACESSO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CADASTRO_UNICO_PEN]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CADASTRO_UNICO_PENDENTES]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CADASTROS_ROTA_GNV]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CARGO_HEADCOUNT]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CARTEIRA_ARMARIO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CARTEIRA_ARMARIO_PENDENTES]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CARTEIRA_DEMAIS_CANAIS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CARTEIRA_DEMAIS_CANAIS_PENDENTES]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[carteira_demais_canais_rede_colaborador]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CARTEIRA_GNV]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CARTEIRA_GVT_FIXA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CARTEIRA_GVT_FIXA_2]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Carteira_NE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CARTEIRA_NE_DESCREDENCIADOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Carteira_NE_Pendente]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Carteira_NE$]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CARTEIRA_PDV]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CARTEIRA_RELACAO_PDV_COLABORADOR]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CARTEIRA_SUPERV_VENDAS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CARTEIRA_VALIDACAO_TERRITORIAL]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CARTEIRA_VALIDACAO_TERRITORIAL _BKP]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CASO_NAO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHAMADO_LLPP]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHAMADO_LLPP_OLD]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_DESCREDENCIAMENTO_VAREJO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_FORMULARIO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_PDR]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_PDR_EXTERNO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_PDR_EXTERNO_1]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_PDR_EXTERNO_IMAGENS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_PDR_INTERNO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_PDR_INTERNO_ARQUIVOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_PEX_CICLO_2_ARQUIVOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_PEX_CICLO_3_ARQUIVOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_PEX_CICLO_3_ARQUIVOS_REVENDA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_PEX_LLPP]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_PEX_LLPP_2]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_PEX_LLPP_AVALIADORA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_PEX_LLPP_COMPROBATORIA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_PEX_LLPP_EVIDENCIAS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_PEX_LLPP_INFORMATIVA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_PEX_LP]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_PEX_LP_CICLO_3]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_PEX_REVENDA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_PEX_REVENDA_CICLO_3]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_PRE_PEX_LP]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_PRE_PEX_REVENDA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CHECKLIST_ROTA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CIDADES]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[COBERTURA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[COMISSIONAMENTO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONCORRENCIA_CLIENTE_TRIAGEM_CLIENTE_BOLETA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTAS_A_PAGAR]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTAS_A_PAGAR_BKP]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE DE DEMANDAS RELATORIO LINHA TESTE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_ACESSO_LIMITE_CREDITO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_ARQUIVOS_RESPOSTA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CAMPO_COMBOBOX_FILA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CAMPO_LISTA_ICCID]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CAMPOS_CHAMADO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CAMPOS_FILA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CHAMADO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CHAMADO_ARQUIVOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_EMAIL]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_FILA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_OPERADORES]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADO_BKP]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_RELACAO_ITENS_CAMPO_COMBOBOX_FILA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_RELACAO_STATUS_CHAMADO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_RESPONSAVEL_FILA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_STATUS_CHAMADO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DE_DEMANDAS_SUGESTOES_NOMES_CAMPOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DEMANDAS_ARQUIVOS_RESPOSTA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DEMANDAS_CADASTRO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DEMANDAS_CHAT]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DEMANDAS_EVIDENCIAS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DEMANDAS_GRAFICO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DEMANDAS_LOGIN]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CONTROLE_DEMANDAS_TABELA_GRAFICO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CREDENCIAMENTO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CREDENCIAMENTO_ANALISTAS_HISTORICO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CREDENCIAMENTO_ARQUIVOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CREDENCIAMENTO_ARQUIVOS_RESPOSTA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CREDENCIAMENTO_CADASTRO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CREDENCIAMENTO_CHECKLIST]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CREDENCIAMENTO_LINHA_TEMPO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CREDENCIAMENTO_OPERADORES]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CREDENCIAMENTO_PROSPECT]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CREDENCIAMENTO_PROSPECT_RELACAO_ARQUIVOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CREDENCIAMENTO_RELACAO_ARQUIVOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CREDENCIAMENTO_RELACAO_ARQUIVOS_STATUS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CREDENCIAMENTO_RELACAO_STATUS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CREDENCIAMENTO_RESPOSTA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DADOS_PARA_CONTRATO_COMODATO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DADOS_PARA_CONTRATO_SOCIOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DADOS_PESSOAIS_TERCEIROS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DASHBOARD_TERMINAIS_SIMULADOR]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DEMANDA_BD_OPERADORES]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DEMANDA_CAMPOS_FILA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DEMANDA_RESPONSAVEL_FILA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DEMANDA_SUB_FILA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DEMANDA_TIPO_FILA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DEMANDA_VALORES_CAMPOS_SUSPENSO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DEMANDAS_JSON]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DEMANDAS_TELEGRAM]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DESCREDENCIAMENTO_AMIGAVEL OLD]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DESCREDENCIAMENTO_CADASTRO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DESCREDENCIAMENTO_CADASTRO X]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DESCREDENCIAMENTO_COMPLETO_DADOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DESCREDENCIAMENTO_COMPLETO_DADOS OLD]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DESCREDENCIAMENTO_COMPLETO_DADOS_BKP]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DESCREDENCIAMENTO_COMPLETO_DADOS_TESTE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DESCREDENCIAMENTO_DADOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DESCREDENCIAMENTO_DENUNCIA_IMOTIVADA_OLD]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DESCREDENCIAMENTO_INATIVIDADE_OLD]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DESCREDENCIAMENTO_VAREJO_CADASTRO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DESCREDENCIAMENTO_VAREJO_DADOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DESCREDENCIAMENTO_VIGENCIA_CONTRATO_OLD]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[DESLIGAMENTOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[EMAIL_CONTROLE_DEMANDAS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ESTOQUE_VITRINE_VIRTUAL]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[EXTE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[FATURAMENTOSAP]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[FIXA_BASE_PRUMA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[FIXA_VIEW_PAINEL_DE_ROTAS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[FPD_FIXA_AGRUPADO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[FPD_FIXA_ANALITICO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HC_NORDESTE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HEADCOUNT]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HEADCOUNT_CN]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HISTORICO_ACESSOS_MOBILE_PENDENTE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HISTORICO_BOLETA_BD_PALITAGEM]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ITENS_NAO_VENDA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[JORNADA_BD_ANSWER_ALTERNATIVAS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[JORNADA_BD_ANSWER_AVALIACAO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[JORNADA_BD_AVALIACAO_RETORNO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[JORNADA_BD_CARGOS_CANAL]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[JORNADA_BD_CARTEIRA_DIVISAO_RJES]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[JORNADA_BD_HIERARQUIA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[JORNADA_BD_QUESTION]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[JORNADA_BD_QUESTION_HISTORICO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[JORNADA_BD_RELACAO_HISTORICO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[JORNADA_BD_TEMAS_SUB_TEMAS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[JUSTIFICATIVA_HE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[LIMITE_CREDITO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[LIMITE_CREDITO_NOVO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[LINHA_TESTE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[LINHA_TESTE_HISTORICO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[LINHA_TESTE_NRSIMC]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[LOG_ERROS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[LOGRADOUROS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[LOJA_CONTESTACAO_FATURA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[LOJAS_GERACAO_CARGAS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[LOJAS_GERACAO_CARGAS_BKP]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[MAILING_ENVIO_COMUNICADOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[MARGEM REVENDA PRE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[MARKETSHARE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[MATRIZ_ACESSO_CONCESSAO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[MATRIZ_ACESSOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[MOTIVOS_PRODUTO_TRIAGEM_CLIENTE_BOLETA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[MOVIMENTACAO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[MOVIMENTACOES]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[MOVIMENTACOES_BKP]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[MUNICIPIOS_MINAS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[OCORRENCIA_QUEDA_LINK]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[OCORRENCIAS_SISTEMICAS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[OCORRENCIAS_SISTEMICAS_REDE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PALITAGEM_LLPP]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PALITAGEM_LLPP 3]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PERFIL_GERACAO_CARGAS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PERFIL_PLATAFORMAS_VIVO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PERFIL_USUARIO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PERFIL_USUARIO_PENDENTE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PERFIL_VIVO_TASK]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Planilha1$]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PRE_PEX_ARQUIVOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PRE_PEX_EXTERNO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PRE_PEX_INTERNO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PRESTACAO_COMPROVANTE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PRESTACAO_KM]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PRODUTOS_CONCORRENCIA_CLIENTE_TRIAGEM_CLIENTE_BOLETA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PROSPECT_ARQUIVOS_RESPOSTA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PROSPECT_RESPOSTA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[QUEM_ENTROU]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[REANALISE_ARQUIVOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[REANALISE_CADASTRO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[REANALISE_CHECKLIST]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[RELACAO_EMAILS_VIVO_MAIS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[RELATORIO_SIGTM]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[RELATORIO_SIGTM_SUL]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[REPOSITORIO_ARQUIVOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[RESET_SENHA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[RESET_SENHA_SISTEMAS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ROTAS_GNV]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[SAGRE_REAL_COBERTURA_GPON]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[SAVING_2]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[SAVING_ARQUIVO_LAYOUT]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[SAVING_BKP]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[SAVING_CADASTRO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[SAVING_CADASTRO_BKP]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[SAVING_EVIDENCIAS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[SAVING_EVIDENCIAS_BKP]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[SOLICITACAO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[SOLICITACAO_APARELHO_CHIP]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[TAB_PESSOAS_SUPORTE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[TABELA DE PRECOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[TABELA_QUALIDADE_FPD_FIXA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[TABELA_QUALIDADE_FPD_FIXA_STATUS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[TABELA_QUALIDADE_FPD_MOVEL]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[TABELA_QUALIDADE_FPD_MOVEL_STATUS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[TABELA_VALORES_COMISSIONAMENTO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[TABELAO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[TABELAO_NOMES_FIXA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[TABELAO_SERVICO_FIXA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[TESTE_NEW]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[TRAJETOS_PRESTACAO_KM]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[TRIAGEM_CLIENTE_BOLETA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VALIDACAO_HC]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VALOR_SAVING]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VENDA_BOLETA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VISAO_GERENCIAL_BOLETA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VISAO_LOJA_BOLETA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VIVO_VISITA_CANAL_TERRITORIO_ABERTURA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VIVO_VISITA_CANAL_TERRITORIO_ABERTURA_EVIDENCIAS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VIVO_VISITA_CANAL_TERRITORIO_ESTRUTURAS_OPERACAO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VIVO_VISITA_CANAL_TERRITORIO_INDICADORES]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VIVO_VISITA_CANAL_TERRITORIO_PESSOAS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VIVO_VISITA_CANAL_TERRITORIO_PROCESSOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VIVO_VISITA_EVIDENCIAS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VIVO_VISITA_GERENTE_GERAL]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VIVO_VISITA_GERENTE_GERAL_ESTRUTURA_OPERACAO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VIVO_VISITA_GERENTE_GERAL_EVIDENCIAS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VIVO_VISITA_GERENTE_GERAL_PESSOAS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VIVO_VISITA_GERENTE_GERAL_PROCESSOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VIVO_VISITA_GERENTE_GERAL_RESULTADO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VIVO_VISITA_PASSAGEM_ABERTURA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VIVO_VISITA_PASSAGEM_ABERTURA_EVIDENCIAS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VIVO_VISITA_PASSAGEM_LOJA_CAIXA]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VIVO_VISITA_PASSAGEM_LOJA_ESTOQUE]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VIVO_VISITA_PASSAGEM_LOJA_ESTRUTURA_PROCESSOS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VIVO_VISITA_PASSAGEM_LOJA_PESSOAS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VIVO_VISITA_PASSAGEM_LOJA_POSITIVACAO]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VIVO_VISITA_PASSAGEM_LOJA_VAGAS]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[CARTEIRA_PARCIAL_PENDENTES]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS BOLETA 2 VIA FATURA]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS BOLETA ALTAS]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS BOLETA MIGRACAO]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS BOLETA NAO VENDA]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS BOLETA RESGATE]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS BOLETA SVA]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS BOLETA TERMINAIS]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS BOLETA TRANSFERENCIA TITULARIDADE]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS BOLETA TRIAGEM]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS BOLETA UPGRADE]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS DATA DESCREDENCIAMENTO]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS RELATORIO CONTROLE DEMANDAS]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS RESET SENHA]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS_ACOMPANHAMENTO_CONTROLE]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS_BASE_PARCEIROS_PAP]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS_BASE_TERCEIROS_SAP_GT]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS_CARTEIRA_DEMAIS_CANAIS]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS_CARTEIRA_NE]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS_CARTEIRA_RELACAO_SAL]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS_CONTROLE_DEMANDAS_MG]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS_CONTROLE_DEMANDAS_NE]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS_CONTROLE_DEMANDAS_STATUS]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS_CONTROLE_TERCEIROS_DEMANDAS_NE]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS_CTRL_DEMANDA_ULTIMO_STATUS]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS_DEMANDAS_MG]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS_FPD]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS_FPD_MOVEL]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS_META_MES]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS_PRIMEIRA_RESPOSTA_CTRL_DEMANDAS]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS_RESUMO_FINANCEIRO]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS_VIEW_LINHA_TESTE_1058]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[JORNADA_BD_CARTEIRA_DIVISAO]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[V_QUALI_FPD_FIXA]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[VIEW_ACAO_ACOMPANHAMENTO]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[VIEW_ULTIMA_MOVIMENTACAO_DESCREDENCIAMENTO]",
+         "ObjectType": 3
       }
    ],
-   "UiHint": "BRTDTBGS0081FU.Vivo_PBI_Terminais",
+   "UiHint": "BRTDTBGS0081FU.Vivo_MAIS",
+   "UncountableWords": null,
    "UseBoolPropertiesWithoutDefaultSql": false,
    "UseDatabaseNames": true,
+   "UseDateOnlyTimeOnly": false,
    "UseDbContextSplitting": false,
-   "UseFluentApiOnly": true,
+   "UseDecimalDataAnnotationForSprocResult": true,
+   "UseFluentApiOnly": false,
    "UseHandleBars": false,
    "UseHierarchyId": false,
    "UseInflector": true,
    "UseLegacyPluralizer": false,
    "UseManyToManyEntity": false,
-   "UseNoConstructor": false,
    "UseNoDefaultConstructor": false,
    "UseNoNavigations": false,
    "UseNoObjectFilter": false,
    "UseNodaTime": false,
    "UseNullableReferences": false,
    "UseSchemaFolders": false,
+   "UseSchemaNamespaces": false,
    "UseSpatial": false,
    "UseT4": false
 }

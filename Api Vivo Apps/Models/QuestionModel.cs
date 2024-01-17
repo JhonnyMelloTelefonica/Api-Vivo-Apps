@@ -11,7 +11,7 @@ namespace Vivo_Apps_API.Models
         public string? TP_FORMS { get; set; }
         public string TP_QUESTAO { get; set; }
         public string PERGUNTA { get; set; }
-        public string RESPOSTA_CORRETA { get; set; }
+        public required string REGIONAL { get; set; }
         public double? PESO { get; set; }
         public string EXPLICACAO { get; set; }
         public IEnumerable<Canal>? CANAIS { get; set; }

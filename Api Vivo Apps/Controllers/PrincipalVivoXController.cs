@@ -13,7 +13,7 @@ namespace Vivo_Apps_API.Controllers
     [ApiController]
     public class PrincipalVivoXController : ControllerBase
     {
-        private Vivo_MAISContext _context = new();
+        private Vivo_MaisContext _context = new();
         private readonly IHubContext<VivoXHub> _hubContext;
         private readonly ILogger<PrincipalVivoXController> _logger;
 

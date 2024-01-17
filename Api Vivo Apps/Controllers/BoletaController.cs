@@ -16,14 +16,17 @@ using Vivo_Apps_API.Hubs;
 using System.Numerics;
 using TableDependency.SqlClient.Base.Messages;
 using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
+using Shared_Class_Vivo_Apps.Enums;
 using Microsoft.AspNetCore.Http.HttpResults;
 using System.Linq;
+using Microsoft.AspNetCore.StaticFiles;
+
 
 namespace Vivo_Apps_API.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class BoletaController
+    public class BoletaController : ControllerBase
     {
         private readonly ILogger<BoletaController> _logger;
         private readonly IMapper _mapper;
@@ -224,12 +227,12 @@ namespace Vivo_Apps_API.Controllers
             return enumList;
         }
 
-        private Vivo_MAISContext CD = new Vivo_MAISContext();
+        private Vivo_MaisContext CD = new Vivo_MaisContext();
 
         [HttpPost("GerarBoleta")]
         [ProducesResponseType(typeof(Response<int>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult GerarBoleta([FromBody] BoletaModel data, string matricula)
+        public JsonResult GerarBoleta([FromBody] BoletaModelUnvalidated data, string matricula)
         {
             if (data.Dados_Solicitacao.Any(x =>
                 x.Portabilidade is null ||
@@ -295,11 +298,11 @@ namespace Vivo_Apps_API.Controllers
 
                 CD.BOLETA_BD_CLIENTEs.Add(new BOLETA_BD_CLIENTE
                 {
-                    CPF_CNPJ = data.Cliente.Cpf_Cnpj,
+                    CPF_CNPJ = data.Cliente.CPF_CNPJ,
                     ID_BOLETA = PrincipalData.ID_BOLETA,
-                    NOME = data.Cliente.Nome,
-                    TELEFONE = data.Cliente.Telefone,
-                    SENHA_GSS = data.Cliente.Senha_GSS
+                    NOME = data.Cliente.NOME,
+                    TELEFONE = data.Cliente.TELEFONE,
+                    SENHA_GSS = data.Cliente.SENHA_GSS
                 });
 
                 foreach (var item in data.Dados_Solicitacao)
@@ -462,7 +465,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpPost("AprovarBoleta")]
         [ProducesResponseType(typeof(Response<string>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult AprovarBoleta([FromBody] BOLETA_PALITAGEM_DTO data, string matricula, string message)
+        public JsonResult AprovarBoleta([FromBody] BOLETA_PALITAGEM_DTO_Unvalidated data, string matricula, string message)
         {
             try
             {
@@ -602,7 +605,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpPost("DevolverBoletaAnalista")]
         [ProducesResponseType(typeof(Response<string>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult DevolverBoletaAnalista([FromBody] BOLETA_PALITAGEM_DTO data, string matricula, string message)
+        public JsonResult DevolverBoletaAnalista([FromBody] BOLETA_PALITAGEM_DTO_Unvalidated data, string matricula, string message)
         {
             try
             {
@@ -696,6 +699,7 @@ namespace Vivo_Apps_API.Controllers
                             linhaAtual.VALOR = item.BOLETA_BD_LINHAs.VALOR;
                             linhaAtual.DATA_VENC_FAT = item.BOLETA_BD_LINHAs.DATA_VENC_FAT;
                             linhaAtual.OPERA_DOA = item.BOLETA_BD_LINHAs.OPERA_DOA;
+
                         }
                     }
                 }
@@ -747,7 +751,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpPost("DevolverBoletaConsultor")]
         [ProducesResponseType(typeof(Response<string>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult DevolverBoletaConsultor([FromBody] BOLETA_PALITAGEM_DTO data, string message, string matricula, int idboleta)
+        public JsonResult DevolverBoletaConsultor([FromBody] BOLETA_PALITAGEM_DTO_Unvalidated data, string message, string matricula, int idboleta)
         {
             try
             {
@@ -925,7 +929,7 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var boletas = CD.BOLETA_BD_PALITAGEMs.AsNoTracking()
+                var boletas = CD.BOLETA_BD_PALITAGEMs
                         .Include(x => x.HISTORICO_BOLETA_BD_PALITAGEMs)
                         .Include(x => x.BOLETA_BD_CLIENTEs)
                         .Include(x => x.BOLETA_BD_BLOCAOs)
@@ -937,7 +941,8 @@ namespace Vivo_Apps_API.Controllers
                         .Include(x => x.BOLETA_BD_BLOCAOs)
                             .ThenInclude(y => y.BOLETA_BD_DADOs)
                                 .ThenInclude(d => d.BOLETA_BD_SVAs)
-                        .ProjectTo<BOLETA_PALITAGEM_DTO>(_mapper.ConfigurationProvider); // Map to DTO
+                        .ProjectTo<BOLETA_PALITAGEM_DTO>(_mapper.ConfigurationProvider)
+                        .AsEnumerable(); // Map to DTO
 
                 if (filter.Value.IsAnalista)
                 {
@@ -1010,10 +1015,26 @@ namespace Vivo_Apps_API.Controllers
                         .ProjectTo<BOLETA_PALITAGEM_DTO>(_mapper.ConfigurationProvider)
                         .AsEnumerable(); // Map to DTO
 
+                if (filter.Value.mes is not null)
+                {
+                    boletas = boletas.AsEnumerable().Where(x => filter.Value.mes == x.DATA_INICIO.Month);
+
+                    if (filter.Value.dia is not null)
+                    {
+                        boletas = boletas.AsEnumerable().Where(x => filter.Value.dia == x.DATA_INICIO.Day);
+                    }
+                }
+
+                if (filter.Value.ano is not null)
+                {
+                    boletas = boletas.AsEnumerable().Where(x => filter.Value.ano == x.DATA_INICIO.Year);
+                }
+
                 if (filter.Value.ID_BOLETA.Any())// ✅
                 {
                     boletas = boletas.Where(x => filter.Value.ID_BOLETA.Select(x => int.Parse(x)).Contains(x.ID_BOLETA_PDV));
                 }
+
                 if (filter.Value.MAT_CONSULTOR.Any())// ✅
                 {
                     boletas = boletas.Where(x => filter.Value.MAT_CONSULTOR.Contains(x.MAT_CONSULTOR.MATRICULA));
@@ -1069,7 +1090,7 @@ namespace Vivo_Apps_API.Controllers
                             b.BOLETA_BD_BLOCAOs.Any(blocao => blocao.BOLETA_BD_DADOs != null &&
                             blocao.BOLETA_BD_DADOs
                             .Any(dado => dado.BOLETA_BD_EQUIPAMENTOs != null
-                                && dado.BOLETA_BD_EQUIPAMENTOs.NOTA_FISCAL != null 
+                                && dado.BOLETA_BD_EQUIPAMENTOs.NOTA_FISCAL != null
                                 && dado.BOLETA_BD_EQUIPAMENTOs.NOTA_FISCAL.ToLower() == filter.Value.NOTA_FISCAL.ToLower())));
                 }
 
@@ -1089,7 +1110,7 @@ namespace Vivo_Apps_API.Controllers
                             b.BOLETA_BD_BLOCAOs.Any(blocao => blocao.BOLETA_BD_DADOs != null &&
                             blocao.BOLETA_BD_DADOs.Any(dado =>
                             dado.BOLETA_BD_EQUIPAMENTOs != null
-                            && dado.BOLETA_BD_EQUIPAMENTOs.IMEI != null 
+                            && dado.BOLETA_BD_EQUIPAMENTOs.IMEI != null
                             && filter.Value.IMEI.Select(x => x.ToString().ToLower())
                             .Contains(dado.BOLETA_BD_EQUIPAMENTOs.IMEI.ToLower()))
                             )
@@ -1192,6 +1213,282 @@ namespace Vivo_Apps_API.Controllers
                     Succeeded = true,
                     Message = $"Tudo certo!",
                     Errors = null,
+                });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    },
+                });
+            }
+        }
+
+        [HttpPost("GetExcelDadosDetalhadoBoleta")]
+        [ProducesResponseType(typeof(Response<FileContentResult>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public async Task<IActionResult> GetExcelDadosDetalhadoBoleta([FromBody] GenericPaginationModel<FilterDetalhadoBoletaModel> filter)
+        {
+            try
+            {
+                var Planos = CD.BOLETA_BD_PLANOs.ToList();
+                var boletas = CD.BOLETA_BD_PALITAGEMs.AsNoTracking()
+                        .Include(x => x.HISTORICO_BOLETA_BD_PALITAGEMs)
+                        .Include(x => x.BOLETA_BD_CLIENTEs)
+                        .Include(x => x.BOLETA_BD_BLOCAOs)
+                            .ThenInclude(y => y.BOLETA_BD_DADOs)
+                                .ThenInclude(d => d.BOLETA_BD_EQUIPAMENTOs)
+                        .Include(x => x.BOLETA_BD_BLOCAOs)
+                            .ThenInclude(y => y.BOLETA_BD_DADOs)
+                                .ThenInclude(d => d.BOLETA_BD_LINHAs)
+                        .Include(x => x.BOLETA_BD_BLOCAOs)
+                            .ThenInclude(y => y.BOLETA_BD_DADOs)
+                                .ThenInclude(d => d.BOLETA_BD_SVAs)
+                        .Where(x => x.PDV == filter.Value.PDV)
+                        .ProjectTo<BOLETA_PALITAGEM_DTO>(_mapper.ConfigurationProvider)
+                        .AsEnumerable(); // Map to DTO
+
+                if (filter.Value.mes is not null)
+                {
+                    boletas = boletas.AsEnumerable().Where(x => filter.Value.mes == x.DATA_INICIO.Month);
+
+                    if (filter.Value.dia is not null)
+                    {
+                        boletas = boletas.AsEnumerable().Where(x => filter.Value.dia == x.DATA_INICIO.Day);
+                    }
+                }
+
+                if (filter.Value.ano is not null)
+                {
+                    boletas = boletas.AsEnumerable().Where(x => filter.Value.ano == x.DATA_INICIO.Year);
+                }
+
+                if (filter.Value.ID_BOLETA.Any())// ✅
+                {
+                    boletas = boletas.Where(x => filter.Value.ID_BOLETA.Select(x => int.Parse(x)).Contains(x.ID_BOLETA_PDV));
+                }
+
+                if (filter.Value.MAT_CONSULTOR.Any())// ✅
+                {
+                    boletas = boletas.Where(x => filter.Value.MAT_CONSULTOR.Contains(x.MAT_CONSULTOR.MATRICULA));
+                }
+                if (filter.Value.STATUS.Any())// ✅
+                {
+                    boletas = boletas.Where(x => filter.Value.STATUS.Contains(x.STATUS));
+                }
+                if (filter.Value.MAT_ANALISTA.Any())// ✅
+                {
+                    boletas = boletas.Where(x => filter.Value.MAT_ANALISTA.Contains(x.MAT_ANALISTA));
+                }
+
+                if (filter.Value.PLATAFORMA.Any())// ✅
+                {
+                    boletas = boletas.Where(b => b.BOLETA_BD_BLOCAOs != null &&
+                            b.BOLETA_BD_BLOCAOs.Any(blocao => blocao.BOLETA_BD_DADOs != null &&
+                            blocao.BOLETA_BD_DADOs.Any(dado => filter.Value.PLATAFORMA.Contains(dado.PLATAFORMA))
+                            )
+                    );
+                }
+
+                if (filter.Value.MOVIMENTO.Any())// ✅
+                {
+                    boletas = boletas.Where(b => b.BOLETA_BD_BLOCAOs != null &&
+                            b.BOLETA_BD_BLOCAOs.Any(blocao => blocao.BOLETA_BD_DADOs != null &&
+                            blocao.BOLETA_BD_DADOs.Any(dado => filter.Value.MOVIMENTO.Contains(dado.MOVIMENTO))
+                            )
+                    );
+                }
+
+                if (filter.Value.CATEGORIA.Any())// ✅
+                {
+                    boletas = boletas.Where(b => b.BOLETA_BD_BLOCAOs != null &&
+                            b.BOLETA_BD_BLOCAOs.Any(blocao => blocao.BOLETA_BD_DADOs != null &&
+                            blocao.BOLETA_BD_DADOs.Any(dado => filter.Value.CATEGORIA.Contains(dado.CATEGORIA))
+                            )
+                    );
+                }
+
+                if (filter.Value.FATURAMENTO != string.Empty)
+                {
+                    boletas = boletas.Where(b => b.BOLETA_BD_BLOCAOs != null &&
+                            b.BOLETA_BD_BLOCAOs.Any(blocao => blocao.BOLETA_BD_DADOs != null &&
+                            blocao.BOLETA_BD_DADOs
+                            .Any(dado => dado.BOLETA_BD_EQUIPAMENTOs != null
+                                && dado.BOLETA_BD_EQUIPAMENTOs.FATURAMENTO != null
+                                && dado.BOLETA_BD_EQUIPAMENTOs.FATURAMENTO.ToLower() == filter.Value.FATURAMENTO.ToLower())));
+                }
+                if (filter.Value.NOTA_FISCAL != string.Empty)
+                {
+                    boletas = boletas.Where(b => b.BOLETA_BD_BLOCAOs != null &&
+                            b.BOLETA_BD_BLOCAOs.Any(blocao => blocao.BOLETA_BD_DADOs != null &&
+                            blocao.BOLETA_BD_DADOs
+                            .Any(dado => dado.BOLETA_BD_EQUIPAMENTOs != null
+                                && dado.BOLETA_BD_EQUIPAMENTOs.NOTA_FISCAL != null
+                                && dado.BOLETA_BD_EQUIPAMENTOs.NOTA_FISCAL.ToLower() == filter.Value.NOTA_FISCAL.ToLower())));
+                }
+
+                if (filter.Value.MATERIAL != string.Empty)
+                {
+                    boletas = boletas.Where(b => b.BOLETA_BD_BLOCAOs != null &&
+                        b.BOLETA_BD_BLOCAOs.Any(blocao => blocao.BOLETA_BD_DADOs != null &&
+                        blocao.BOLETA_BD_DADOs
+                        .Any(dado => dado.BOLETA_BD_EQUIPAMENTOs != null
+                        && dado.BOLETA_BD_EQUIPAMENTOs.MATERIAL != null
+                        && dado.BOLETA_BD_EQUIPAMENTOs.MATERIAL.ToLower() == filter.Value.MATERIAL.ToLower())));
+                }
+
+                if (filter.Value.IMEI.Any())
+                {
+                    boletas = boletas.Where(b => b.BOLETA_BD_BLOCAOs != null &&
+                            b.BOLETA_BD_BLOCAOs.Any(blocao => blocao.BOLETA_BD_DADOs != null &&
+                            blocao.BOLETA_BD_DADOs.Any(dado =>
+                            dado.BOLETA_BD_EQUIPAMENTOs != null
+                            && dado.BOLETA_BD_EQUIPAMENTOs.IMEI != null
+                            && filter.Value.IMEI.Select(x => x.ToString().ToLower())
+                            .Contains(dado.BOLETA_BD_EQUIPAMENTOs.IMEI.ToLower()))
+                            )
+                            );
+                }
+
+                if (filter.Value.NOME_CLIENTE.Any())// ✅
+                {
+                    boletas = boletas.Where(b => filter.Value.NOME_CLIENTE.Select(x => x.ToLower()).Contains(b.BOLETA_BD_CLIENTEs.NOME.ToLower()));
+                }
+                if (filter.Value.CPF_CLIENTE.Any())// ✅
+                {
+                    boletas = boletas.Where(b => filter.Value.CPF_CLIENTE.Select(x => RemoveNonNumericCharacters(x)).Contains(RemoveNonNumericCharacters(b.BOLETA_BD_CLIENTEs.CPF_CNPJ)));
+                }
+                if (filter.Value.TELEFONE_CLIENTE.Any())// ✅
+                {
+                    boletas = boletas.Where(b => filter.Value.TELEFONE_CLIENTE.Select(x => RemoveNonNumericCharacters(x)).Contains(RemoveNonNumericCharacters(b.BOLETA_BD_CLIENTEs.TELEFONE)));
+                }
+                if (filter.Value.TIPO_CLIENTE != string.Empty) // ✅
+                {
+                    boletas = boletas.Where(b => b.BOLETA_BD_BLOCAOs != null &&
+                            b.BOLETA_BD_BLOCAOs.Any(blocao => blocao.BOLETA_BD_DADOs != null &&
+                             blocao.BOLETA_BD_DADOs.Any(dado =>
+                                    Planos
+                                    .Where(x => x.ID_PLANO == (int)dado.PLATAFORMA)
+                                    .Any(x => x.TP_Cliente == filter.Value.TIPO_CLIENTE)
+                            ))
+                    );
+                }
+                if (filter.Value.PLANO.Any())
+                {
+                    boletas = boletas.Where(b => b.BOLETA_BD_BLOCAOs != null &&
+                            b.BOLETA_BD_BLOCAOs.Any(blocao => blocao.BOLETA_BD_DADOs != null &&
+                            blocao.BOLETA_BD_DADOs.Any(dado =>
+                                    filter.Value.PLANO.Contains(dado.PLANO)
+                            ))
+                    );
+                }
+
+                if (filter.Value.ORIGEM != string.Empty) // ✅
+                {
+                    boletas = boletas.Where(b => b.BOLETA_BD_BLOCAOs != null &&
+                            b.BOLETA_BD_BLOCAOs.Any(blocao => blocao.BOLETA_BD_DADOs != null &&
+                            blocao.BOLETA_BD_DADOs.Any(dado =>
+                                    Planos
+                                    .Where(x => x.ID_PLANO == (int)dado.PLATAFORMA)
+                                    .Any(x => x.Origem == filter.Value.ORIGEM)
+                            ))
+                    );
+                }
+
+                if (filter.Value.PORTABILIDADE)// ✅
+                {
+                    boletas = boletas.Where(b => b.BOLETA_BD_BLOCAOs != null &&
+                            b.BOLETA_BD_BLOCAOs.Any(blocao => blocao.BOLETA_BD_DADOs != null &&
+                            blocao.BOLETA_BD_DADOs.Select(dado => dado.PORTABILIDADE).Contains(filter.Value.PORTABILIDADE)));
+                }
+                if (filter.Value.FIDELIZACAO)// ✅
+                {
+                    boletas = boletas.Where(b => b.BOLETA_BD_BLOCAOs != null &&
+                            b.BOLETA_BD_BLOCAOs.Any(blocao => blocao.BOLETA_BD_DADOs != null &&
+                            blocao.BOLETA_BD_DADOs.Select(dado => dado.FIDELIZACAO).Contains(filter.Value.FIDELIZACAO)));
+                }
+
+                if (filter.Value.DATA_INICIO.Any()) // ✅
+                {
+                    if (filter.Value.DATA_INICIO.Count == 2)
+                    {
+                        boletas = boletas.AsEnumerable().Where(x => filter.Value.DATA_INICIO[0] < x.DATA_INICIO && filter.Value.DATA_INICIO[1] > x.DATA_INICIO);
+                    }
+                }
+                if (filter.Value.DATA_PRIMEIRA_ABERTURA.Any()) // ✅
+                {
+                    if (filter.Value.DATA_PRIMEIRA_ABERTURA.Count == 2)
+                    {
+                        boletas = boletas.AsEnumerable().Where(x => filter.Value.DATA_PRIMEIRA_ABERTURA[0] < x.DT_PRIMEIRO_RETORNO && filter.Value.DATA_PRIMEIRA_ABERTURA[1] > x.DT_PRIMEIRO_RETORNO);
+                    }
+                }
+                if (filter.Value.DATA_RETORNO.Any()) // ✅
+                {
+                    if (filter.Value.DATA_RETORNO.Count == 2)
+                    {
+                        boletas = boletas.AsEnumerable().Where(x => filter.Value.DATA_RETORNO[0] < x.DT_RETORNO && filter.Value.DATA_RETORNO[1] > x.DT_RETORNO);
+                    }
+                }
+
+                string templatepath = Path.Combine(Directory.GetCurrentDirectory(), "FilesTemplates//ExcelBoletaModel.html");
+                string htmldata = System.IO.File.ReadAllText(templatepath);
+
+                var excelstring = new System.Text.StringBuilder();
+
+                foreach (BOLETA_PALITAGEM_DTO blocao in boletas)
+                {
+                    foreach (var venda in blocao.BOLETA_BD_BLOCAOs)
+                    {
+                        foreach (var boleta in venda.BOLETA_BD_DADOs)
+                        {
+                            excelstring.Append("<tr>");
+                            excelstring.Append($"<td>{blocao.DATA_INICIO} </td>");
+                            excelstring.Append($"<td>{blocao.BOLETA_BD_CLIENTEs?.NOME}</td>");
+                            excelstring.Append($"<td>{blocao.BOLETA_BD_CLIENTEs?.CPF_CNPJ}</td>");
+                            excelstring.Append($"<td>{blocao.BOLETA_BD_CLIENTEs?.TELEFONE}</td>");
+                            excelstring.Append($"<td>{blocao.BOLETA_BD_BLOCAOs.Count}</td>");
+                            excelstring.Append($"<td>{blocao.STATUS}</td> ");
+                            excelstring.Append($"<td>{blocao.MAT_CONSULTOR?.MATRICULA}</td>");
+                            excelstring.Append($"<td>{blocao.MAT_ANALISTA ?? "-"}</td>");
+                            excelstring.Append($"<td>{boleta.MOVIMENTO.GetDisplayName()}</td>");
+                            excelstring.Append($"<td>{boleta.PLANO.GetDisplayName()}</td>");
+                            excelstring.Append($"<td>{boleta.BOLETA_BD_LINHAs?.NUMERO_LINHA}</td>");
+                            excelstring.Append($"<td>{boleta.BOLETA_BD_LINHAs?.ICCID}</td>");
+                            excelstring.Append($"<td>{boleta.BOLETA_BD_LINHAs?.VALOR}</td>");
+                            excelstring.Append($"<td>{boleta.BOLETA_BD_EQUIPAMENTOs?.IMEI}</td>");
+                            excelstring.Append($"<td>{blocao.TOTAL_PAGAMENTO}</td>");
+                            excelstring.Append("</tr>");
+                        }
+                    }
+                }
+                htmldata = htmldata.Replace("@@ActualData", excelstring.ToString());
+                string StoredFilePath = Path.Combine(Directory.GetCurrentDirectory(), "FilesTemplates", "BoletaDowloaded.xls");
+                if (System.IO.File.Exists(StoredFilePath))
+                {
+                    System.IO.File.Delete(StoredFilePath);
+                }
+                System.IO.File.AppendAllText(StoredFilePath, htmldata);
+
+                var provider = new FileExtensionContentTypeProvider();
+                if (!provider.TryGetContentType(StoredFilePath, out var contentType))
+                {
+                    contentType = "application/octet-stream";
+                }
+
+                var bytes = await System.IO.File.ReadAllBytesAsync(StoredFilePath);
+
+                return new JsonResult(new Response<FileContentResult>
+                {
+                    Data = File(bytes, contentType, Path.Combine(StoredFilePath)),
+                    Succeeded = true,
+                    Message = "Tudo certo, o Excel foi gerado corretamente"
                 });
             }
             catch (Exception ex)

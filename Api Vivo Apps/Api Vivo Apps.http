@@ -1,0 +1,33 @@
+﻿@Api Vivo Apps_HostAddress = http://localhost:31510
+@Api_Vivo_Apps_HostAddress = http://localhost:31510
+
+GET {{Api_Vivo_Apps_HostAddress}}/api/demandas/GetFilas
+
+###
+GET {{Api_Vivo_Apps_HostAddress}}/api/demandas/GetOperadoresSuporte
+
+###
+POST {{Api_Vivo_Apps_HostAddress}}/api/jornada/GetHierarquiaJornada
+Content-Type: application/json
+
+{
+ "PageNumber":1,
+ "PageSize":100,
+ "Value":{
+ "STATUS":true,
+ "AnyColumnMatch":"COMPMASTER"
+ }
+}
+
+###
+
+POST {{Api_Vivo_Apps_HostAddress}}/api/jornada/GetUsersByCargo
+Content-Type: application/json
+
+[1,2,3,4]
+
+###
+@adabas=BA-METRO
+POST {{Api_Vivo_Apps_HostAddress}}/api/jornada/GetResponsaveisByAdabasHierarquiaJornada?adabas={{adabas}} HTTP/2
+
+###
