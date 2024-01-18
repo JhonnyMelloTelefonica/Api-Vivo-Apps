@@ -11,7 +11,6 @@
 	<ItemGroup>
 		<Content Include="FilesTemplates\**\*" CopyToOutputDirectory="PreserveNewest" />
 	</ItemGroup>
-<<<<<<< HEAD
 
 	<ItemGroup>
 	  <None Remove="FilesTemplates\Jornada_bd_hierarquia_Model.html" />
@@ -63,18 +62,8 @@
 	  <Folder Include="DB_Context_Vivo_MAIS\" />
 	</ItemGroup>
 
-	<Import Project="..\..\Shared_Class_Vivo_Apps\Shared_Class_Vivo_Apps\Shared_Class_Vivo_Apps.projitems" Label="Shared" />
+	<Import Project="..\..\Shared_Class_Vivo_Apps\Shared_Class_Vivo_Apps.projitems" Label="Shared" />
 
-<<<<<<< HEAD
-  <ItemGroup>
-    <Folder Include="Data\" />
-    <Folder Include="DB_Context_Vivo_MAIS\" />
-  </ItemGroup>
-
-  <Import Project="..\..\Shared_Class_Vivo_Apps\Shared_Class_Vivo_Apps.projitems" Label="Shared" />
-=======
->>>>>>> 8d038bd3923d2a6ddf633f531af7c98163ea6a04
-=======
 
 	<ItemGroup>
 	  <None Remove="FilesTemplates\Jornada_bd_hierarquia_Model.html" />
@@ -86,20 +75,20 @@
 	<ItemGroup>
 		<PackageReference Include="AutoMapper" Version="12.0.1" />
 		<PackageReference Include="Blazored.TextEditor" Version="1.1.0" />
-		<PackageReference Include="Blazorise.Bootstrap" Version="1.4.0" />
-		<PackageReference Include="DocumentFormat.OpenXml" Version="3.0.0" />
+		<PackageReference Include="Blazorise.Bootstrap" Version="1.4.1" />
+		<PackageReference Include="DocumentFormat.OpenXml" Version="3.0.1" />
 		<PackageReference Include="EfCore.SchemaCompare" Version="8.0.1" />
 		<PackageReference Include="EPPlus" Version="7.0.6" />
-		<PackageReference Include="HtmlAgilityPack" Version="1.11.55" />
+		<PackageReference Include="HtmlAgilityPack" Version="1.11.57" />
 		<PackageReference Include="Microsoft.AspNet.WebApi" Version="5.3.0" />
-		<PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="8.0.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="8.0.1" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.1" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.1">
 		  <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 		  <PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
-		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.0">
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.1" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.1">
 			<PrivateAssets>all</PrivateAssets>
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<TreatAsUsed>true</TreatAsUsed>
@@ -107,11 +96,11 @@
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3">
 			<TreatAsUsed>true</TreatAsUsed>
 		</PackageReference>
-		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.120" />
+		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.130" />
 		<PackageReference Include="SqlTableDependency" Version="8.5.8" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
-		<PackageReference Include="Syncfusion.Blazor.Navigations" Version="24.1.41" />
-		<PackageReference Include="Z.EntityFramework.Extensions.EFCore" Version="8.101.1.3" />
+		<PackageReference Include="Syncfusion.Blazor.Navigations" Version="24.1.46" />
+		<PackageReference Include="Z.EntityFramework.Extensions.EFCore" Version="8.101.2" />
 		<PublishFile Include="FilesTemplates" />
 	</ItemGroup>
 
@@ -126,9 +115,7 @@
 	  <Folder Include="DB_Context_Vivo_MAIS\" />
 	</ItemGroup>
 
-	<Import Project="..\..\Shared_Class_Vivo_Apps\Shared_Class_Vivo_Apps\Shared_Class_Vivo_Apps.projitems" Label="Shared" />
+	<Import Project="..\..\Shared_Class_Vivo_Apps\Shared_Class_Vivo_Apps.projitems" Label="Shared" />
 
->>>>>>> 8d038bd3923d2a6ddf633f531af7c98163ea6a04
-
-
+	
 </Project>
