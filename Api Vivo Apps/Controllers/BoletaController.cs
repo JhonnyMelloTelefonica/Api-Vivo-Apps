@@ -43,17 +43,6 @@ namespace Vivo_Apps_API.Controllers
             {
                 cfg.CreateMap<BOLETA_BD_PALITAGEM, BOLETA_PALITAGEM_DTO>()
                 .ForMember(
-                    dest => dest.DATA_INICIO,
-                    opt => opt.MapFrom(src => StringToDateTime(src.DATA_INICIO))
-                    )
-                .ForMember(
-                    dest => dest.DT_PRIMEIRO_RETORNO,
-                    opt => opt.MapFrom(src => StringToDateTime(src.DT_PRIMEIRO_RETORNO))
-                    )
-                .ForMember(
-                    dest => dest.DT_RETORNO,
-                    opt => opt.MapFrom(src => StringToDateTime(src.DT_RETORNO))
-                ).ForMember(
                     dest => dest.MAT_CONSULTOR,
                     opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == src.MAT_CONSULTOR))
                 ).ForMember(
@@ -178,11 +167,6 @@ namespace Vivo_Apps_API.Controllers
                     dest => dest.ID_PLANO,
                     opt => opt.MapFrom(src => ((Planos)src.ID_PLANO))
                 );
-
-                //cfg.CreateMap<object, Categoria>().ConvertUsing(value => (Categoria)value);
-                //cfg.CreateMap<object, Plataforma>().ConvertUsing(value => (Plataforma)value);
-                //cfg.CreateMap<object, Movimento>().ConvertUsing(value => (Movimento)value);
-                // Add more mappings as needed for other entities   
             });
 
             _mapper = config.CreateMapper();
@@ -193,7 +177,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpPost("GerarBoleta")]
         [ProducesResponseType(typeof(Response<int>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult GerarBoleta([FromBody] BoletaModelUnvalidated data, string matricula)
+        public JsonResult GerarBoleta([FromBody] BoletaModelUnvalidated data, int matricula)
         {
             if (data.Dados_Solicitacao.Any(x =>
                 x.Portabilidade is null ||
@@ -236,7 +220,7 @@ namespace Vivo_Apps_API.Controllers
                 var lastBoleta = CD.BOLETA_BD_PALITAGEMs.Where(x => x.PDV == Pdv_Criador).OrderBy(x => x.ID_BOLETA).LastOrDefault();
                 var PrincipalData = CD.BOLETA_BD_PALITAGEMs.Add(new BOLETA_BD_PALITAGEM
                 {
-                    DATA_INICIO = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
+                    DATA_INICIO = DateTime.Now,
                     MET_PAGAMENTO = (int)data.Met_Pagamento,
                     MAT_CONSULTOR = matricula,
                     TOTAL_PAGAMENTO = data.Total_Pagamento,
@@ -251,7 +235,7 @@ namespace Vivo_Apps_API.Controllers
                 CD.HISTORICO_BOLETA_BD_PALITAGEMs.Add(new HISTORICO_BOLETA_BD_PALITAGEM
                 {
                     ID_BOLETA = PrincipalData.ID_BOLETA,
-                    DATA = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
+                    DATA = DateTime.Now,
                     STATUS = "BOLETA GERADA",
                     MATRICULA = matricula,
                     RESPOSTA = "BOLETA ABERTA"
@@ -426,7 +410,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpPost("AprovarBoleta")]
         [ProducesResponseType(typeof(Response<string>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult AprovarBoleta([FromBody] BOLETA_PALITAGEM_DTO_Unvalidated data, string matricula, string message)
+        public JsonResult AprovarBoleta([FromBody] BOLETA_PALITAGEM_DTO_Unvalidated data, int matricula, string message)
         {
             try
             {
@@ -434,13 +418,13 @@ namespace Vivo_Apps_API.Controllers
 
                 if (boleta.DT_PRIMEIRO_RETORNO is null)
                 {
-                    boleta.DT_PRIMEIRO_RETORNO = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
-                    boleta.DT_RETORNO = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+                    boleta.DT_PRIMEIRO_RETORNO = DateTime.Now;
+                    boleta.DT_RETORNO = DateTime.Now;
                     boleta.MAT_ANALISTA = matricula;
                 }
                 else
                 {
-                    boleta.DT_RETORNO = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+                    boleta.DT_RETORNO = DateTime.Now;
                     boleta.MAT_ANALISTA = matricula;
                 }
 
@@ -452,7 +436,7 @@ namespace Vivo_Apps_API.Controllers
                 CD.HISTORICO_BOLETA_BD_PALITAGEMs.Add(new HISTORICO_BOLETA_BD_PALITAGEM
                 {
                     ID_BOLETA = boleta.ID_BOLETA,
-                    DATA = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
+                    DATA = DateTime.Now,
                     STATUS = "APROVADO",
                     MATRICULA = matricula,
                     RESPOSTA = message
@@ -566,13 +550,13 @@ namespace Vivo_Apps_API.Controllers
         [HttpPost("DevolverBoletaAnalista")]
         [ProducesResponseType(typeof(Response<string>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult DevolverBoletaAnalista([FromBody] BOLETA_PALITAGEM_DTO_Unvalidated data, string matricula, string message)
+        public JsonResult DevolverBoletaAnalista([FromBody] BOLETA_PALITAGEM_DTO_Unvalidated data, int matricula, string message)
         {
             try
             {
                 var boleta = CD.BOLETA_BD_PALITAGEMs.Find(data.ID_BOLETA);
 
-                boleta.DT_RETORNO = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+                boleta.DT_RETORNO = DateTime.Now;
                 boleta.MET_PAGAMENTO = (int)data.MET_PAGAMENTO;
                 boleta.TOTAL_PAGAMENTO = data.TOTAL_PAGAMENTO;
                 boleta.STATUS = "BOLETA FINALIZADA";
@@ -581,7 +565,7 @@ namespace Vivo_Apps_API.Controllers
                 CD.HISTORICO_BOLETA_BD_PALITAGEMs.Add(new HISTORICO_BOLETA_BD_PALITAGEM
                 {
                     ID_BOLETA = boleta.ID_BOLETA,
-                    DATA = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
+                    DATA = DateTime.Now,
                     STATUS = "BOLETA FINALIZADA",
                     MATRICULA = matricula,
                     RESPOSTA = message
@@ -712,7 +696,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpPost("DevolverBoletaConsultor")]
         [ProducesResponseType(typeof(Response<string>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult DevolverBoletaConsultor([FromBody] BOLETA_PALITAGEM_DTO_Unvalidated data, string message, string matricula, int idboleta)
+        public JsonResult DevolverBoletaConsultor([FromBody] BOLETA_PALITAGEM_DTO_Unvalidated data, string message, int matricula, int idboleta)
         {
             try
             {
@@ -722,20 +706,20 @@ namespace Vivo_Apps_API.Controllers
 
                 if (boleta.DT_PRIMEIRO_RETORNO is null)
                 {
-                    boleta.DT_PRIMEIRO_RETORNO = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
-                    boleta.DT_RETORNO = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+                    boleta.DT_PRIMEIRO_RETORNO = DateTime.Now;
+                    boleta.DT_RETORNO = DateTime.Now;
                     boleta.MAT_ANALISTA = matricula;
                 }
                 else
                 {
-                    boleta.DT_RETORNO = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+                    boleta.DT_RETORNO = DateTime.Now;
                     boleta.MAT_ANALISTA = matricula;
                 }
 
                 CD.HISTORICO_BOLETA_BD_PALITAGEMs.Add(new HISTORICO_BOLETA_BD_PALITAGEM
                 {
                     ID_BOLETA = idboleta,
-                    DATA = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
+                    DATA = DateTime.Now,
                     STATUS = "DEVOLVIDO PARA O CONSULTOR",
                     MATRICULA = matricula,
                     RESPOSTA = message
@@ -811,7 +795,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpPost("ReprovarBoleta")]
         [ProducesResponseType(typeof(Response<string>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult ReprovarBoleta(string message, string matricula, int idboleta)
+        public JsonResult ReprovarBoleta(string message, int matricula, int idboleta)
         {
             try
             {
@@ -821,20 +805,20 @@ namespace Vivo_Apps_API.Controllers
 
                 if (boleta.DT_PRIMEIRO_RETORNO is null)
                 {
-                    boleta.DT_PRIMEIRO_RETORNO = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
-                    boleta.DT_RETORNO = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+                    boleta.DT_PRIMEIRO_RETORNO = DateTime.Now;
+                    boleta.DT_RETORNO = DateTime.Now;
                     boleta.MAT_ANALISTA = matricula;
                 }
                 else
                 {
-                    boleta.DT_RETORNO = DateTime.Now.ToString("dd/MM/yyyy HH:mm");
+                    boleta.DT_RETORNO = DateTime.Now;
                     boleta.MAT_ANALISTA = matricula;
                 }
 
                 CD.HISTORICO_BOLETA_BD_PALITAGEMs.Add(new HISTORICO_BOLETA_BD_PALITAGEM
                 {
                     ID_BOLETA = idboleta,
-                    DATA = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
+                    DATA = DateTime.Now,
                     STATUS = "REPROVADO",
                     MATRICULA = matricula,
                     RESPOSTA = message
@@ -997,7 +981,7 @@ namespace Vivo_Apps_API.Controllers
 
                 if (filter.Value.MAT_CONSULTOR.Any())// ✅
                 {
-                    boletas = boletas.Where(x => filter.Value.MAT_CONSULTOR.Contains(x.MAT_CONSULTOR.MATRICULA));
+                    boletas = boletas.Where(x => filter.Value.MAT_CONSULTOR.Contains(x.MAT_CONSULTOR.MATRICULA.Value));
                 }
                 if (filter.Value.STATUS.Any())// ✅
                 {
@@ -1005,7 +989,7 @@ namespace Vivo_Apps_API.Controllers
                 }
                 if (filter.Value.MAT_ANALISTA.Any())// ✅
                 {
-                    boletas = boletas.Where(x => filter.Value.MAT_ANALISTA.Contains(x.MAT_ANALISTA));
+                    boletas = boletas.Where(x => filter.Value.MAT_ANALISTA.Contains(x.MAT_ANALISTA.ToString()));
                 }
 
                 if (filter.Value.PLATAFORMA.Any())// ✅
@@ -1237,7 +1221,7 @@ namespace Vivo_Apps_API.Controllers
 
                 if (filter.Value.MAT_CONSULTOR.Any())// ✅
                 {
-                    boletas = boletas.Where(x => filter.Value.MAT_CONSULTOR.Contains(x.MAT_CONSULTOR.MATRICULA));
+                    boletas = boletas.Where(x => filter.Value.MAT_CONSULTOR.Contains(x.MAT_CONSULTOR.MATRICULA.Value));
                 }
                 if (filter.Value.STATUS.Any())// ✅
                 {
@@ -1245,7 +1229,7 @@ namespace Vivo_Apps_API.Controllers
                 }
                 if (filter.Value.MAT_ANALISTA.Any())// ✅
                 {
-                    boletas = boletas.Where(x => filter.Value.MAT_ANALISTA.Contains(x.MAT_ANALISTA));
+                    boletas = boletas.Where(x => filter.Value.MAT_ANALISTA.Contains(x.MAT_ANALISTA.ToString()));
                 }
 
                 if (filter.Value.PLATAFORMA.Any())// ✅
@@ -1416,7 +1400,7 @@ namespace Vivo_Apps_API.Controllers
                             excelstring.Append($"<td>{blocao.BOLETA_BD_BLOCAOs.Count}</td>");
                             excelstring.Append($"<td>{blocao.STATUS}</td> ");
                             excelstring.Append($"<td>{blocao.MAT_CONSULTOR?.MATRICULA}</td>");
-                            excelstring.Append($"<td>{blocao.MAT_ANALISTA ?? "-"}</td>");
+                            excelstring.Append($"<td>{blocao.MAT_ANALISTA.ToString()  ?? "-"}</td>");
                             excelstring.Append($"<td>{boleta.MOVIMENTO.GetDisplayName()}</td>");
                             excelstring.Append($"<td>{boleta.PLANO.GetDisplayName()}</td>");
                             excelstring.Append($"<td>{boleta.BOLETA_BD_LINHAs?.NUMERO_LINHA}</td>");

@@ -58,7 +58,7 @@ namespace Vivo_Apps_API.Controllers
                     opt => opt.MapFrom(src => ((Cargos)src.CARGO)))
                 .ForMember(
                     dest => dest.ID_CRIADOR,
-                    opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA == src.ID_CRIADOR.ToString()).FirstOrDefault()));
+                    opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA == src.ID_CRIADOR).FirstOrDefault()));
 
                 cfg.CreateMap<JORNADA_BD_QUESTION_HISTORICO, DETALHADO_PROVA_CRIADA_DTO>()
                 .ForMember(
@@ -75,7 +75,7 @@ namespace Vivo_Apps_API.Controllers
                     opt => opt.MapFrom(src => ((Cargos)src.CARGO)))
                 .ForMember(
                     dest => dest.ID_CRIADOR,
-                    opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA == src.ID_CRIADOR.ToString()).FirstOrDefault()));
+                    opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA == src.ID_CRIADOR).FirstOrDefault()));
 
                 cfg.CreateMap<JORNADA_BD_QUESTION, JORNADA_QUESTION_DTO>()
                 .ForMember(
@@ -117,17 +117,17 @@ namespace Vivo_Apps_API.Controllers
                     opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs.Where(k =>
                                 CD.JORNADA_BD_ANSWER_AVALIACAOs
                                 .Where(y => y.ID_PROVA == src.ID_PROVA)
-                                .Select(y => y.RE_AVALIADO.ToString())
+                                .Select(y => y.RE_AVALIADO)
                                 .Contains(k.MATRICULA)).Select(x => new ACESSOS_MOBILE_AVALIACAO
                                 {
                                     ID = x.ID,
                                     EMAIL = x.EMAIL,
-                                    MATRICULA = x.MATRICULA,
+                                    MATRICULA = x.MATRICULA.Value,
                                     PDV = x.PDV,
                                     NOME = x.NOME,
                                     UserAvatar = x.UserAvatar,
                                     PROVA_REALIZADA = CD.JORNADA_BD_ANSWER_AVALIACAOs
-                                        .Where(y => y.RE_AVALIADO.ToString() == x.MATRICULA && y.ID_PROVA == src.ID_PROVA)
+                                        .Where(y => y.RE_AVALIADO == x.MATRICULA && y.ID_PROVA == src.ID_PROVA)
                                         .FirstOrDefault()
                                 })));
 
@@ -548,7 +548,7 @@ namespace Vivo_Apps_API.Controllers
                int CARGO,
                bool FIXA,
                string REGIONAL,
-               string MATRICULA,
+               int MATRICULA,
                string DT_INIT,
                string? DT_FINAL,
                int QTD_TOTAL_SOLICITADA,
@@ -570,7 +570,7 @@ namespace Vivo_Apps_API.Controllers
                     FormularioExistente = CD.JORNADA_BD_QUESTION_HISTORICOs
                         .ToList()
                         .Where(x => x.CARGO == CARGO)
-                        .Where(x => x.ID_CRIADOR == int.Parse(matricula))
+                        .Where(x => x.ID_CRIADOR == matricula)
                         .Where(x => x.REGIONAL == REGIONAL)
                         .Where(x => x.TP_FORMS == rota)
                         .Where(x => x.FIXA == FIXA).Any();
@@ -580,7 +580,7 @@ namespace Vivo_Apps_API.Controllers
                         var maxcaderno = (int)(CD.JORNADA_BD_QUESTION_HISTORICOs
                             .ToList()
                             .Where(x => x.CARGO == CARGO)
-                            .Where(x => x.ID_CRIADOR == int.Parse(matricula))
+                            .Where(x => x.ID_CRIADOR == matricula)
                             .Where(x => x.REGIONAL == REGIONAL)
                             .Where(x => x.TP_FORMS == "Rota Cruzada")
                             .Where(x => x.FIXA == FIXA)
@@ -590,7 +590,7 @@ namespace Vivo_Apps_API.Controllers
                         var datafinal = CD.JORNADA_BD_QUESTION_HISTORICOs
                             .ToList()
                             .Where(x => x.CARGO == CARGO)
-                            .Where(x => x.ID_CRIADOR == int.Parse(matricula))
+                            .Where(x => x.ID_CRIADOR == matricula)
                             .Where(x => x.TP_FORMS == "Rota Cruzada")
                             .Where(x => x.REGIONAL == REGIONAL)
                             .Where(x => x.FIXA == FIXA)
@@ -763,7 +763,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpGet("GetFormsRotaByUser")]
         [ProducesResponseType(typeof(Response<IEnumerable<JORNADA_BD_QUESTION_HISTORICO>>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult GetFormsRotaByUser(int CARGO, string MATRICULA, bool FIXA, string REGIONAL)
+        public JsonResult GetFormsRotaByUser(int CARGO, int MATRICULA, bool FIXA, string REGIONAL)
         {
             try
             {
@@ -1256,14 +1256,14 @@ namespace Vivo_Apps_API.Controllers
                     PUBLICO_CANAL = (Canal)x.PUBLICO_CANAL,
                     PUBLICO_CARGO = (Cargos)x.PUBLICO_CARGO,
                     DT_AVALIACAO = x.DT_AVALIACAO.Value,
-                    MATRICULA_AVALIADOR = x.MATRICULA_APLICADOR.ToString(),
+                    MATRICULA_AVALIADOR = x.MATRICULA_APLICADOR.Value,
                     NOME = x.NOME_APLICADOR,
                     CADERNO = x.CADERNO.ToString(),
                     NOTA = Convert.ToDouble(x.NOTA),
                     REDE_AVALIADA = x.REDE_AVALIADA,
                     DDD_AVALIADO = x.DDD_AVALIADO.ToString(),
                     PDV_AVALIADO = x.PDV_AVALIADO,
-                    RE_AVALIADO = x.RE_AVALIADO.ToString(),
+                    RE_AVALIADO = x.RE_AVALIADO,
                     REGIONAL = x.REGIONAL,
                 });
 
@@ -1333,7 +1333,7 @@ namespace Vivo_Apps_API.Controllers
             try
             {
                 var DataProvas = CD.JORNADA_BD_QUESTION_HISTORICOs
-                    .Where(x => x.ID_CRIADOR == int.Parse(filter.Value.Matricula_Criador)
+                    .Where(x => x.ID_CRIADOR == filter.Value.Matricula_Criador
                     && x.REGIONAL == filter.Value.REGIONAL && x.ID_PROVA != null);
                 // Filtra por Matricula de quem está fazendo a requisição
 
@@ -1562,7 +1562,7 @@ namespace Vivo_Apps_API.Controllers
             string TIPO_PROVA,
             int CARGO,
             bool FIXA,
-            string MATRICULA,
+            int MATRICULA,
             string DT_INIT,
             string? DT_FINAL,
             List<JORNADA_BD_QUESTION> Formulario,
@@ -1572,7 +1572,7 @@ namespace Vivo_Apps_API.Controllers
             var entityrelacao = CD.JORNADA_BD_RELACAO_HISTORICOs.Add(new JORNADA_BD_RELACAO_HISTORICO
             {
                 LOGIN_MOD = MATRICULA,
-                DT_MOD = DateTime.Now.ToString("dd/MM/yyyy HH:mm")
+                DT_MOD = DateTime.Now
             }).Entity;
             CD.SaveChanges();
 
@@ -1590,7 +1590,7 @@ namespace Vivo_Apps_API.Controllers
                     CANAL = (int)canal,
                     CARGO = CARGO,
                     DT_CRIACAO = DateTime.Now,
-                    ID_CRIADOR = int.Parse(MATRICULA),
+                    ID_CRIADOR = MATRICULA,
                     ID_QUESTION = item.ID_QUESTION,
                     ID_PROVA = entityrelacao.ID_PROVA,
                     CADERNO = proximocaderno,
@@ -1782,7 +1782,7 @@ namespace Vivo_Apps_API.Controllers
             bool QuestoesRepetidas,
             List<JORNADA_BD_QUESTION> Formulario,
             bool FormularioExistente,
-            string matricula,
+            int matricula,
             Random random,
             int i)
         {
@@ -1802,7 +1802,7 @@ namespace Vivo_Apps_API.Controllers
                     .Where(x => x.REGIONAL == REGIONAL)
                     .Where(x => (FIXA == false ? x.FIXA == FIXA : x.FIXA != null))
                     .Where(x => x.TP_FORMS == "Rota Cruzada")
-                    .Where(x => x.ID_CRIADOR == int.Parse(matricula))
+                    .Where(x => x.ID_CRIADOR == matricula)
                     .Select(y => y.ID_QUESTION)
                     .ToList();
 
@@ -1860,11 +1860,11 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
-        private List<JORNADA_BD_QUESTION_HISTORICO> GetListaProvasRotaCruzadaDisponiveis(string MATRICULA, bool ELEGIVEL)
+        private List<JORNADA_BD_QUESTION_HISTORICO> GetListaProvasRotaCruzadaDisponiveis(int MATRICULA, bool ELEGIVEL)
         {
             var actual = DateTime.Now;
             var questions = CD.JORNADA_BD_QUESTION_HISTORICOs
-                            .Where(x => x.ID_CRIADOR == int.Parse(MATRICULA))
+                            .Where(x => x.ID_CRIADOR == MATRICULA)
                             .Where(y => y.TP_FORMS == "Rota Cruzada")
                             .OrderByDescending(x => x.ID_PROVA)
                             .ToList();
@@ -1883,7 +1883,7 @@ namespace Vivo_Apps_API.Controllers
         private void GetListaProvasJornadaDisponiveis(
             string REGIONAL,
             int CARGO,
-            string MATRICULA,
+            int MATRICULA,
             bool FIXA,
             bool ELEGIVEL,
             out List<JORNADA_BD_QUESTION_HISTORICO> questionsjornada,
@@ -1908,14 +1908,14 @@ namespace Vivo_Apps_API.Controllers
             .ToList();
 
             questionsjornada = questionsjornada
-                .Where(x => Convert.ToDateTime(x.DT_INICIO_AVALIACAO) < actual) // Data inicial deve ser maior que hoje
-                .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
+                .Where(x => x.DT_INICIO_AVALIACAO.Value < actual) // Data inicial deve ser maior que hoje
+                .Where(x => x.DT_FINALIZACAO.Value.AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
                 .ToList();
 
             resposta = CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
                 .Where(x => x.PUBLICO_CARGO == CARGO
                 && x.CADERNO == maxcadernojornada
-                && x.MATRICULA_APLICADOR == int.Parse(MATRICULA)
+                && x.MATRICULA_APLICADOR == MATRICULA
                 && x.REGIONAL == REGIONAL
                 && x.TP_FORMS == "Jornada").Any();
         }
@@ -1923,7 +1923,7 @@ namespace Vivo_Apps_API.Controllers
         private void GetListaProvasJornadaGestorDisponiveis(
             string REGIONAL,
             int CARGO,
-            string MATRICULA,
+            int MATRICULA,
             bool FIXA,
             ACESSOS_MOBILE usuario,
             out List<JORNADA_BD_QUESTION_HISTORICO> questionsjornadaGestor,
@@ -1933,7 +1933,7 @@ namespace Vivo_Apps_API.Controllers
             var cargosGestor = new List<int> { 3, 6, 8 };
             IEnumerable<ACESSOS_MOBILE> Criador = CD.ACESSOS_MOBILEs.Where(y =>
                 CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => x.TP_FORMS == "Jornada Gestor")
-                    .Select(x => x.ID_CRIADOR.Value.ToString())
+                    .Select(x => x.ID_CRIADOR)
                     .Distinct()
                     .ToList()
                     .Contains(y.MATRICULA) && cargosGestor.Contains(y.CARGO)
@@ -1951,7 +1951,7 @@ namespace Vivo_Apps_API.Controllers
                     .Where(y => y.CARGO == CARGO)
                     .Where(y => y.FIXA == FIXA)
                     .Where(y => y.REGIONAL == REGIONAL)
-                    .Where(y => y.ID_CRIADOR.ToString() == Gestor.MATRICULA)
+                    .Where(y => y.ID_CRIADOR == Gestor.MATRICULA)
                     .ToList();
 
                     actualquestionsjornadaGestor = actualquestionsjornadaGestor
@@ -1966,7 +1966,7 @@ namespace Vivo_Apps_API.Controllers
                     foreach (var item in provasEncontradas)
                     {
                         if (CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
-                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == int.Parse(MATRICULA))
+                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == MATRICULA)
                         .Any() == true)
                         {
                             loopingquestions = actualquestionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();
@@ -1981,7 +1981,7 @@ namespace Vivo_Apps_API.Controllers
         private void GetListaProvasJornadaGestorDivisaoDisponiveis(
             string REGIONAL,
             int CARGO,
-            string MATRICULA,
+            int MATRICULA,
             bool FIXA,
             ACESSOS_MOBILE usuario,
             bool ELEGIVEL,
@@ -1991,7 +1991,7 @@ namespace Vivo_Apps_API.Controllers
             {
                 JORNADA_BD_CARTEIRA_DIVISAO? PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
                 .Where(x => x.RE_GA != null)
-                .Where(x => x.RE_GA == usuario.MATRICULA).FirstOrDefault();
+                .Where(x => x.RE_GA == usuario.MATRICULA.Value.ToString()).FirstOrDefault();
 
                 if (PDVDivisão is not null)
                 {
@@ -2017,7 +2017,7 @@ namespace Vivo_Apps_API.Controllers
                     foreach (var item in provasEncontradas)
                     {
                         if (CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
-                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == int.Parse(MATRICULA))
+                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == MATRICULA)
                         .Any() == true)
                         {
                             questionsjornadaGestor = questionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();
@@ -2033,7 +2033,7 @@ namespace Vivo_Apps_API.Controllers
             {
                 JORNADA_BD_CARTEIRA_DIVISAO? PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
                 .Where(x => x.RE_GGP != null)
-                .Where(x => x.RE_GGP == usuario.MATRICULA).FirstOrDefault();
+                .Where(x => x.RE_GGP == usuario.MATRICULA.Value.ToString()).FirstOrDefault();
 
                 if (PDVDivisão is not null)
                 {
@@ -2058,7 +2058,7 @@ namespace Vivo_Apps_API.Controllers
                     foreach (var item in provasEncontradas)
                     {
                         if (CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
-                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == int.Parse(MATRICULA))
+                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == MATRICULA)
                         .Any() == true)
                         {
                             questionsjornadaGestor = questionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();
@@ -2074,7 +2074,7 @@ namespace Vivo_Apps_API.Controllers
             {
                 JORNADA_BD_CARTEIRA_DIVISAO? PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
                 .Where(x => x.RE_GV != null)
-                .Where(x => x.RE_GV == usuario.MATRICULA).FirstOrDefault();
+                .Where(x => x.RE_GV == usuario.MATRICULA.Value.ToString()).FirstOrDefault();
 
                 if (PDVDivisão is not null)
                 {
@@ -2099,7 +2099,7 @@ namespace Vivo_Apps_API.Controllers
                     foreach (var item in provasEncontradas)
                     {
                         if (CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
-                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == int.Parse(MATRICULA))
+                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == MATRICULA)
                         .Any() == true)
                         {
                             questionsjornadaGestor = questionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();
@@ -2138,7 +2138,7 @@ namespace Vivo_Apps_API.Controllers
                     foreach (var item in provasEncontradas)
                     {
                         if (CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
-                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == int.Parse(MATRICULA))
+                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == MATRICULA)
                         .Any() == true)
                         {
                             questionsjornadaGestor = questionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();
@@ -2156,7 +2156,7 @@ namespace Vivo_Apps_API.Controllers
         private void GetListaProvasJornadaGestorGADisponiveis(
             string REGIONAL,
             int CARGO,
-            string MATRICULA,
+            int MATRICULA,
             bool FIXA,
             ACESSOS_MOBILE usuario,
             bool ELEGIVEL,
@@ -2190,7 +2190,7 @@ namespace Vivo_Apps_API.Controllers
                     foreach (var item in provasEncontradas)
                     {
                         if (CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
-                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == int.Parse(MATRICULA))
+                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == MATRICULA)
                         .Any() == true)
                         {
                             questionsjornadaGestor = questionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();
@@ -2216,7 +2216,7 @@ namespace Vivo_Apps_API.Controllers
         private void GetListaProvasJornadaGestorGGPDisponiveis(
             string REGIONAL,
             int CARGO,
-            string MATRICULA,
+            int MATRICULA,
             bool FIXA,
             ACESSOS_MOBILE usuario,
             bool ELEGIVEL,
@@ -2250,7 +2250,7 @@ namespace Vivo_Apps_API.Controllers
                     foreach (var item in provasEncontradas)
                     {
                         if (CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
-                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == int.Parse(MATRICULA))
+                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == MATRICULA)
                         .Any() == true)
                         {
                             questionsjornadaGestor = questionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();
@@ -2270,7 +2270,7 @@ namespace Vivo_Apps_API.Controllers
         private void GetListaProvasJornadaGestorGVDisponiveis(
             string REGIONAL,
             int CARGO,
-            string MATRICULA,
+            int MATRICULA,
             bool FIXA,
             ACESSOS_MOBILE usuario,
             bool ELEGIVEL,
@@ -2304,7 +2304,7 @@ namespace Vivo_Apps_API.Controllers
                     foreach (var item in provasEncontradas)
                     {
                         if (CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
-                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == int.Parse(MATRICULA))
+                        .Where(x => item == x.ID_PROVA && x.RE_AVALIADO == MATRICULA)
                         .Any() == true)
                         {
                             questionsjornadaGestor = questionsjornadaGestor.Where(x => x.ID_PROVA != item).ToList();

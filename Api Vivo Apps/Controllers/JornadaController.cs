@@ -51,17 +51,13 @@ namespace Vivo_Apps_API.Controllers
 
                 cfg.CreateMap<JORNADA_BD_HIERARQUIum, JORNADA_HIERARQUIA_DTO>()
                 .ForMember(
-                    dest => dest.DT_MOD,
-                    opt => opt.MapFrom(src => Convert.ToDateTime(src.DT_MOD))
-                    )
-                .ForMember(
                     dest => dest.LOGIN_MOD,
                     opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs
-                    .Where(x => x.MATRICULA == src.LOGIN_MOD.ToString()).FirstOrDefault()))
+                    .Where(x => x.MATRICULA == src.LOGIN_MOD).FirstOrDefault()))
                 .ForMember(
                     dest => dest.RE_DIVISAO,
                     opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs
-                    .Where(x => x.MATRICULA == (src.RE_DIVISAO != null ? src.RE_DIVISAO.Value.ToString() : "")).FirstOrDefault()))
+                    .Where(x => x.MATRICULA == src.RE_DIVISAO).FirstOrDefault()))
                 .ForMember(
                     dest => dest.RE_GA,
                     opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs
@@ -85,7 +81,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpGet("GetQuestions")]
         public string GetQuestions() => JsonConvert.SerializeObject(CD.Carteira_NEs.AsEnumerable());
         [HttpPost("GetAvatarImage")]
-        public string GetAvatarImage(string matricula) => JsonConvert.SerializeObject(CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA == matricula).FirstOrDefault().UserAvatar);
+        public string GetAvatarImage(int matricula) => JsonConvert.SerializeObject(CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA == matricula).FirstOrDefault().UserAvatar);
 
         [HttpGet("GetCNS_BASE_TERCEIROS")]
         public async Task<string> GetCNS_BASE_TERCEIROS()
@@ -162,7 +158,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpPost("GetProvaById")]
         public string GetProvaById(int id) => JsonConvert.SerializeObject(CD.JORNADA_BD_AVALIACAO_RETORNOs.Where(x => x.ID == id).FirstOrDefault());
         [HttpPost("GetLoginSenha")]
-        public JsonResult GetLoginSenha(string matricula) => new JsonResult(CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA == matricula).FirstOrDefault());
+        public JsonResult GetLoginSenha(int matricula) => new JsonResult(CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA == matricula).FirstOrDefault());
         //[HttpGet("GetListaRoles")]
         //public string GetListaRoles() => JsonConvert.SerializeObject(CD.PERFIL_Vivo_Xs.AsEnumerable());
 
@@ -399,9 +395,9 @@ namespace Vivo_Apps_API.Controllers
                         || filter.Value.AnyColumnMatch.Contains(x.LOGIN_MOD.ToString())
                         || filter.Value.AnyColumnMatch.Contains(x.DT_MOD.ToString())
                         || filter.Value.AnyColumnMatch.Contains(x.RE_DIVISAO.ToString())
-                        || filter.Value.AnyColumnMatch.Contains(x.RE_GA)
-                        || filter.Value.AnyColumnMatch.Contains(x.RE_GP)
-                        || filter.Value.AnyColumnMatch.Contains(x.RE_GV)
+                        || filter.Value.AnyColumnMatch.Contains(x.RE_GA.ToString())
+                        || filter.Value.AnyColumnMatch.Contains(x.RE_GP.ToString())
+                        || filter.Value.AnyColumnMatch.Contains(x.RE_GV.ToString())
                         || filter.Value.AnyColumnMatch.Contains(x.CANAL)
                     );
                 }
@@ -563,7 +559,7 @@ namespace Vivo_Apps_API.Controllers
                 UF = newpdv.UF,
                 DDD = newpdv.DDD,
                 REGIONAL = newpdv.REGIONAL,
-                RE_DIVISAO = newpdv.RE_DIVISAO != null ? double.Parse(newpdv.RE_DIVISAO.MATRICULA) : null,
+                RE_DIVISAO = newpdv.RE_DIVISAO != null ? newpdv.RE_DIVISAO.MATRICULA : null,
                 RE_GA = newpdv.RE_GA != null ? newpdv.RE_GA.MATRICULA : null,
                 RE_GP = newpdv.RE_GP != null ? newpdv.RE_GP.MATRICULA : null,
                 RE_GV = newpdv.RE_GV != null ? newpdv.RE_GV.MATRICULA : null,
@@ -618,7 +614,7 @@ namespace Vivo_Apps_API.Controllers
                 saida.CANAL = pdv.CANAL;
                 saida.REGIONAL = pdv.REGIONAL;
                 saida.STATUS = pdv.STATUS;
-                saida.RE_DIVISAO = pdv.RE_DIVISAO != null ? double.Parse(pdv.RE_DIVISAO.MATRICULA) : null;
+                saida.RE_DIVISAO = pdv.RE_DIVISAO != null ? pdv.RE_DIVISAO.MATRICULA : null;
                 saida.RE_GA = pdv.RE_GA != null ? pdv.RE_GA.MATRICULA : null;
                 saida.RE_GP = pdv.RE_GP != null ? pdv.RE_GP.MATRICULA : null;
                 saida.RE_GV = pdv.RE_GV != null ? pdv.RE_GV.MATRICULA : null;
@@ -773,9 +769,9 @@ namespace Vivo_Apps_API.Controllers
                         || filter.Value.AnyColumnMatch.Contains(x.LOGIN_MOD.ToString())
                         || filter.Value.AnyColumnMatch.Contains(x.DT_MOD.ToString())
                         || filter.Value.AnyColumnMatch.Contains(x.RE_DIVISAO.ToString())
-                        || filter.Value.AnyColumnMatch.Contains(x.RE_GA)
-                        || filter.Value.AnyColumnMatch.Contains(x.RE_GP)
-                        || filter.Value.AnyColumnMatch.Contains(x.RE_GV)
+                        || filter.Value.AnyColumnMatch.Contains(x.RE_GA.ToString())
+                        || filter.Value.AnyColumnMatch.Contains(x.RE_GP.ToString())
+                        || filter.Value.AnyColumnMatch.Contains(x.RE_GV.ToString())
                         || filter.Value.AnyColumnMatch.Contains(x.CANAL)
                     );
                 }

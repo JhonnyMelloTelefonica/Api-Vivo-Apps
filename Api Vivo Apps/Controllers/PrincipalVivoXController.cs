@@ -106,14 +106,14 @@ namespace Vivo_Apps_API.Controllers
         [HttpGet("GetUserByMatricula")]
         [ProducesResponseType(typeof(Response<AcessoModel>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult GetUserByMatricula(string matricula)
+        public JsonResult GetUserByMatricula(int matricula)
         {
             AcessoModel user = _context.ACESSOS_MOBILEs.Where(x => x.MATRICULA == matricula)
                 .Select(y => new AcessoModel
                 {
                     ID = y.ID,
                     EMAIL = y.EMAIL,
-                    MATRICULA = y.MATRICULA,
+                    MATRICULA = y.MATRICULA.Value,
                     SENHA = y.SENHA,
                     REGIONAL = y.REGIONAL,
                     CARGO = (Cargos)Convert.ToInt32(y.CARGO),
@@ -127,12 +127,12 @@ namespace Vivo_Apps_API.Controllers
                     TP_AFASTAMENTO = y.TP_AFASTAMENTO,
                     OBS = y.OBS,
                     UserAvatar = y.UserAvatar,
-                    LOGIN_MOD = y.LOGIN_MOD,
-                    DT_MOD = y.DT_MOD,
-                    Perfil = _context.PERFIL_USUARIOs.Where(x => x.Login == y.MATRICULA).Select(k => new Perfil 
+                    LOGIN_MOD = y.LOGIN_MOD.Value,
+                    DT_MOD = y.DT_MOD.Value,
+                    Perfil = _context.PERFIL_USUARIOs.Where(x => x.MATRICULA == y.MATRICULA).Select(k => new Perfil 
                     {
                         ID = k.ID,
-                        Login = k.Login,
+                        Login = k.MATRICULA.Value.ToString(),
                         Perfil_Plataforma = _context.PERFIL_PLATAFORMAS_VIVOs.Where(p=>p.ID_PERFIL == k.id_Perfil).First()
                     }).AsEnumerable()
                 }).FirstOrDefault();

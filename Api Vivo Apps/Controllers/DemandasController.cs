@@ -42,7 +42,7 @@ namespace Vivo_Apps_API.Controllers
                                 .Where(x => x.ID_SUB_FILA == src.ID_SUB_FILA)
                                 .Select(x => x.MATRICULA_RESPONSAVEL)
                                 .Distinct()
-                                .Contains(y.MATRICULA)))
+                                .Contains(y.MATRICULA.Value)))
                     );
                 cfg.CreateMap<DEMANDA_CAMPOS_FILA, DEMANDA_CAMPOS_FILA_DTO>()
                 .ForMember(
@@ -167,10 +167,9 @@ namespace Vivo_Apps_API.Controllers
             try
             {
                 var AnalistaSuporte = CD.ACESSOS_MOBILEs.Where(x =>
-                    CD.CONTROLE_DE_DEMANDAS_OPERADOREs.Where(y => y.UF == regional)
-                            .Select(x => x.LOGIN)
-                            .Distinct()
-                            .Contains(x.MATRICULA)
+                    CD.DEMANDA_BD_OPERADOREs.Where(y => y.REGIONAL == regional)
+                            .Select(x => x.MATRICULA)
+                            .Distinct().Contains(x.MATRICULA)
                 ).ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider).ToList();
 
                 return new JsonResult(new Response<IEnumerable<ACESSOS_MOBILE_DTO>>
@@ -200,14 +199,14 @@ namespace Vivo_Apps_API.Controllers
         [HttpPost("AddNewFila")]
         [ProducesResponseType(typeof(Response<int>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult AddNewFila([FromBody] DEMANDA_TIPO_FILA_DTO data, string matricula, string regional)
+        public JsonResult AddNewFila([FromBody] DEMANDA_TIPO_FILA_DTO data, int matricula, string regional)
         {
             try
             {
                 var NewFila = CD.DEMANDA_TIPO_FILAs.Add(new DEMANDA_TIPO_FILA
                 {
                     DT_CRIACAO = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
-                    MAT_CRIADOR = int.Parse(matricula),
+                    MAT_CRIADOR = matricula,
                     NOME_TIPO_FILA = data.NOME_TIPO_FILA,
                     REGIONAL = regional,
                     STATUS_TIPO_FILA = true
@@ -225,7 +224,7 @@ namespace Vivo_Apps_API.Controllers
                             DATA_CRIACAO = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
                             ID_ANTIGO = null,
                             ID_TIPO_FILA = NewFila.ID_TIPO_FILA,
-                            MAT_CRIADOR = int.Parse(matricula),
+                            MAT_CRIADOR = matricula,
                             NOME_SUB_FILA = sub_fila.NOME_SUB_FILA,
                             REGIONAL = regional,
                             STATUS_SUB_FILA = true
@@ -244,7 +243,7 @@ namespace Vivo_Apps_API.Controllers
                                     DT_CRIACAO = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
                                     ID_SUB_FILA = NewSubFila.ID_SUB_FILA,
                                     MASCARA = campo.CAMPO_SUSPENSO == true ? "" : campo.MASCARA,
-                                    MAT_CRIADOR = int.Parse(matricula),
+                                    MAT_CRIADOR = matricula,
                                     REGIONAL = regional,
                                     STATUS_CAMPOS_FILA = true,
                                 }).Entity;
@@ -314,7 +313,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpPost("AddNewSubFila")]
         [ProducesResponseType(typeof(Response<int>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult AddNewSubFila([FromBody] DEMANDA_TIPO_FILA_DTO data, string matricula, string regional)
+        public JsonResult AddNewSubFila([FromBody] DEMANDA_TIPO_FILA_DTO data, int matricula, string regional)
         {
             try
             {
@@ -332,7 +331,7 @@ namespace Vivo_Apps_API.Controllers
                             DATA_CRIACAO = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
                             ID_ANTIGO = null,
                             ID_TIPO_FILA = NewFila.ID_TIPO_FILA,
-                            MAT_CRIADOR = int.Parse(matricula),
+                            MAT_CRIADOR = matricula,
                             NOME_SUB_FILA = sub_fila.NOME_SUB_FILA,
                             REGIONAL = regional,
                             STATUS_SUB_FILA = true
@@ -351,7 +350,7 @@ namespace Vivo_Apps_API.Controllers
                                     DT_CRIACAO = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
                                     ID_SUB_FILA = NewSubFila.ID_SUB_FILA,
                                     MASCARA = campo.CAMPO_SUSPENSO == true ? "" : campo.MASCARA,
-                                    MAT_CRIADOR = int.Parse(matricula),
+                                    MAT_CRIADOR = matricula,
                                     REGIONAL = regional,
                                     STATUS_CAMPOS_FILA = true,
                                 }).Entity;
@@ -425,7 +424,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpPost("EditSubFila")]
         [ProducesResponseType(typeof(Response<int>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult EditSubFila([FromBody] DEMANDA_SUB_FILA_DTO data, string matricula, string regional)
+        public JsonResult EditSubFila([FromBody] DEMANDA_SUB_FILA_DTO data, int matricula, string regional)
         {
             try
             {
@@ -455,7 +454,7 @@ namespace Vivo_Apps_API.Controllers
                                     DT_CRIACAO = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
                                     ID_SUB_FILA = NewSubFila.ID_SUB_FILA,
                                     MASCARA = campo.CAMPO_SUSPENSO == true ? "" : campo.MASCARA,
-                                    MAT_CRIADOR = int.Parse(matricula),
+                                    MAT_CRIADOR = matricula,
                                     REGIONAL = regional,
                                     STATUS_CAMPOS_FILA = true,
                                 }).Entity;
@@ -560,8 +559,8 @@ namespace Vivo_Apps_API.Controllers
                 {
                     if (data.Responsaveis.Any())
                     {
-                        List<string> listaOperadores = CD.DEMANDA_RESPONSAVEL_FILAs.Where(x =>
-                            x.ID_SUB_FILA == data.ID_SUB_FILA).Select(x => x.MATRICULA_RESPONSAVEL).ToList();
+                        List<int> listaOperadores = CD.DEMANDA_RESPONSAVEL_FILAs.Where(x =>
+                            x.ID_SUB_FILA == data.ID_SUB_FILA).Select(x => x.MATRICULA_RESPONSAVEL.Value).ToList();
                         // Buscando todas os responsaveis que já existe dentro da fila
                         if (data.Responsaveis.Count > listaOperadores.Count) // Usuário adicionado
                         {
@@ -802,7 +801,7 @@ namespace Vivo_Apps_API.Controllers
                     {
                         dataBeforeFilter = dataBeforeFilter.Where(k =>
                                 CD.DEMANDA_RESPONSAVEL_FILAs
-                                    .Where(postAndMeta => filter.Value.responsável.Select(x => x.Login).Contains(postAndMeta.MATRICULA_RESPONSAVEL))
+                                    .Where(postAndMeta => filter.Value.responsável.Select(x => x.Login).Contains(postAndMeta.MATRICULA_RESPONSAVEL.ToString()))
                                     .Select(l => l.ID_SUB_FILA).Contains(k.ID_SUB_FILA)
                         );
                     }
@@ -865,7 +864,7 @@ namespace Vivo_Apps_API.Controllers
 
                 datafilters.AnalistaSuporte = CD.ACESSOs.Where(x =>
                     CD.DEMANDA_RESPONSAVEL_FILAs
-                            .Select(x => x.MATRICULA_RESPONSAVEL)
+                            .Select(x => x.MATRICULA_RESPONSAVEL.ToString())
                             .Distinct()
                             .Contains(x.Login)
                 ).ProjectTo<ACESSO_DTO>(_mapper.ConfigurationProvider).ToList();
@@ -908,7 +907,7 @@ namespace Vivo_Apps_API.Controllers
                     });
 
                 var analistassuporte = CD.ACESSOs.Where(k => k.Regional == regional).Where(k =>
-                    CD.DEMANDA_RESPONSAVEL_FILAs.Select(x => x.MATRICULA_RESPONSAVEL).Distinct().Contains(k.Login)
+                    CD.DEMANDA_RESPONSAVEL_FILAs.Select(x => x.MATRICULA_RESPONSAVEL.ToString()).Distinct().Contains(k.Login)
                     );
                 var status = CD.CONTROLE_DE_DEMANDAS_RELACAO_STATUS_CHAMADOs.Select(k => k.STATUS).Distinct();
 

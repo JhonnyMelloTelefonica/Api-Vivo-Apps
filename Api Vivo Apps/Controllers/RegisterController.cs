@@ -44,7 +44,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpGet("VerifyCurrentUserExists")]
         [ProducesResponseType(typeof(Response<ACESSOS_MOBILE_PENDENTE?>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult VerifyCurrentUserExists(string matricula)
+        public JsonResult VerifyCurrentUserExists(int matricula)
         {
             try
             {
