@@ -6,6 +6,7 @@ using Shared_Class_Vivo_Apps.Enums;
 using Vivo_Apps_API.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
+using Shared_Class_Vivo_Apps.Models;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -105,14 +106,14 @@ namespace Vivo_Apps_API.Controllers
         [HttpGet("GetUserByMatricula")]
         [ProducesResponseType(typeof(Response<AcessoModel>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult GetUserByMatricula(string matricula)
+        public JsonResult GetUserByMatricula(int matricula)
         {
             AcessoModel user = _context.ACESSOS_MOBILEs.Where(x => x.MATRICULA == matricula)
                 .Select(y => new AcessoModel
                 {
                     ID = y.ID,
                     EMAIL = y.EMAIL,
-                    MATRICULA = y.MATRICULA,
+                    MATRICULA = y.MATRICULA.Value,
                     SENHA = y.SENHA,
                     REGIONAL = y.REGIONAL,
                     CARGO = (Cargos)Convert.ToInt32(y.CARGO),
@@ -126,12 +127,12 @@ namespace Vivo_Apps_API.Controllers
                     TP_AFASTAMENTO = y.TP_AFASTAMENTO,
                     OBS = y.OBS,
                     UserAvatar = y.UserAvatar,
-                    LOGIN_MOD = y.LOGIN_MOD,
-                    DT_MOD = y.DT_MOD,
-                    Perfil = _context.PERFIL_USUARIOs.Where(x => x.Login == y.MATRICULA).Select(k => new Perfil
+                    LOGIN_MOD = y.LOGIN_MOD.Value,
+                    DT_MOD = y.DT_MOD.Value,
+                    Perfil = _context.PERFIL_USUARIOs.Where(x => x.MATRICULA == y.MATRICULA).Select(k => new Perfil 
                     {
                         ID = k.ID,
-                        Login = k.Login,
+                        Login = k.MATRICULA.Value.ToString(),
                         Perfil_Plataforma = _context.PERFIL_PLATAFORMAS_VIVOs.Where(p=>p.ID_PERFIL == k.id_Perfil).First()
                     }).AsEnumerable()
                 }).FirstOrDefault();
@@ -322,7 +323,7 @@ namespace Vivo_Apps_API.Controllers
                         ID_CHAMADO = y.ID_CHAMADO,
                         RESPONSAVEL = _context.ACESSOs.Where(x => x.Login == y.MATRICULA_RESPONSAVEL).FirstOrDefault(),
                         DATA_RESPOSTA = y.DATA_RESPOSTA,
-                        ANEXOS = _context.CONTROLE_DE_DEMANDAS_ARQUIVOS_RESPOSTAs
+                        ANEXOS = _context.CONTROLE_DEMANDAS_ARQUIVOS_RESPOSTAs
                         .Where(k => k.ID_RESPOSTA == y.ID).ToList()
                     }).ToList();
 

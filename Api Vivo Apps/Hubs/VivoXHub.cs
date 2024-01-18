@@ -36,7 +36,7 @@ namespace Vivo_Apps_API.Hubs
         public static IDictionary<string, ACESSOS_MOBILE_CHAT_DTO> Users = new Dictionary<string, ACESSOS_MOBILE_CHAT_DTO>();
         public static List<ACESSOS_MOBILE_CHAT_DTO> AllUsersConnected = new List<ACESSOS_MOBILE_CHAT_DTO>();
 
-        public void MessageToUserChat(string mat_remetente, string mat_destinatario, string message)
+        public void MessageToUserChat(int mat_remetente, int mat_destinatario, string message)
         {
             foreach (var UserConnected in Users.Where(x => x.Value.MATRICULA == mat_destinatario))
             {

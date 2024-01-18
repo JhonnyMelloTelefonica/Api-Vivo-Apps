@@ -12,6 +12,7 @@ using Shared_Class_Vivo_Apps.Enums;
 using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
+using Shared_Class_Vivo_Apps.Models;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -43,7 +44,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpGet("VerifyCurrentUserExists")]
         [ProducesResponseType(typeof(Response<ACESSOS_MOBILE_PENDENTE?>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult VerifyCurrentUserExists(string matricula)
+        public JsonResult VerifyCurrentUserExists(int matricula)
         {
             try
             {
