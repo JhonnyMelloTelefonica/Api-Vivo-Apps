@@ -24,6 +24,7 @@ using DocumentFormat.OpenXml.Office2010.Excel;
 using OfficeOpenXml;
 using static Vivo_Apps_API.Converters.Converters;
 using Shared_Class_Vivo_Apps.Models;
+using DocumentFormat.OpenXml.InkML;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -387,20 +388,21 @@ namespace Vivo_Apps_API.Controllers
                 if (!string.IsNullOrEmpty(filter.Value.AnyColumnMatch))
                 {
                     dataBeforeFilter = dataBeforeFilter.Where(x =>
-                        filter.Value.AnyColumnMatch.Contains(x.ADABAS)
-                        || filter.Value.AnyColumnMatch.Contains(x.NOME_FANTASIA)
-                        || filter.Value.AnyColumnMatch.Contains(x.REDE)
-                        || filter.Value.AnyColumnMatch.Contains(x.UF)
-                        || filter.Value.AnyColumnMatch.Contains(x.DDD.ToString())
-                        || filter.Value.AnyColumnMatch.Contains(x.LOGIN_MOD.ToString())
-                        || filter.Value.AnyColumnMatch.Contains(x.DT_MOD.ToString())
-                        || filter.Value.AnyColumnMatch.Contains(x.RE_DIVISAO.ToString())
-                        || filter.Value.AnyColumnMatch.Contains(x.RE_GA.ToString())
-                        || filter.Value.AnyColumnMatch.Contains(x.RE_GP.ToString())
-                        || filter.Value.AnyColumnMatch.Contains(x.RE_GV.ToString())
-                        || filter.Value.AnyColumnMatch.Contains(x.CANAL)
+                        x.ADABAS.Contains(filter.Value.AnyColumnMatch) ||
+                        x.NOME_FANTASIA.Contains(filter.Value.AnyColumnMatch) ||
+                        x.REDE.Contains(filter.Value.AnyColumnMatch) ||
+                        x.UF.Contains(filter.Value.AnyColumnMatch) ||
+                        (!x.DDD.HasValue || x.DDD.ToString().Contains(filter.Value.AnyColumnMatch)) ||
+                        (x.LOGIN_MOD.HasValue || x.LOGIN_MOD.ToString().Contains(filter.Value.AnyColumnMatch)) ||
+                        (x.DT_MOD.HasValue || x.DT_MOD.ToString().Contains(filter.Value.AnyColumnMatch)) ||
+                        (x.RE_DIVISAO.HasValue || x.RE_DIVISAO.ToString().Contains(filter.Value.AnyColumnMatch)) ||
+                        (x.RE_GA.HasValue || x.RE_GA.ToString().Contains(filter.Value.AnyColumnMatch)) ||
+                        (x.RE_GP.HasValue || x.RE_GP.ToString().Contains(filter.Value.AnyColumnMatch)) ||
+                        (x.RE_GV.HasValue || x.RE_GV.ToString().Contains(filter.Value.AnyColumnMatch)) ||
+                        x.CANAL.Contains(filter.Value.AnyColumnMatch)
                     );
                 }
+
 
                 if (filter.Value.CANAL.Any())
                 {
@@ -461,11 +463,11 @@ namespace Vivo_Apps_API.Controllers
         [HttpPost("GetUsersByCargo")]
         [ProducesResponseType(typeof(Response<IEnumerable<ACESSOS_MOBILE_DTO>>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult GetUsersByCargo([FromBody] List<Cargos> cargos)
+        public JsonResult GetUsersByCargo([FromBody] List<Cargos> cargos, string regional)
         {
             try
             {
-                var saida = CD.ACESSOS_MOBILEs.ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
+                var saida = CD.ACESSOS_MOBILEs.Where(x=>x.REGIONAL == regional).ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
                     .Where(x => cargos.Contains(x.CARGO)).AsEnumerable();
 
                 return new JsonResult(new Response<IEnumerable<ACESSOS_MOBILE_DTO>>
@@ -843,6 +845,7 @@ namespace Vivo_Apps_API.Controllers
                 }
 
                 var bytes = await System.IO.File.ReadAllBytesAsync(StoredFilePath);
+                System.IO.File.Delete(StoredFilePath);
 
                 return new JsonResult(new Response<FileContentResult>
                 {
