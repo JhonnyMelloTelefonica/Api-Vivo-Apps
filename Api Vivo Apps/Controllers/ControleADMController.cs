@@ -1743,41 +1743,6 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                if (usuarios.Any(x => x.MATRICULA == x.MATRICULA)
-                    || usuarios.Any(x => x.EMAIL == x.EMAIL))
-                {
-                    return new JsonResult(new Response<string>
-                    {
-                        Data = "Arquivo inválido!",
-                        Succeeded = false,
-                        Message = "No arquivo enviado há matrículas ou e-mails repetidos, por favor corrigir e enviar novamente",
-                        Errors = new string[] { "matrícula existente!" },
-                    });
-                }
-
-                if (CD.ACESSOS_MOBILE_PENDENTEs.Select(x => x.EMAIL.ToLower()).Any(x => usuarios.Select(y => y.EMAIL.ToLower()).Contains(x))
-                || CD.ACESSOS_MOBILEs.Select(x => x.EMAIL.ToLower()).Any(x => usuarios.Select(y => y.EMAIL.ToLower()).Contains(x)))
-                {
-                    return new JsonResult(new Response<string>
-                    {
-                        Data = "Solicitação já existente!",
-                        Succeeded = false,
-                        Message = "Já existe uma solicitação de acesso com este e-mail",
-                        Errors = new string[] { "Solicitação já existente!" },
-                    });
-                }
-
-                if (CD.ACESSOS_MOBILE_PENDENTEs.Where(x => x.TIPO.ToLower() != "alteração").Select(x => x.MATRICULA).Any(x => usuarios.Select(y => y.MATRICULA).ToList().Contains(x.Value))
-                || CD.ACESSOS_MOBILEs.Select(x => x.MATRICULA).Any(x => usuarios.Select(y => y.MATRICULA).ToList().Contains(x.Value)))
-                {
-                    return new JsonResult(new Response<string>
-                    {
-                        Data = "Solicitação já existente!",
-                        Succeeded = false,
-                        Message = "Já existe uma solicitação de acesso ou um usuário com esta matrícula",
-                        Errors = new string[] { "matrícula existente!" },
-                    });
-                }
                 foreach (var usuario in usuarios)
                 {
                     var user = CD.ACESSOS_MOBILE_PENDENTEs.Add(new ACESSOS_MOBILE_PENDENTE
@@ -1955,8 +1920,7 @@ namespace Vivo_Apps_API.Controllers
         }
 
         [HttpPost("GetUsuariosExcel")]
-        public async Task<JsonResult> GetUsuariosExcel(
-            [FromBody] PaginationControleAcessoModel filter)
+        public async Task<JsonResult> GetUsuariosExcel([FromBody] PaginationControleAcessoModel filter)
         {
             try
             {
@@ -2056,7 +2020,7 @@ namespace Vivo_Apps_API.Controllers
                     Perfil = CD.PERFIL_USUARIOs.Where(k => k.MATRICULA == x.MATRICULA).Select(x => x.id_Perfil.Value).ToList()
                 });
 
-                string templatepath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "FilesTemplates//Acessos_Mobile_Model.html");
+                string templatepath = Path.Combine(Directory.GetCurrentDirectory(), "FilesTemplates//Acessos_Mobile_Model.html");
                 string htmldata = System.IO.File.ReadAllText(templatepath);
 
                 var excelstring = new System.Text.StringBuilder();
@@ -2134,7 +2098,9 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                if (CD.ACESSOS_MOBILE_PENDENTEs.Select(x => x.EMAIL.ToLower()).Any(x => usuarios.Select(y => y.EMAIL.ToLower()).Contains(x)))
+                if (CD.ACESSOS_MOBILE_PENDENTEs
+                    .Where(x => x.TIPO != "ALTERAÇÃO" && x.STATUS != "REPROVADO")
+                    .Select(x => x.EMAIL.ToLower()).Any(x => usuarios.Select(y => y.EMAIL.ToLower()).Contains(x)))
                 {
                     IEnumerable<string> list = CD.ACESSOS_MOBILE_PENDENTEs.Select(x => x.EMAIL.ToLower()).Where(x => usuarios.Select(y => y.EMAIL.ToLower()).Contains(x)).Select(x => x + "\n");
                     return new JsonResult(new Response<IEnumerable<string>>
@@ -2156,7 +2122,9 @@ namespace Vivo_Apps_API.Controllers
                         Errors = new string[] { "Solicitação já existente!" },
                     });
                 }
-                else if (CD.ACESSOS_MOBILE_PENDENTEs.Where(x => x.TIPO.ToLower() != "alteração").Select(x => x.MATRICULA).Any(x => usuarios.Select(y => y.MATRICULA).ToList().Contains(x.Value)))
+                else if (CD.ACESSOS_MOBILE_PENDENTEs
+                    .Where(x => x.TIPO != "ALTERAÇÃO" && x.STATUS != "REPROVADO")
+                    .Select(x => x.MATRICULA).Any(x => usuarios.Select(y => y.MATRICULA).ToList().Contains(x.Value)))
                 {
                     IEnumerable<string> list = CD.ACESSOS_MOBILE_PENDENTEs.Where(x => x.TIPO.ToLower() != "alteração").Select(x => x.MATRICULA).Where(x => usuarios.Select(y => y.MATRICULA).ToList().Contains(x.Value)).Select(x => x + "\n");
 

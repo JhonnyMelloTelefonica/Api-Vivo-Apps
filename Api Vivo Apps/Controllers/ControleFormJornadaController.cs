@@ -13,6 +13,7 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Linq;
 using System.Collections.Generic;
 using System.IO;
+using System;
 using AutoMapper;
 using static Shared_Class_Vivo_Apps.Model_DTO.JORNADA_DTO;
 using AutoMapper.QueryableExtensions;
@@ -93,9 +94,6 @@ namespace Vivo_Apps_API.Controllers
                                             .Where(x => x.ID_SUB_TEMAS == src.ID_SUB_TEMAS.Value)
                                             .FirstOrDefault().SUB_TEMAS))
                 .ForMember(
-                    dest => dest.CANAL,
-                    opt => opt.MapFrom(src => ConvertStringToEnumList<Canal>(src.CANAL)))
-                .ForMember(
                     dest => dest.CARGO,
                     opt => opt.MapFrom(src => ConvertStringToEnumList<Cargos>(src.CARGO)))
                 .ForMember(
@@ -158,11 +156,10 @@ namespace Vivo_Apps_API.Controllers
                     Cargos.Gerente_Senior_Territorial,
                     Cargos.Gerente_Vendas_B2C,
                 };
-
-                IEnumerable<Option<int>>
-                    cargos = CD.JORNADA_BD_CARGOS_CANALs
-                    .Where(x => !list.Contains(((Cargos)x.ID)))
-                    .Select(x => new Option<int> { Value = Convert.ToInt32(x.ID), Text = x.CARGO, });
+                
+                IEnumerable<Option<int>> cargos = Enum.GetValues(typeof(Cargos))
+                    .Cast<Cargos>().ToList().Where(x=> !list.Contains(x))
+                    .Select(x => new Option<int> { Value = Convert.ToInt32(x), Text = x.GetDisplayName(), });
 
                 return new JsonResult(new Response<IEnumerable<Option<int>>>
                 {

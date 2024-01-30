@@ -12,9 +12,8 @@
 	  <Compile Remove="DB_Context_Vivo_MAIS\Vivo_MaisContext.cs" />
 	</ItemGroup>
 	<ItemGroup>
-		<None Remove="FilesTemplates\Jornada_bd_hierarquia_Model.html" />
-		<None Remove="FilesTemplates\Jornada_bd_hierarquia_Model.xls" />
-		<None Remove="FilesTemplates\usericon.png" />
+		<!-- Include the folder and its content in the publish output -->
+		<Content Include="FilesTemplates\**" CopyToPublishDirectory="PreserveNewest" />
 	</ItemGroup>
 
 
@@ -60,8 +59,5 @@
 	<ItemGroup>
 		<Folder Include="DB_Context_Vivo_MAIS\" />
 	</ItemGroup>
-
 	<Import Project="..\..\Shared_Class_Vivo_Apps\Shared_Class_Vivo_Apps\Shared_Class_Vivo_Apps.projitems" Label="Shared" />
-
-
 </Project>

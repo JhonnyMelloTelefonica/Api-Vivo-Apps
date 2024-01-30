@@ -127,8 +127,8 @@ namespace Vivo_Apps_API.Controllers
                     TP_AFASTAMENTO = y.TP_AFASTAMENTO,
                     OBS = y.OBS,
                     UserAvatar = y.UserAvatar,
-                    LOGIN_MOD = y.LOGIN_MOD.Value,
-                    DT_MOD = y.DT_MOD.Value,
+                    LOGIN_MOD = y.LOGIN_MOD,
+                    DT_MOD = y.DT_MOD,
                     Perfil = _context.PERFIL_USUARIOs.Where(x => x.MATRICULA == y.MATRICULA).Select(k => new Perfil 
                     {
                         ID = k.ID,

@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Linq;
 using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
+using static Shared_Class_Vivo_Apps.Model_DTO.JORNADA_DTO;
 using static Vivo_Apps_API.Converters.Converters;
 using Shared_Class_Vivo_Apps.Models;
 
@@ -26,6 +27,75 @@ namespace Vivo_Apps_API.Controllers
         public ControleQuestionsJornadaController(ILogger<ControleQuestionsJornadaController> logger)
         {
             _logger = logger;
+        }
+
+        [HttpPost("CreateQuestionMassivo")]
+        public async Task<JsonResult> CreateQuestionMassivo([FromBody] List<JORNADA_QUESTION_DTO> data, int matricula)
+        {
+            try
+            {
+                var user = CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA == matricula).FirstOrDefault();
+                foreach (var question in data)
+                {
+                    var oldId = question.ID_QUESTION;
+
+                    var question_criada = CD.JORNADA_BD_QUESTIONs.Add(new JORNADA_BD_QUESTION
+                    {
+                        TP_FORMS = string.Join(';', question.TP_FORMS),
+                        ID_TEMAS = question.ID_TEMAS,
+                        TP_QUESTAO = question.TP_QUESTAO,
+                        ID_SUB_TEMAS = question.ID_SUB_TEMAS,
+                        STATUS_QUESTION = question.STATUS_QUESTION,
+                        PERGUNTA = question.PERGUNTA,
+                        PESO = 1,
+                        REGIONAL = question.REGIONAL,
+                        FIXA = question.FIXA,
+                        EXPLICACAO = null,
+                        CARGO = string.Join(';', question.CARGO.Distinct().Select(x => (int)x)),
+                        CANAL = string.Join(';', question.CANAL.Distinct().Select(x => (int)x)),
+                        DT_MOD = DateTime.Now,
+                        LOGIN_MOD = user.MATRICULA
+                    }).Entity;
+
+                    await CD.SaveChangesAsync();
+
+                    foreach (var item in question.Alternativas.Where(x => x.ID_QUESTION == oldId))
+                    {
+                        CD.JORNADA_BD_ANSWER_ALTERNATIVAs.Add(new JORNADA_BD_ANSWER_ALTERNATIVA
+                        {
+                            ID_QUESTION = question_criada.ID_QUESTION,
+                            ALTERNATIVA = item.ALTERNATIVA,
+                            PESO = 1,
+                            RESPOSTA_CORRETA = item.RESPOSTA_CORRETA,
+                            STATUS_ALTERNATIVA = item.STATUS_ALTERNATIVA
+                        });
+                    }
+                }
+
+                await CD.SaveChangesAsync();
+
+                return new JsonResult(new Response<string>
+                {
+                    Data = $"Total de {data.Count} novas perguntas criadas e pronta para uso!!",
+                    Succeeded = true,
+                    Message = $"Total de {data.Count} novas perguntas criadas e pronta para uso!!",
+                    Errors = null,
+                });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    },
+                });
+            }
         }
 
         [HttpPost("CreateQuestion")]
@@ -107,9 +177,28 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                IEnumerable<Option<int>> cargos = CD.JORNADA_BD_CARGOS_CANALs
-                    .Select(x => new Option<int> { Value = Convert.ToInt32(x.ID), Text = x.CARGO, });
+                var list = new List<Cargos>() {
+                    Cargos.ADM,
+                    Cargos.Gerente_Senior_Territorial,
+                    Cargos.Coordenador_Suporte_Vendas,
+                    Cargos.Gerente_Suporte_Vendas,
+                    Cargos.Diretora,
+                    Cargos.Consultor_Gestão_Vendas,
+                    Cargos.Analista_Suporte_Vendas_Senior,
+                    Cargos.Analista_Suporte_Vendas_Pleno,
+                    Cargos.Analista_Suporte_Vendas_Junior,
+                    Cargos.Estagiário,
+                    Cargos.Gerente_Senior_Gestão_Vendas,
+                    Cargos.Gerente_Senior_Territorial,
+                    Cargos.Gerente_Vendas_B2C,
+                };
+
+                IEnumerable<Option<int>> cargos = Enum.GetValues(typeof(Cargos))
+                    .Cast<Cargos>().ToList().Where(x => !list.Contains(x))
+                    .Select(x => new Option<int> { Value = Convert.ToInt32(x), Text = x.GetDisplayName(), });
+
                 var tema_subtema = CD.JORNADA_BD_TEMAS_SUB_TEMAs;
+
                 return new JsonResult(new Response<object>
                 {
                     Data = new
@@ -137,13 +226,19 @@ namespace Vivo_Apps_API.Controllers
                 });
             }
         }
-        
+
         [HttpPost("GetEditQuestion")]
         public async Task<JsonResult> GetEditQuestion([FromBody] GenericPaginationModel<FilterEditQuestionModel> filter)
         {
             try
             {
-                var Data = CD.JORNADA_BD_QUESTIONs.Where(x => x.STATUS_QUESTION == true);
+
+                var Data = CD.JORNADA_BD_QUESTIONs.AsQueryable();
+
+                if (filter.Value.Status is not null)
+                {
+                    Data = Data.Where(x => x.STATUS_QUESTION == filter.Value.Status);
+                }
 
                 if (filter.Value.Pergunta is not null)
                 {
@@ -204,7 +299,7 @@ namespace Vivo_Apps_API.Controllers
 
                 if (filter.Value.Fixa is not null)
                 {
-                    Data = Data.Where(x => (filter.Value.Fixa == false ? x.FIXA == filter.Value.Fixa : x.FIXA != null));
+                    Data = Data.Where(x => x.FIXA == filter.Value.Fixa);
                 }
 
                 var lista = Data.OrderBy(x => x.ID_QUESTION)
@@ -263,7 +358,7 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var question =  CD.JORNADA_BD_QUESTIONs.Find(ID_QUESTION);
+                var question = CD.JORNADA_BD_QUESTIONs.Find(ID_QUESTION);
                 question.STATUS_QUESTION = false;
                 await CD.SaveChangesAsync();
                 return new JsonResult(new Response<string>

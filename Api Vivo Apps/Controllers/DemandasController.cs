@@ -44,14 +44,12 @@ namespace Vivo_Apps_API.Controllers
                                 .Distinct()
                                 .Contains(y.MATRICULA.Value)))
                     );
-                cfg.CreateMap<DEMANDA_CAMPOS_FILA, DEMANDA_CAMPOS_FILA_DTO>()
-                .ForMember(
-                    dest => dest.DEMANDA_VALORES_CAMPOS_SUSPENSOs,
-                    opt => opt.MapFrom(src => CD.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Where(y => y.STATUS == true))
-                    );
+                cfg.CreateMap<DEMANDA_CAMPOS_FILA, DEMANDA_CAMPOS_FILA_DTO>();
+
                 cfg.CreateMap<DEMANDA_VALORES_CAMPOS_SUSPENSO, DEMANDA_VALORES_CAMPOS_SUSPENSO_DTO>();
 
                 cfg.CreateMap<ACESSO, ACESSO_DTO>();
+
                 cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_DTO>()
                 .ForMember(
                     dest => dest.CARGO,
@@ -209,7 +207,8 @@ namespace Vivo_Apps_API.Controllers
                     MAT_CRIADOR = matricula,
                     NOME_TIPO_FILA = data.NOME_TIPO_FILA,
                     REGIONAL = regional,
-                    STATUS_TIPO_FILA = true
+                    STATUS_TIPO_FILA = true,
+                    DESCRICAO = data.DESCRICAO
                 }).Entity;
 
                 CD.SaveChanges();
@@ -226,6 +225,7 @@ namespace Vivo_Apps_API.Controllers
                             ID_TIPO_FILA = NewFila.ID_TIPO_FILA,
                             MAT_CRIADOR = matricula,
                             NOME_SUB_FILA = sub_fila.NOME_SUB_FILA,
+                            DESCRICAO = sub_fila.DESCRICAO,
                             REGIONAL = regional,
                             STATUS_SUB_FILA = true
                         }).Entity;
@@ -334,6 +334,7 @@ namespace Vivo_Apps_API.Controllers
                             MAT_CRIADOR = matricula,
                             NOME_SUB_FILA = sub_fila.NOME_SUB_FILA,
                             REGIONAL = regional,
+                            DESCRICAO = sub_fila.DESCRICAO,
                             STATUS_SUB_FILA = true
                         }).Entity;
 
@@ -433,6 +434,7 @@ namespace Vivo_Apps_API.Controllers
                 NewSubFila.CAMPOS_AUTO = data.CAMPOS_AUTO;
                 NewSubFila.CAMPOS_IDENT_USER = data.CAMPOS_IDENT_USER;
                 NewSubFila.NOME_SUB_FILA = data.NOME_SUB_FILA;
+                NewSubFila.DESCRICAO = data.DESCRICAO;
                 //NewSubFila.STATUS_SUB_FILA = true;
 
                 CD.SaveChanges();
@@ -562,7 +564,7 @@ namespace Vivo_Apps_API.Controllers
                         List<int> listaOperadores = CD.DEMANDA_RESPONSAVEL_FILAs.Where(x =>
                             x.ID_SUB_FILA == data.ID_SUB_FILA).Select(x => x.MATRICULA_RESPONSAVEL.Value).ToList();
                         // Buscando todas os responsaveis que já existe dentro da fila
-                        if (data.Responsaveis.Count > listaOperadores.Count) // Usuário adicionado
+                        if (data.Responsaveis.Count() > listaOperadores.Count) // Usuário adicionado
                         {
                             foreach (var resp in data.Responsaveis)
                             {
@@ -576,7 +578,7 @@ namespace Vivo_Apps_API.Controllers
                                 }
                             }
                         }
-                        else if (data.Responsaveis.Count < listaOperadores.Count) // Usuário Excluido
+                        else if (data.Responsaveis.Count() < listaOperadores.Count) // Usuário Excluido
                         {
                             foreach (var resp in listaOperadores)
                             {
@@ -759,7 +761,6 @@ namespace Vivo_Apps_API.Controllers
             try
             {
                 var dataBeforeFilter = CD.DEMANDA_SUB_FILAs.AsQueryable();
-
                 //if (!string.IsNullOrEmpty(filter.Value.matricula))
                 //{
                 //    dataBeforeFilter = dataBeforeFilter.Where(x => x.MATRICULA_SOLICITANTE == filter.Value.matricula);
@@ -777,19 +778,18 @@ namespace Vivo_Apps_API.Controllers
                 {
                     if (filter.Value.tipo_fila.Any())
                     {
+                        List<int> tipo_fila = filter.Value.tipo_fila.Select(x => x.ID_TIPO_FILA).ToList();
+
                         dataBeforeFilter = dataBeforeFilter.Where(k =>
-                            CD.DEMANDA_TIPO_FILAs
-                                .Where(postAndMeta => filter.Value.tipo_fila.Select(x => x.ID_TIPO_FILA).Contains(postAndMeta.ID_TIPO_FILA))
-                                .Select(l => l.ID_TIPO_FILA).Contains(k.ID_TIPO_FILA));
+                            tipo_fila.Contains(k.ID_TIPO_FILA));
 
                         if (filter.Value.fila is not null)
                         {
                             if (filter.Value.fila.Any())
                             {
-                                dataBeforeFilter = dataBeforeFilter.Where(k =>
-                                CD.DEMANDA_SUB_FILAs
-                                    .Where(postAndMeta => filter.Value.fila.Select(x => x.ID_SUB_FILA).Contains(postAndMeta.ID_SUB_FILA))
-                                    .Select(l => l.ID_TIPO_FILA).Contains(k.ID_TIPO_FILA));
+                                List<int> sub_fila = filter.Value.fila.Select(x => x.ID_SUB_FILA).ToList();
+
+                                dataBeforeFilter = dataBeforeFilter.Where(k => sub_fila.Contains(k.ID_SUB_FILA));
                             }
                         }
                     }
@@ -800,9 +800,11 @@ namespace Vivo_Apps_API.Controllers
                     if (filter.Value.responsável.Any())
                     {
                         dataBeforeFilter = dataBeforeFilter.Where(k =>
-                                CD.DEMANDA_RESPONSAVEL_FILAs
-                                    .Where(postAndMeta => filter.Value.responsável.Select(x => x.Login).Contains(postAndMeta.MATRICULA_RESPONSAVEL.ToString()))
-                                    .Select(l => l.ID_SUB_FILA).Contains(k.ID_SUB_FILA)
+                            CD.DEMANDA_RESPONSAVEL_FILAs
+                                .Where(postAndMeta => filter.Value.responsável
+                                        .Select(x => x.MATRICULA)
+                                        .Contains(postAndMeta.MATRICULA_RESPONSAVEL.Value))
+                                .Select(l => l.ID_SUB_FILA).Contains(k.ID_SUB_FILA)
                         );
                     }
                 }
@@ -853,21 +855,19 @@ namespace Vivo_Apps_API.Controllers
                 var datafilters = new FilterFilaDemandasModel();
 
                 datafilters.filas = CD.DEMANDA_TIPO_FILAs
-                    .Where(x => x.REGIONAL == regional)
-                    .IgnoreAutoIncludes()
+                    .Where(x => x.REGIONAL == regional).Distinct()
                     .ProjectTo<DEMANDA_TIPO_FILA_DTO>(_mapper.ConfigurationProvider);
 
                 datafilters.tipo_filas = CD.DEMANDA_SUB_FILAs
-                    .Where(x => x.REGIONAL == regional)
-                    .IgnoreAutoIncludes()
+                    .Where(x => x.REGIONAL == regional).Distinct()
                     .ProjectTo<DEMANDA_SUB_FILA_DTO>(_mapper.ConfigurationProvider);
 
-                datafilters.AnalistaSuporte = CD.ACESSOs.Where(x =>
+                datafilters.AnalistaSuporte = CD.ACESSOS_MOBILEs.Where(x =>
                     CD.DEMANDA_RESPONSAVEL_FILAs
-                            .Select(x => x.MATRICULA_RESPONSAVEL.ToString())
+                            .Select(x => x.MATRICULA_RESPONSAVEL)
                             .Distinct()
-                            .Contains(x.Login)
-                ).ProjectTo<ACESSO_DTO>(_mapper.ConfigurationProvider).ToList();
+                            .Contains(x.MATRICULA)
+                ).ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider);
 
                 return new JsonResult(new Response<FilterFilaDemandasModel>
                 {
@@ -948,11 +948,27 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var Dados_Fila = CD.DEMANDA_TIPO_FILAs
-                    .Include(x => x.DEMANDA_SUB_FILAs)
-                        .ThenInclude(x => x.DEMANDA_RESPONSAVEL_FILAs)
-                    .ProjectTo<DEMANDA_TIPO_FILA_DTO>(_mapper.ConfigurationProvider)
-                    .AsEnumerable();
+                var Dados_Fila = CD.DEMANDA_TIPO_FILAs.Select(x => new DEMANDA_TIPO_FILA_DTO
+                {
+                    ID_TIPO_FILA = x.ID_TIPO_FILA,
+                    NOME_TIPO_FILA = x.NOME_TIPO_FILA,
+                    REGIONAL = x.REGIONAL,
+                    STATUS_TIPO_FILA = x.STATUS_TIPO_FILA,
+                    DESCRICAO = x.DESCRICAO,
+                    DEMANDA_SUB_FILAs = CD.DEMANDA_SUB_FILAs.Where(y => y.ID_TIPO_FILA == x.ID_TIPO_FILA)
+                    .Select(y => new DEMANDA_SUB_FILA_DTO
+                    {
+                        ID_SUB_FILA = y.ID_SUB_FILA,
+                        NOME_SUB_FILA = y.NOME_SUB_FILA,
+                        REGIONAL = y.REGIONAL,
+                        DESCRICAO = y.DESCRICAO,
+                        CAMPOS_AUTO = y.CAMPOS_AUTO,
+                        CAMPOS_IDENT_USER = y.CAMPOS_IDENT_USER,
+                        STATUS_SUB_FILA = y.STATUS_SUB_FILA,
+                        ID_TIPO_FILA = y.ID_TIPO_FILA,
+                        ID_ANTIGO = y.ID_ANTIGO
+                    }).ToList()
+                }).AsEnumerable();
 
                 return new JsonResult(new Response<IEnumerable<DEMANDA_TIPO_FILA_DTO>>
                 {
@@ -981,21 +997,17 @@ namespace Vivo_Apps_API.Controllers
         [HttpGet("GetDadosFilaByID")]
         [ProducesResponseType(typeof(Response<DATA_CRIAR_DEMANDA>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult GetDadosFilaByID(int id)
+        public JsonResult GetDadosFilaByID()
         {
             try
             {
-                var Dados_Fila = CD.DEMANDA_TIPO_FILAs.Where(x => x.ID_TIPO_FILA == id)
-                    .ProjectTo<DEMANDA_TIPO_FILA_DTO>(_mapper.ConfigurationProvider).FirstOrDefault();
-
                 var Carteira = CD.Carteira_NEs.Where(x => x.ANOMES == CD.Carteira_NEs.Max(y => y.ANOMES));
-                var Sap = CD.CNS_BASE_TERCEIROS_SAP_GTs.ToList();
+                var Sap = CD.CNS_BASE_TERCEIROS_SAP_GTs.AsQueryable();
 
                 return new JsonResult(new Response<DATA_CRIAR_DEMANDA>
                 {
                     Data = new DATA_CRIAR_DEMANDA
                     {
-                        Dados_Fila = Dados_Fila ?? new DEMANDA_TIPO_FILA_DTO(),
                         Carteira = Carteira,
                         Sap = Sap
                     },
@@ -1380,7 +1392,7 @@ namespace Vivo_Apps_API.Controllers
                 user.STATUS = true;
 
                 var saida = CD.SaveChanges();
-                
+
                 return new JsonResult(new Response<string>
                 {
                     Data = "Tudo certo!",
@@ -1416,7 +1428,7 @@ namespace Vivo_Apps_API.Controllers
                 user.STATUS = false;
 
                 var saida = CD.SaveChanges();
-                
+
                 return new JsonResult(new Response<string>
                 {
                     Data = "Tudo certo!",
