@@ -1,5 +1,8 @@
 using AutoMapper;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
+using Microsoft.OpenApi.Models;
 using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using Vivo_Apps_API;
 using Vivo_Apps_API.Hubs;
 
@@ -10,7 +13,23 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Vivo Apps API", Version = "v1", 
+        Contact = new OpenApiContact { 
+            Email = "ne_automacao.br@telefonica.com", Name = "Automação NE", Url = new Uri("mailto:ne_automacao.br@telefonica.com") 
+        } 
+    });
+
+    // Customize operationId to be equal to the route name
+    c.CustomOperationIds(apiDesc =>
+    {
+        return apiDesc.RelativePath?.Split('/')[2] ?? null;
+    });
+
+    c.DocumentFilter<CustomDocumentFilter>();
+});
+
 builder.Services.AddSignalR();
 builder.Services.AddHttpClient();
 builder.Services.AddHttpLogging(o => o = new Microsoft.AspNetCore.HttpLogging.HttpLoggingOptions());
@@ -57,3 +76,19 @@ app.UseEndpoints(endpoints =>
 });
 //app.Services.GetRequiredService<TableDependencyService>();
 app.Run();
+
+
+public class CustomDocumentFilter : IDocumentFilter
+{
+    public void Apply(OpenApiDocument swaggerDoc, DocumentFilterContext context)
+    {
+        foreach (var pathItem in swaggerDoc.Paths)
+        {
+            foreach (var operation in pathItem.Value.Operations)
+            {
+                // Set summary to be equal to the route name
+                operation.Value.Summary = pathItem.Key.Split('/')[3];
+            }
+        }
+    }
+}

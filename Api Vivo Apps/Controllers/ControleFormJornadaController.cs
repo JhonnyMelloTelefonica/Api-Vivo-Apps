@@ -97,9 +97,6 @@ namespace Vivo_Apps_API.Controllers
                     dest => dest.CARGO,
                     opt => opt.MapFrom(src => ConvertStringToEnumList<Cargos>(src.CARGO)))
                 .ForMember(
-                    dest => dest.DT_MOD,
-                    opt => opt.MapFrom(src => Convert.ToDateTime(src.DT_MOD)))
-                .ForMember(
                     dest => dest.TP_FORMS,
                     opt => opt.MapFrom(src => ConvertStringToStringList(src.TP_FORMS)));
 
@@ -192,6 +189,7 @@ namespace Vivo_Apps_API.Controllers
                 string TIPO_PROVA,
                 int CARGO,
                 bool FIXA,
+                string REGIONAL,
                 int TEMA)
         {
             try
@@ -207,6 +205,7 @@ namespace Vivo_Apps_API.Controllers
                            .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains(CARGO))
                            .Where(y => y.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains(TIPO_PROVA))
                            .Where(k => (FIXA == false ? k.FIXA == FIXA : k.FIXA != null))
+                           .Where(x => x.REGIONAL == REGIONAL)
                            .Where(x => x.ID_TEMAS.Value == TEMA)
                            .Where(x => x.STATUS_QUESTION == true)
                            .Count();
@@ -241,6 +240,7 @@ namespace Vivo_Apps_API.Controllers
                 string TIPO_PROVA,
                 int CARGO,
                 bool FIXA,
+                string REGIONAL,
                 int SUB_TEMA)
         {
             try
@@ -257,6 +257,7 @@ namespace Vivo_Apps_API.Controllers
                            .Where(y => y.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains(TIPO_PROVA))
                            .Where(k => (FIXA == false ? k.FIXA == FIXA : k.FIXA != null))
                            .Where(x => x.ID_TEMAS.Value == SUB_TEMA)
+                           .Where(x => x.REGIONAL == REGIONAL)
                            .Where(x => x.STATUS_QUESTION == true)
                            .Count();
 
@@ -288,6 +289,7 @@ namespace Vivo_Apps_API.Controllers
         [ProducesResponseType(typeof(Response<string>), 500)]
         public async Task<JsonResult> GetTemasCriarFormulario(
                 string TIPO_PROVA,
+                string REGIONAL,
                 int CARGO,
                 bool FIXA)
         {
@@ -305,10 +307,11 @@ namespace Vivo_Apps_API.Controllers
                     .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains(CARGO))
                     .Where(y => y.TP_FORMS.Split(new[] { ';' }).Contains(TIPO_PROVA))
                     .Where(k => (FIXA == false ? k.FIXA == FIXA : k.FIXA != null))
+                    .Where(k => k.REGIONAL == REGIONAL)
                     .ToList(); // Aqui trazemos os dados do banco para a memória
 
                 List<int> temas_id = dadosDoBancoFiltrados
-                            .Select(x => Convert.ToInt32(x.ID_TEMAS))
+                            .Select(x => x.ID_TEMAS.Value)
                             .ToList();
 
                 // Parte 2: Consulta executada no lado do cliente (em memória)
@@ -594,10 +597,8 @@ namespace Vivo_Apps_API.Controllers
                             .Where(x => x.CADERNO == maxcaderno)
                             .Select(x => x.DT_FINALIZACAO).FirstOrDefault();
 
-                        if (datafinal.HasValue)
+                        if (!datafinal.HasValue) //significa que o formulário não está finalizado logo há um fomulário do mesmo tipo ativo
                         {
-                            //DateTime.Now > Convert.ToDateTime(datafinal)
-                            //significa que o formulário está finalizado
                             return new JsonResult(new Response<string>
                             {
                                 Data = "Tentativa de criação de formulário repetido",
@@ -1577,7 +1578,7 @@ namespace Vivo_Apps_API.Controllers
             {
                 var canal = DePara.CanalCargoEnum((Cargos)CARGO);
 
-                if (Convert.ToDateTime(DT_FINAL) == DateTime.MinValue)
+                if (string.IsNullOrEmpty(DT_FINAL))
                 {
                     DT_FINAL = null;
                 }
@@ -1593,7 +1594,7 @@ namespace Vivo_Apps_API.Controllers
                     CADERNO = proximocaderno,
                     TP_FORMS = TIPO_PROVA,
                     DT_INICIO_AVALIACAO = Convert.ToDateTime(DT_INIT),
-                    DT_FINALIZACAO = Convert.ToDateTime(DT_FINAL),
+                    DT_FINALIZACAO = !string.IsNullOrEmpty(DT_FINAL) ? Convert.ToDateTime(DT_FINAL) : null,
                     FIXA = FIXA,
                     REGIONAL = REGIONAL,
                     ELEGIVEL = ELEGIVEL
@@ -1871,7 +1872,7 @@ namespace Vivo_Apps_API.Controllers
 
             questions = questions
                            .Where(x => Convert.ToDateTime(x.DT_INICIO_AVALIACAO) < actual) // Data inicial deve ser maior que hoje
-                           .Where(x => x.DT_FINALIZACAO.HasValue) // Data de finalização nula
+                           .Where(x => !x.DT_FINALIZACAO.HasValue) // Data de finalização nula
                            .ToList();
 
             return questions;

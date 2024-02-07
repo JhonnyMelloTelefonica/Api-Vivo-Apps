@@ -14,6 +14,7 @@ using Shared_Class_Vivo_Apps.Enums;
 using System.Data;
 using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
 using Shared_Class_Vivo_Apps.Models;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -1128,13 +1129,15 @@ namespace Vivo_Apps_API.Controllers
         }
 
         [HttpPost("AbrirDemanda")]
-        public string AbrirDemanda(AbrirDemandaModel data)
+        [ProducesResponseType(typeof(Response<int>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public string AbrirDemanda([FromBody] DEMANDAS_FILA data)
         {
             try
             {
                 var demanda = CD.CONTROLE_DE_DEMANDAS_CHAMADOs.Add(new CONTROLE_DE_DEMANDAS_CHAMADO
                 {
-                    ID_FILA_CHAMADO = data.ID,
+                    ID_FILA_CHAMADO = data.FILA_DTO.ID_SUB_FILA,
                     MATRICULA_SOLICITANTE = data.MAT_SOLICITANTE,
                     REGIONAL = data.REGIONAL,
                     EMAIL_SECUNDARIO = data.SEC_EMAIL,
@@ -1149,22 +1152,23 @@ namespace Vivo_Apps_API.Controllers
                     ID_CHAMADO = demanda.ID
                 }).Entity;
                 CD.SaveChanges();
-
-
+                
                 demanda.ID_CAMPOS_CHAMADO = relacao_campos.ID;
 
-                foreach (var campo in data.campos)
+                foreach (var campo in data.CAMPOS)
                 {
                     CD.CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADOs.Add(new CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADO
                     {
                         ID_CAMPOS_CHAMADO = relacao_campos.ID,
-                        VALOR = campo.VALOR,
+                        VALOR = campo.RESPOSTA,
                         CAMPO = campo.CAMPO
                     });
                 }
-                CD.SaveChanges();
 
+                CD.SaveChanges();
+                
                 var relacao_status = CD.CONTROLE_DE_DEMANDAS_STATUS_CHAMADOs.Add(new CONTROLE_DE_DEMANDAS_STATUS_CHAMADO { ID_CHAMADO = demanda.ID }).Entity;
+                
                 CD.SaveChanges();
 
                 demanda.ID_STATUS_CHAMADO = relacao_status.ID;
@@ -1175,8 +1179,28 @@ namespace Vivo_Apps_API.Controllers
                     STATUS = "EM ABERTO",
                     DATA = DateTime.Now,
                 });
+                CD.SaveChanges();
+
+                var resposta = CD.CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTAs.Add(new CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTum
+                {
+                    RESPOSTA = data.CAMPOS.Where(x => x.CAMPO == "Problema").First().RESPOSTA,
+                    ID_CHAMADO = demanda.ID,
+                    MATRICULA_RESPONSAVEL = data.MAT_SOLICITANTE,
+                    DATA_RESPOSTA = DateTime.Now
+                }).Entity;
+                
+                CD.SaveChanges();
+
+                CD.CONTROLE_DE_DEMANDAS_ARQUIVOS_RESPOSTAs.AddRange(data.Arquivos.Select(x => new CONTROLE_DE_DEMANDAS_ARQUIVOS_RESPOSTum
+                {
+                    ID_RESPOSTA = resposta.ID,
+                    NOME_CAMPO = x.FileName,
+                    ARQUIVO = x.Bytes,
+                    EXT_ARQUIVO = x.MIMEType,
+                }));
 
                 CD.SaveChanges();
+
                 return $"{demanda.ID}";
             }
             catch (Exception ex)

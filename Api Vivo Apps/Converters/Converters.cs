@@ -102,7 +102,6 @@ namespace Vivo_Apps_API.Converters
                 package.Save();
             }
         }
-        public static DateTime? StringToDateTime(string date) => (date is not null ? Convert.ToDateTime(date) : null);
         public static string RemoveNonNumericCharacters(string input) => new string(input.ToCharArray().Where(c => Char.IsDigit(c)).ToArray());
         public static List<TEnum> ConvertStringToEnumList<TEnum>(string input) where TEnum : struct
         {
@@ -152,7 +151,6 @@ namespace Vivo_Apps_API.Converters
 
             return cargosArray;
         }
-
         public static IEnumerable<Canal> GetCanaisFromCargos(string cargo)
         {
             var cargosList = GetCargosFromStringList(cargo);

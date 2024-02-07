@@ -41,6 +41,15 @@ namespace Vivo_Apps_API.Controllers
 
             var config = new MapperConfiguration(cfg =>
             {
+                cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_DTO>()
+                .ForMember(
+                    dest => dest.CARGO,
+                    opt => opt.MapFrom(src => (Cargos)src.CARGO)
+                    )
+                .ForMember(
+                    dest => dest.CANAL,
+                    opt => opt.MapFrom(src => (Canal)src.CANAL)
+                    );
                 cfg.CreateMap<BOLETA_BD_PALITAGEM, BOLETA_PALITAGEM_DTO>()
                 .ForMember(
                     dest => dest.MAT_CONSULTOR,
@@ -376,12 +385,11 @@ namespace Vivo_Apps_API.Controllers
                         .ProjectTo<BOLETA_PALITAGEM_DTO>(_mapper.ConfigurationProvider) // Map to DTO
                         .FirstOrDefault(x => x.ID_BOLETA == PrincipalData.ID_BOLETA);
 
-                _hubContext.Clients.Group(newboleta.MAT_CONSULTOR.PDV).SendAsync("NewNotification", newboleta.MAT_CONSULTOR.NOME, $"Boleta {PrincipalData.ID_BOLETA_PDV} Gerada",
-                    $"Uma nova boleta acabou de ser gerada por {newboleta.MAT_CONSULTOR.NOME}, com o número {PrincipalData.ID_BOLETA_PDV}", $"/BoletaByID/{PrincipalData.ID_BOLETA}");
+                _hubContext.Clients.Group(newboleta.MAT_CONSULTOR.PDV).SendAsync("NewNotification", newboleta.MAT_CONSULTOR.DISPLAY_NOME, $"Boleta {PrincipalData.ID_BOLETA_PDV} Gerada",
+                    $"Uma nova boleta acabou de ser gerada por {newboleta.MAT_CONSULTOR.DISPLAY_NOME}, com o número {PrincipalData.ID_BOLETA_PDV}", $"Boleta/BoletaByID/{PrincipalData.ID_BOLETA}");
 
                 _hubContext.Clients.Group(newboleta.MAT_CONSULTOR.PDV).SendAsync("SendNewBoletaToPdv", newboleta);
                 //_hubContext.Clients.Group(id).SendAsync("SendNewBoletaToPdv", );
-
                 return new JsonResult(new Response<int>
                 {
                     Data = PrincipalData.ID_BOLETA,
@@ -981,7 +989,7 @@ namespace Vivo_Apps_API.Controllers
 
                 if (filter.Value.MAT_CONSULTOR.Any())// ✅
                 {
-                    boletas = boletas.Where(x => filter.Value.MAT_CONSULTOR.Contains(x.MAT_CONSULTOR.MATRICULA.Value));
+                    boletas = boletas.Where(x => filter.Value.MAT_CONSULTOR.Contains(x.MAT_CONSULTOR.MATRICULA));
                 }
                 if (filter.Value.STATUS.Any())// ✅
                 {
@@ -1221,7 +1229,7 @@ namespace Vivo_Apps_API.Controllers
 
                 if (filter.Value.MAT_CONSULTOR.Any())// ✅
                 {
-                    boletas = boletas.Where(x => filter.Value.MAT_CONSULTOR.Contains(x.MAT_CONSULTOR.MATRICULA.Value));
+                    boletas = boletas.Where(x => filter.Value.MAT_CONSULTOR.Contains(x.MAT_CONSULTOR.MATRICULA));
                 }
                 if (filter.Value.STATUS.Any())// ✅
                 {
@@ -1400,7 +1408,7 @@ namespace Vivo_Apps_API.Controllers
                             excelstring.Append($"<td>{blocao.BOLETA_BD_BLOCAOs.Count}</td>");
                             excelstring.Append($"<td>{blocao.STATUS}</td> ");
                             excelstring.Append($"<td>{blocao.MAT_CONSULTOR?.MATRICULA}</td>");
-                            excelstring.Append($"<td>{blocao.MAT_ANALISTA.ToString()  ?? "-"}</td>");
+                            excelstring.Append($"<td>{(blocao.MAT_ANALISTA.HasValue ? blocao.MAT_ANALISTA.Value.ToString() : "-")}</td>");
                             excelstring.Append($"<td>{boleta.MOVIMENTO.GetDisplayName()}</td>");
                             excelstring.Append($"<td>{boleta.PLANO.GetDisplayName()}</td>");
                             excelstring.Append($"<td>{boleta.BOLETA_BD_LINHAs?.NUMERO_LINHA}</td>");
@@ -1413,20 +1421,42 @@ namespace Vivo_Apps_API.Controllers
                     }
                 }
                 htmldata = htmldata.Replace("@@ActualData", excelstring.ToString());
-                string StoredFilePath = Path.Combine(Directory.GetCurrentDirectory(), "FilesTemplates", "BoletaDowloaded.xls");
+
+                DataTable dataTable = ConvertHtmlTableToDataTable(htmldata);
+
+                // Convertendo DataTable para XLSX
+                string StoredFilePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "FilesTemplates", "Excel_Saida.xlsx");
+
                 if (System.IO.File.Exists(StoredFilePath))
                 {
                     System.IO.File.Delete(StoredFilePath);
                 }
-                System.IO.File.AppendAllText(StoredFilePath, htmldata);
+
+                ExportToExcel(dataTable, StoredFilePath);
 
                 var provider = new FileExtensionContentTypeProvider();
                 if (!provider.TryGetContentType(StoredFilePath, out var contentType))
                 {
-                    contentType = "application/octet-stream";
+                    contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
                 }
 
                 var bytes = await System.IO.File.ReadAllBytesAsync(StoredFilePath);
+                System.IO.File.Delete(StoredFilePath);
+
+                //string StoredFilePath = Path.Combine(Directory.GetCurrentDirectory(), "FilesTemplates", "BoletaDowloaded.xls");
+                //if (System.IO.File.Exists(StoredFilePath))
+                //{
+                //    System.IO.File.Delete(StoredFilePath);
+                //}
+                //System.IO.File.AppendAllText(StoredFilePath, htmldata);
+
+                //var provider = new FileExtensionContentTypeProvider();
+                //if (!provider.TryGetContentType(StoredFilePath, out var contentType))
+                //{
+                //    contentType = "application/octet-stream";
+                //}
+
+                //var bytes = await System.IO.File.ReadAllBytesAsync(StoredFilePath);
 
                 return new JsonResult(new Response<FileContentResult>
                 {
