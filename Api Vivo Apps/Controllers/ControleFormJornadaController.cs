@@ -22,6 +22,7 @@ using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
 using static Vivo_Apps_API.Converters.Converters;
 using Shared_Class_Vivo_Apps.Models;
 using Shared_Class_Vivo_Apps.ModelDTO;
+using Microsoft.Extensions.Caching.Distributed;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -33,6 +34,7 @@ namespace Vivo_Apps_API.Controllers
 
         private readonly ILogger<ControleFormJornadaController> _logger;
         private readonly IMapper _mapper;
+
         public ControleFormJornadaController(ILogger<ControleFormJornadaController> logger)
         {
             _logger = logger;

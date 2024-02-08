@@ -1209,14 +1209,14 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
-        [HttpPost("GetDemandasList")]
-        [ProducesResponseType(typeof(Response<PagedModelResponse<IEnumerable<PAINEL_DEMANDAS_CHAMADO_DTO>>>), 200)]
-        [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult GetDemandasList([FromBody] GenericPaginationModel<PaginationDemandasModel> filter)
-        {
-            try
-            {
-                var dataBeforeFilter = CD.CONTROLE_DE_DEMANDAS_CHAMADOs.AsQueryable();
+        //[HttpPost("GetDemandasList")]
+        //[ProducesResponseType(typeof(Response<PagedModelResponse<IEnumerable<PAINEL_DEMANDAS_CHAMADO_DTO>>>), 200)]
+        //[ProducesResponseType(typeof(Response<string>), 500)]
+        //public JsonResult GetDemandasList([FromBody] GenericPaginationModel<PaginationDemandasModel> filter)
+        //{
+        //    try
+        //    {
+        //        var dataBeforeFilter = CD.CONTROLE_DE_DEMANDAS_CHAMADOs.AsQueryable();
 
                 //if (!string.IsNullOrEmpty(filter.Value.matricula))
                 //{
@@ -1293,40 +1293,40 @@ namespace Vivo_Apps_API.Controllers
                 //    }
                 //}
 
-                var dataAfterFilter = dataBeforeFilter.OrderByDescending(x => x.ID)
-               .Skip((filter.PageNumber - 1) * filter.PageSize)
-               .Take(filter.PageSize);
+        //        var dataAfterFilter = dataBeforeFilter.OrderByDescending(x => x.ID)
+        //       .Skip((filter.PageNumber - 1) * filter.PageSize)
+        //       .Take(filter.PageSize);
 
-                var demandas = dataAfterFilter.AsNoTracking()
-                        .ProjectTo<PAINEL_DEMANDAS_CHAMADO_DTO>(_mapper.ConfigurationProvider).AsEnumerable();
+        //        var demandas = dataAfterFilter.AsNoTracking()
+        //                .ProjectTo<PAINEL_DEMANDAS_CHAMADO_DTO>(_mapper.ConfigurationProvider).AsEnumerable();
 
-                var totalRecords = dataBeforeFilter.Count();
-                var totalPages = ((double)totalRecords / (double)filter.PageSize);
+        //        var totalRecords = dataBeforeFilter.Count();
+        //        var totalPages = ((double)totalRecords / (double)filter.PageSize);
 
-                return new JsonResult(new Response<PagedModelResponse<IEnumerable<PAINEL_DEMANDAS_CHAMADO_DTO>>>
-                {
-                    Data = PagedResponse.CreatePagedReponse<PAINEL_DEMANDAS_CHAMADO_DTO, PaginationDemandasModel>(demandas, filter, totalRecords),
-                    Succeeded = true,
-                    Message = $"Tudo certo!",
-                    Errors = null,
-                });
+        //        return new JsonResult(new Response<PagedModelResponse<IEnumerable<PAINEL_DEMANDAS_CHAMADO_DTO>>>
+        //        {
+        //            Data = PagedResponse.CreatePagedReponse<PAINEL_DEMANDAS_CHAMADO_DTO, PaginationDemandasModel>(demandas, filter, totalRecords),
+        //            Succeeded = true,
+        //            Message = $"Tudo certo!",
+        //            Errors = null,
+        //        });
 
-            }
-            catch (Exception ex)
-            {
-                return new JsonResult(new Response<string>
-                {
-                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
-                    Succeeded = false,
-                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
-                    Errors = new string[]
-                    {
-                        ex.Message,
-                        ex.StackTrace
-                    },
-                });
-            }
-        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new JsonResult(new Response<string>
+        //        {
+        //            Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+        //            Succeeded = false,
+        //            Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+        //            Errors = new string[]
+        //            {
+        //                ex.Message,
+        //                ex.StackTrace
+        //            },
+        //        });
+        //    }
+        //}
 
         [HttpGet("GetOperadoresSuporte")]
         [ProducesResponseType(typeof(Response<IEnumerable<DEMANDA_BD_OPERADORES_DTO>>), 200)]

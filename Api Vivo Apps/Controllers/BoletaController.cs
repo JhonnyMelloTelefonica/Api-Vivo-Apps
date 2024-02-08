@@ -903,7 +903,7 @@ namespace Vivo_Apps_API.Controllers
                 }
                 else
                 {
-                    boletas = boletas.Where(x => x.MAT_CONSULTOR.MATRICULA == filter.Value.matricula);
+                    boletas = boletas.Where(x => x.MAT_CONSULTOR?.MATRICULA == filter.Value.matricula);
                 }
 
                 if (filter.Value.Status.Any())

@@ -38,6 +38,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<TreatAsUsed>true</TreatAsUsed>
 		</PackageReference>
+		<PackageReference Include="Microsoft.Extensions.Caching.SqlServer" Version="8.0.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3">
 			<TreatAsUsed>true</TreatAsUsed>
 		</PackageReference>

@@ -1,5 +1,6 @@
 using AutoMapper;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.OpenApi.Models;
 using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -30,6 +31,13 @@ builder.Services.AddSwaggerGen(c =>
     c.DocumentFilter<CustomDocumentFilter>();
 });
 
+builder.Services.AddDistributedSqlServerCache(options =>
+{
+    options.ConnectionString = "Data Source=10.124.100.153;Initial Catalog=Vivo_MAIS;TrustServerCertificate=True;User ID=RegionalNE;Password=RegionalNEvivo2019";
+    options.SchemaName = "dbo";
+    options.TableName = "API_CACHE";
+});
+
 builder.Services.AddSignalR();
 builder.Services.AddHttpClient();
 builder.Services.AddHttpLogging(o => o = new Microsoft.AspNetCore.HttpLogging.HttpLoggingOptions());
@@ -49,6 +57,15 @@ builder.Services.AddDbContext<Vivo_MaisContext>(opt =>
 //builder.Services.AddSingleton<TableDependencyService>();
 
 var app = builder.Build();
+app.Lifetime.ApplicationStarted.Register(() =>
+{
+    var currentTimeUTC = DateTime.UtcNow.ToString();
+    byte[] encodedCurrentTimeUTC = System.Text.Encoding.UTF8.GetBytes(currentTimeUTC);
+    var options = new DistributedCacheEntryOptions()
+        .SetSlidingExpiration(TimeSpan.FromSeconds(20));
+    app.Services.GetService<IDistributedCache>()
+                              .Set("cachedTimeUTC", encodedCurrentTimeUTC, options);
+});
 
 app.UseSwagger();
 app.UseSwaggerUI();
@@ -56,8 +73,6 @@ app.UseSwaggerUI();
 if (app.Environment.IsDevelopment())
 {
 }
-
-
 // Configure the HTTP request pipeline.
 app.UseAuthentication();
 app.UseAuthorization();

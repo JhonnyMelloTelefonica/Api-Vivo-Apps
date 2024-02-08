@@ -23,7 +23,7 @@ namespace Vivo_Apps_API.Controllers
         private readonly ILogger<ControleADMController> _logger;
 
         public ControleADMController(ILogger<ControleADMController> logger)
-        {
+        { 
             _logger = logger;
         }
 
