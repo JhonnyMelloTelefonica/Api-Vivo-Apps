@@ -69,8 +69,8 @@ namespace Vivo_Apps_API.Controllers
                     )
                 .ForMember(
                     dest => dest.MAT_QUEM_REDIRECIONOU,
-                    opt => opt.MapFrom(src => CD.ACESSOs
-                                .Where(x => x.Login == src.MAT_QUEM_REDIRECIONOU)
+                    opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs
+                                .Where(x => x.MATRICULA.ToString() == src.MAT_QUEM_REDIRECIONOU)
                                 .FirstOrDefault())
                     );
 
@@ -79,8 +79,8 @@ namespace Vivo_Apps_API.Controllers
                 cfg.CreateMap<CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTum, DEMANDAS_CHAMADO_RESPOSTA_DTO>()
                 .ForMember(
                     dest => dest.MATRICULA_RESPONSAVEL,
-                    opt => opt.MapFrom(src => CD.ACESSOs
-                                .Where(x => x.Login == src.MATRICULA_RESPONSAVEL)
+                    opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs
+                                .Where(x => x.MATRICULA.ToString() == src.MATRICULA_RESPONSAVEL)
                                 .FirstOrDefault())
                     );
                 cfg.CreateMap<DEMANDA_BD_OPERADORE, DEMANDA_BD_OPERADORES_DTO>()
@@ -100,8 +100,9 @@ namespace Vivo_Apps_API.Controllers
                 cfg.CreateMap<CONTROLE_DE_DEMANDAS_CHAMADO, PAINEL_DEMANDAS_CHAMADO_DTO>()
                .ForMember(
                    dest => dest.ID_FILA_CHAMADO,
-                   opt => opt.MapFrom(src => CD.CONTROLE_DE_DEMANDAS_FILAs
-                               .Where(x => x.ID == src.ID_FILA_CHAMADO).First())
+                   opt => opt.MapFrom(src => CD.DEMANDA_SUB_FILAs
+                               .Where(x => x.ID_SUB_FILA == src.ID_FILA_CHAMADO || x.ID_ANTIGO == src.ID_FILA_CHAMADO)
+                               .FirstOrDefault())
                    )
                .ForMember(
                    dest => dest.ID_STATUS_CHAMADO,
@@ -110,14 +111,14 @@ namespace Vivo_Apps_API.Controllers
                    )
                .ForMember(
                    dest => dest.MATRICULA_RESPONSAVEL,
-                   opt => opt.MapFrom(src => CD.ACESSOs
-                               .Where(x => x.Login == src.MATRICULA_RESPONSAVEL)
+                   opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs
+                                .Where(x => x.MATRICULA.ToString() == src.MATRICULA_RESPONSAVEL)
                                .FirstOrDefault())
                    )
                .ForMember(
                    dest => dest.MATRICULA_SOLICITANTE,
-                   opt => opt.MapFrom(src => CD.ACESSOs
-                               .Where(x => x.Login == src.MATRICULA_SOLICITANTE)
+                   opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs
+                                .Where(x => x.MATRICULA.ToString() == src.MATRICULA_SOLICITANTE)
                                .FirstOrDefault()));
 
                 //cfg.CreateMap<CONTROLE_DE_DEMANDAS_CHAMADO, DEMANDAS_CHAMADO_DTO>()
@@ -1152,7 +1153,7 @@ namespace Vivo_Apps_API.Controllers
                     ID_CHAMADO = demanda.ID
                 }).Entity;
                 CD.SaveChanges();
-                
+
                 demanda.ID_CAMPOS_CHAMADO = relacao_campos.ID;
 
                 foreach (var campo in data.CAMPOS)
@@ -1166,9 +1167,9 @@ namespace Vivo_Apps_API.Controllers
                 }
 
                 CD.SaveChanges();
-                
+
                 var relacao_status = CD.CONTROLE_DE_DEMANDAS_STATUS_CHAMADOs.Add(new CONTROLE_DE_DEMANDAS_STATUS_CHAMADO { ID_CHAMADO = demanda.ID }).Entity;
-                
+
                 CD.SaveChanges();
 
                 demanda.ID_STATUS_CHAMADO = relacao_status.ID;
@@ -1188,7 +1189,7 @@ namespace Vivo_Apps_API.Controllers
                     MATRICULA_RESPONSAVEL = data.MAT_SOLICITANTE,
                     DATA_RESPOSTA = DateTime.Now
                 }).Entity;
-                
+
                 CD.SaveChanges();
 
                 CD.CONTROLE_DE_DEMANDAS_ARQUIVOS_RESPOSTAs.AddRange(data.Arquivos.Select(x => new CONTROLE_DE_DEMANDAS_ARQUIVOS_RESPOSTum
@@ -1209,124 +1210,125 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
-        //[HttpPost("GetDemandasList")]
-        //[ProducesResponseType(typeof(Response<PagedModelResponse<IEnumerable<PAINEL_DEMANDAS_CHAMADO_DTO>>>), 200)]
-        //[ProducesResponseType(typeof(Response<string>), 500)]
-        //public JsonResult GetDemandasList([FromBody] GenericPaginationModel<PaginationDemandasModel> filter)
-        //{
-        //    try
-        //    {
-        //        var dataBeforeFilter = CD.CONTROLE_DE_DEMANDAS_CHAMADOs.AsQueryable();
+        [HttpPost("GetDemandasList")]
+        [ProducesResponseType(typeof(Response<PagedModelResponse<IEnumerable<PAINEL_DEMANDAS_CHAMADO_DTO>>>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public JsonResult GetDemandasList([FromBody] GenericPaginationModel<PaginationDemandasModel> filter)
+        {
+            try
+            {
+                var dataBeforeFilter = CD.CONTROLE_DE_DEMANDAS_CHAMADOs.AsQueryable();
 
-                //if (!string.IsNullOrEmpty(filter.Value.matricula))
-                //{
-                //    dataBeforeFilter = dataBeforeFilter.Where(x => x.MATRICULA_SOLICITANTE == filter.Value.matricula);
-                //}
+                if (filter.Value.matricula != 0)
+                {
+                    dataBeforeFilter = dataBeforeFilter.Where(x => x.MATRICULA_SOLICITANTE == filter.Value.matricula.ToString());
+                }
 
-                //if (filter.Value.datas is not null)
-                //{
-                //    if (filter.Value.datas.Count() == 2)
-                //    {
-                //        dataBeforeFilter = dataBeforeFilter.Where(x => x.DATA_ABERTURA >= filter.Value.datas[0] &&
-                //        x.DATA_ABERTURA <= filter.Value.datas[1]);
-                //    }
-                //}
+                if (filter.Value.datas is not null)
+                {
+                    if (filter.Value.datas.Count() == 2)
+                    {
+                        dataBeforeFilter = dataBeforeFilter.Where(x => x.DATA_ABERTURA >= filter.Value.datas[0] &&
+                        x.DATA_ABERTURA <= filter.Value.datas[1]);
+                    }
+                }
 
-                //if (filter.Value.regional is not null)
-                //{
+                if (filter.Value.regional is not null)
+                {
 
-                //    if (filter.Value.regional.Any())
-                //    {
-                //        dataBeforeFilter = dataBeforeFilter.Where(x => filter.Value.regional.Contains(x.REGIONAL));
-                //    }
-                //}
+                    if (filter.Value.regional.Any())
+                    {
+                        dataBeforeFilter = dataBeforeFilter.Where(x => filter.Value.regional.Contains(x.REGIONAL));
+                    }
+                }
 
-                //if (filter.Value.status is not null)
-                //{
-                //    if (filter.Value.status.Any())
-                //    {
-                //        dataBeforeFilter = dataBeforeFilter
-                //                    .Where(c => filter.Value.status.Contains(
-                //                        CD.CONTROLE_DE_DEMANDAS_RELACAO_STATUS_CHAMADOs
-                //                            .Where(s => s.ID_STATUS_CHAMADO == c.ID_STATUS_CHAMADO)
-                //                            .OrderByDescending(s => s.DATA)
-                //                            .Select(s => s.STATUS)
-                //                            .FirstOrDefault()));
-                //    }
-                //}
+                if (filter.Value.status is not null)
+                {
+                    if (filter.Value.status.Any())
+                    {
+                        dataBeforeFilter = dataBeforeFilter
+                                    .Where(c => filter.Value.status.Contains(
+                                        CD.CONTROLE_DE_DEMANDAS_RELACAO_STATUS_CHAMADOs
+                                            .Where(s => s.ID_STATUS_CHAMADO == c.ID_STATUS_CHAMADO)
+                                            .OrderByDescending(s => s.DATA)
+                                            .Select(s => s.STATUS)
+                                            .FirstOrDefault()));
+                    }
+                }
 
-                //if (filter.Value.tipo_fila is not null)
-                //{
-                //    if (filter.Value.tipo_fila.Any())
-                //    {
-                //        dataBeforeFilter = dataBeforeFilter.Where(k =>
-                //            CD.CONTROLE_DE_DEMANDAS_FILAs
-                //                .Where(postAndMeta => filter.Value.tipo_fila.Select(x => x.TIPO_FILA).Contains(postAndMeta.TIPO_CHAMADO))
-                //                .Select(l => l.ID).Contains(k.ID_FILA_CHAMADO));
+                if (filter.Value.tipo_fila is not null)
+                {
+                    if (filter.Value.tipo_fila.Any())
+                    {
+                        dataBeforeFilter = dataBeforeFilter.Where(k =>
+                            CD.CONTROLE_DE_DEMANDAS_FILAs
+                                .Where(postAndMeta => filter.Value.tipo_fila.Select(x => x.TIPO_FILA).Contains(postAndMeta.TIPO_CHAMADO))
+                                .Select(l => l.ID).Contains(k.ID_FILA_CHAMADO));
 
-                //        if (filter.Value.fila is not null)
-                //        {
-                //            if (filter.Value.fila.Any())
-                //            {
-                //                dataBeforeFilter = dataBeforeFilter.Where(k =>
-                //                CD.CONTROLE_DE_DEMANDAS_FILAs
-                //                    .Where(postAndMeta => filter.Value.fila.Select(x => x.FILA).Contains(postAndMeta.FILA))
-                //                    .Select(l => l.ID).Contains(k.ID_FILA_CHAMADO));
-                //            }
-                //        }
-                //    }
-                //}
+                        if (filter.Value.fila is not null)
+                        {
+                            if (filter.Value.fila.Any())
+                            {
+                                dataBeforeFilter = dataBeforeFilter.Where(k =>
+                                CD.CONTROLE_DE_DEMANDAS_FILAs
+                                    .Where(postAndMeta => filter.Value.fila.Select(x => x.FILA).Contains(postAndMeta.FILA))
+                                    .Select(l => l.ID).Contains(k.ID_FILA_CHAMADO));
+                            }
+                        }
+                    }
+                }
 
-                //if (filter.Value.responsável is not null)
-                //{
-                //    if (filter.Value.responsável.Any())
-                //    {
-                //        dataBeforeFilter = dataBeforeFilter.Where(x => filter.Value.responsável.Select(y => y.Login).Contains(x.MATRICULA_RESPONSAVEL));
-                //    }
-                //}
+                if (filter.Value.responsável is not null)
+                {
+                    if (filter.Value.responsável.Any())
+                    {
+                        dataBeforeFilter = dataBeforeFilter.Where(x => filter.Value.responsável.Select(y => y.Login).Contains(x.MATRICULA_RESPONSAVEL));
+                    }
+                }
 
-                //if (filter.Value.id_demandas is not null)
-                //{
-                //    if (filter.Value.id_demandas.Any())
-                //    {
-                //        dataBeforeFilter = dataBeforeFilter.Where(x => filter.Value.id_demandas.Contains(x.ID.ToString()));
-                //    }
-                //}
+                if (filter.Value.id_demandas is not null)
+                {
+                    if (filter.Value.id_demandas.Any())
+                    {
+                        dataBeforeFilter = dataBeforeFilter.Where(x => filter.Value.id_demandas.Contains(x.ID.ToString()));
+                    }
+                }
 
-        //        var dataAfterFilter = dataBeforeFilter.OrderByDescending(x => x.ID)
-        //       .Skip((filter.PageNumber - 1) * filter.PageSize)
-        //       .Take(filter.PageSize);
+                var dataAfterFilter = dataBeforeFilter.OrderByDescending(x => x.ID)
+               .Skip((filter.PageNumber - 1) * filter.PageSize)
+               .Take(filter.PageSize);
 
-        //        var demandas = dataAfterFilter.AsNoTracking()
-        //                .ProjectTo<PAINEL_DEMANDAS_CHAMADO_DTO>(_mapper.ConfigurationProvider).AsEnumerable();
+                var demandas = dataAfterFilter.AsNoTracking()
+                        .ProjectTo<PAINEL_DEMANDAS_CHAMADO_DTO>(_mapper.ConfigurationProvider)
+                        .IgnoreAutoIncludes().AsEnumerable();
 
-        //        var totalRecords = dataBeforeFilter.Count();
-        //        var totalPages = ((double)totalRecords / (double)filter.PageSize);
+                var totalRecords = dataBeforeFilter.Count();
+                var totalPages = ((double)totalRecords / (double)filter.PageSize);
 
-        //        return new JsonResult(new Response<PagedModelResponse<IEnumerable<PAINEL_DEMANDAS_CHAMADO_DTO>>>
-        //        {
-        //            Data = PagedResponse.CreatePagedReponse<PAINEL_DEMANDAS_CHAMADO_DTO, PaginationDemandasModel>(demandas, filter, totalRecords),
-        //            Succeeded = true,
-        //            Message = $"Tudo certo!",
-        //            Errors = null,
-        //        });
+                return new JsonResult(new Response<PagedModelResponse<IEnumerable<PAINEL_DEMANDAS_CHAMADO_DTO>>>
+                {
+                    Data = PagedResponse.CreatePagedReponse<PAINEL_DEMANDAS_CHAMADO_DTO, PaginationDemandasModel>(demandas, filter, totalRecords),
+                    Succeeded = true,
+                    Message = $"Tudo certo!",
+                    Errors = null,
+                });
 
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return new JsonResult(new Response<string>
-        //        {
-        //            Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
-        //            Succeeded = false,
-        //            Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
-        //            Errors = new string[]
-        //            {
-        //                ex.Message,
-        //                ex.StackTrace
-        //            },
-        //        });
-        //    }
-        //}
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    },
+                });
+            }
+        }
 
         [HttpGet("GetOperadoresSuporte")]
         [ProducesResponseType(typeof(Response<IEnumerable<DEMANDA_BD_OPERADORES_DTO>>), 200)]
@@ -1494,7 +1496,6 @@ namespace Vivo_Apps_API.Controllers
                             STATUS = true
                         })
                     );
-
                 var saida = CD.SaveChanges();
                 if (saida > 0)
                 {
@@ -1520,6 +1521,77 @@ namespace Vivo_Apps_API.Controllers
                         ex.StackTrace
                     },
                     Message = "Ocorrreu um erro ao executar esta ação"
+                });
+            }
+        }
+
+        [HttpGet("GetDemandaById")]
+        [ProducesResponseType(typeof(Response<DEMANDAS_CHAMADO_DTO>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public JsonResult GetDemandaById(int IdDemanda)
+        {
+            try
+            {
+                var demanda = CD.CONTROLE_DE_DEMANDAS_CHAMADOs.Where(x => x.ID == IdDemanda).FirstOrDefault();
+
+                var campos = CD.CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADOs.Where(x => x.ID_CAMPOS_CHAMADO == demanda.ID_CAMPOS_CHAMADO)
+                    .ProjectTo<DEMANDAS_CAMPOS_CHAMADO_DTO>(_mapper.ConfigurationProvider);
+
+                var status = CD.CONTROLE_DE_DEMANDAS_RELACAO_STATUS_CHAMADOs.Where(x => x.ID_STATUS_CHAMADO == demanda.ID_STATUS_CHAMADO)
+                    .ProjectTo<DEMANDAS_STATUS_CHAMADO_DTO>(_mapper.ConfigurationProvider);
+                
+                var respostas = CD.CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTAs.Where(x => x.ID_CHAMADO == IdDemanda)
+                    .ProjectTo<DEMANDAS_CHAMADO_RESPOSTA_DTO>(_mapper.ConfigurationProvider);
+
+                var retorno = new DEMANDAS_CHAMADO_DTO
+                {
+                    ID = demanda.ID,
+                    ID_FILA_CHAMADO = CD.DEMANDA_SUB_FILAs.Where(x => x.ID_SUB_FILA == demanda.ID_FILA_CHAMADO).ProjectTo<DEMANDA_SUB_FILA_DTO>(_mapper.ConfigurationProvider).FirstOrDefault(),
+                    MATRICULA_SOLICITANTE = CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA.ToString() == demanda.MATRICULA_SOLICITANTE).ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider).FirstOrDefault(),
+                    MATRICULA_RESPONSAVEL = CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA.ToString() == demanda.MATRICULA_RESPONSAVEL).ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider).FirstOrDefault(),
+                    DATA_FECHAMENTO = demanda.DATA_FECHAMENTO,
+                    MOTIVO_FECHAMENTO_SUPORTE = demanda.MOTIVO_FECHAMENTO_SUPORTE,
+                    REGIONAL = demanda.REGIONAL,
+                    EMAIL_SECUNDARIO = demanda.EMAIL_SECUNDARIO,
+                    RESPONSAVEL_OUTRA_AREA = CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA.ToString() == demanda.RESPONSAVEL_OUTRA_AREA).ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider).FirstOrDefault(),
+                    ID_CAMPOS_CHAMADO = campos,
+                    ID_STATUS_CHAMADO = status,
+                    DATA_ABERTURA = demanda.DATA_ABERTURA,
+                    PBI = demanda.PBI,
+                    PRIORIDADE = demanda.PRIORIDADE,
+                    CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTa = respostas,
+                    CONTROLE_DE_DEMANDAS_CHAMADO_ARQUIVOs = CD.CONTROLE_DE_DEMANDAS_CHAMADO_ARQUIVOs.Where(x => x.ID_CHAMADO == demanda.ID).Select(x => new DEMANDAS_CHAMADO_ARQUIVO_DTO
+                    {
+                        Id = x.Id,
+                        ID_CHAMADO = x.ID_CHAMADO,
+                        NOME_CAMPO = x.NOME_CAMPO,
+                        EXT_ARQUIVO = x.EXT_ARQUIVO,
+                        ARQUIVO = x.ARQUIVO,
+                    })
+                };
+
+                return new JsonResult(
+                  new Response<DEMANDAS_CHAMADO_DTO>
+                  {
+                      Data = retorno,
+                      Succeeded = true,
+                      Message = "Tudo Certo"
+                  });
+
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Erro ao encontrar buscar informações",
+                    Succeeded = false,
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace,
+                        ex.Source
+                    },
+                    Message = "Erro ao encontrar buscar informações"
                 });
             }
         }

@@ -23,6 +23,8 @@ using static Vivo_Apps_API.Converters.Converters;
 using Shared_Class_Vivo_Apps.Models;
 using Shared_Class_Vivo_Apps.ModelDTO;
 using Microsoft.Extensions.Caching.Distributed;
+using DocumentFormat.OpenXml.Office2010.Excel;
+using Blazorise;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -155,9 +157,9 @@ namespace Vivo_Apps_API.Controllers
                     Cargos.Gerente_Senior_Territorial,
                     Cargos.Gerente_Vendas_B2C,
                 };
-                
+
                 IEnumerable<Option<int>> cargos = Enum.GetValues(typeof(Cargos))
-                    .Cast<Cargos>().ToList().Where(x=> !list.Contains(x))
+                    .Cast<Cargos>().ToList().Where(x => !list.Contains(x))
                     .Select(x => new Option<int> { Value = Convert.ToInt32(x), Text = x.GetDisplayName(), });
 
                 return new JsonResult(new Response<IEnumerable<Option<int>>>
@@ -357,6 +359,137 @@ namespace Vivo_Apps_API.Controllers
                         },
                     });
                 }
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    },
+                });
+            }
+        }
+        [HttpGet("GetTemasCriarFormularioDetalhado")]
+        [ProducesResponseType(typeof(Response<IEnumerable<TEMA_SUB_TEMA_QTD>>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public async Task<JsonResult> GetTemasCriarFormularioDetalhado(
+            string Tipo_prova,
+            bool? Elegiveis,
+            Cargos Cargo,
+            bool? Fixa,
+            bool? Banco_Completo,
+            string regional)
+        {
+            try
+            {
+                if (Tipo_prova == "Jornada Gestor")
+                {
+                    Tipo_prova = "Jornada";
+                }
+
+                var dadosDoBanco = CD.JORNADA_BD_QUESTIONs.ToList();
+
+                // Parte 1: Consulta executada no banco de dados
+                var dadosDoBancoFiltrados = dadosDoBanco
+                    .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains((int)Cargo))
+                    .Where(y => y.TP_FORMS.Split(new[] { ';' }).Contains(Tipo_prova))
+                    .Where(k => (Fixa.HasValue ? k.FIXA == Fixa.Value : k.FIXA != null));
+
+                if (Banco_Completo.HasValue)
+                {
+                    if (!Banco_Completo.Value)
+                    {
+                        dadosDoBancoFiltrados = dadosDoBancoFiltrados
+                            .Where(k => k.REGIONAL == regional); // Aqui trazemos os dados do banco para a memória
+                    }
+
+                }
+
+                IEnumerable<int> temas_id = dadosDoBancoFiltrados
+                            .Select(x => x.ID_TEMAS.Value);
+
+                // Parte 2: Consulta executada no lado do cliente (em memória)
+                IEnumerable<TEMA_SUB_TEMA_QTD> temas = CD.JORNADA_BD_TEMAS_SUB_TEMAs
+                    .Where(x => temas_id.Contains(x.ID_TEMAS.Value))
+                    .Select(x => new TEMA_SUB_TEMA_QTD
+                    {
+                        ID_SUB_TEMAS = x.ID_SUB_TEMAS,
+                        SUB_TEMAS = x.SUB_TEMAS,
+                        ID_TEMAS = x.ID_TEMAS,
+                        TEMAS = x.TEMAS,
+                        QTD_TEMA = dadosDoBancoFiltrados
+                            .Where(f => f.ID_TEMAS == x.ID_TEMAS)
+                            .Count(),
+                        QTD_SUB_TEMA = dadosDoBancoFiltrados
+                            .Where(f => f.ID_SUB_TEMAS == x.ID_SUB_TEMAS)
+                            .Count()
+                    })
+                    .ToList();
+
+                if (temas.Any())
+                {
+                    return new JsonResult(new Response<IEnumerable<TEMA_SUB_TEMA_QTD>>
+                    {
+                        Data = temas,
+                        Succeeded = true,
+                        Message = "Tudo certo, alteração solicitada com sucesso!",
+                        Errors = null,
+                    });
+                }
+                else
+                {
+                    return new JsonResult(new Response<IEnumerable<TEMA_SUB_TEMA_QTD>>
+                    {
+                        Data = temas,
+                        Succeeded = false,
+                        Message = "Não encontramos nenhum tema ou sub-tema correspondente aos seus filtros!",
+                        Errors = new string[]
+                        {
+                            "tema não encontrado"
+                        },
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    },
+                });
+            }
+        }
+        [HttpGet("GetQuestionsBySubTema")]
+        [ProducesResponseType(typeof(Response<IEnumerable<JORNADA_QUESTION_DTO>>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public async Task<JsonResult> GetQuestionsBySubTema(
+            int subtema)
+        {
+            try
+            {
+                var questions = CD.JORNADA_BD_QUESTIONs
+                    .Where(x => x.ID_SUB_TEMAS == subtema)
+                    .ProjectTo<JORNADA_QUESTION_DTO>(_mapper.ConfigurationProvider);
+
+                return new JsonResult(new Response<IEnumerable<JORNADA_QUESTION_DTO>>
+                {
+                    Data = questions,
+                    Succeeded = true,
+                    Message = "Tudo Certo!",
+                    Errors = null,
+                });
             }
             catch (Exception ex)
             {
@@ -1538,6 +1671,106 @@ namespace Vivo_Apps_API.Controllers
                     Data = Prova,
                     Succeeded = true,
                     Message = "Tudo Certo!",
+                    Errors = null,
+                });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    },
+                });
+            }
+        }
+
+        [HttpPost("CriarFormularioDetalhado")]
+        [ProducesResponseType(typeof(Response<string>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public JsonResult CriarFormularioDetalhado(
+            string regional,
+            int matricula,
+            string Tipo_prova,
+            bool? Elegiveis,
+            DateTime? Dt_inicio,
+            DateTime? Dt_fim,
+            Cargos Cargo,
+            bool? Fixa,
+            [FromBody]IEnumerable<JORNADA_QUESTION_DTO?> Questions
+            )
+        {
+            try
+            {
+                bool FormularioExistente;
+                int proximocaderno = 0;
+                FormularioExistente = CD.JORNADA_BD_QUESTION_HISTORICOs
+                                        .Where(x => x.CARGO == (int)Cargo)
+                                        .Where(x => x.TP_FORMS == Tipo_prova)
+                                        .Where(x => x.REGIONAL == regional)
+                                        .Where(x => x.FIXA == Fixa).Any();
+
+                if (FormularioExistente)
+                {
+                    proximocaderno = (int)(CD.JORNADA_BD_QUESTION_HISTORICOs
+                        .Where(x => x.CARGO == (int)Cargo)
+                        .Where(x => x.TP_FORMS == Tipo_prova)
+                        .Where(x => x.REGIONAL == regional)
+                        .Where(x => x.FIXA == Fixa).AsEnumerable()
+                        .Select(y => y.CADERNO).Max() + 1);
+                }
+                else
+                {
+                    proximocaderno = 1;
+                }
+
+                var entityrelacao = CD.JORNADA_BD_RELACAO_HISTORICOs.Add(new JORNADA_BD_RELACAO_HISTORICO
+                {
+                    LOGIN_MOD = matricula,
+                    DT_MOD = DateTime.Now
+                }).Entity;
+
+                CD.SaveChanges();
+
+                foreach (var item in Questions) // Adiciona as perguntas selecionadas a lista que será inserida no banco
+                {
+                    var canal = DePara.CanalCargoEnum(Cargo);
+
+                    if (!Dt_fim.HasValue)
+                    {
+                        Dt_fim = null;
+                    }
+
+                    CD.JORNADA_BD_QUESTION_HISTORICOs.Add(new JORNADA_BD_QUESTION_HISTORICO
+                    {
+                        CANAL = (int)canal,
+                        CARGO = (int)Cargo,
+                        DT_CRIACAO = DateTime.Now,
+                        ID_CRIADOR = matricula,
+                        ID_QUESTION = item.ID_QUESTION,
+                        ID_PROVA = entityrelacao.ID_PROVA,
+                        CADERNO = proximocaderno,
+                        TP_FORMS = Tipo_prova,
+                        DT_INICIO_AVALIACAO = Dt_inicio,
+                        DT_FINALIZACAO = Dt_fim ?? null,
+                        FIXA = Fixa,
+                        REGIONAL = regional,
+                        ELEGIVEL = Elegiveis
+                    });
+                }
+
+                CD.SaveChanges();
+
+                return new JsonResult(new Response<string>
+                {
+                    Data = "O formulário foi criado corretamente!",
+                    Succeeded = true,
+                    Message = "O formulário foi criado corretamente",
                     Errors = null,
                 });
             }

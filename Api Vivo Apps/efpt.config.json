@@ -124,6 +124,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[API_CACHE]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[APROVADORES$]",
          "ObjectType": 0
       },
@@ -1244,6 +1248,10 @@
          "ObjectType": 0
       },
       {
+         "Name": "[dbo].[QUALIDADE_BD_MANUAL_AUDIT]",
+         "ObjectType": 0
+      },
+      {
          "Name": "[dbo].[QUEM_ENTROU]",
          "ObjectType": 0
       },
@@ -1588,11 +1596,27 @@
          "ObjectType": 3
       },
       {
+         "Name": "[dbo].[CNS_FILA_RESPONSAVEL]",
+         "ObjectType": 3
+      },
+      {
          "Name": "[dbo].[CNS_FPD]",
          "ObjectType": 3
       },
       {
          "Name": "[dbo].[CNS_FPD_MOVEL]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS_JORNADA_AD_LESTE]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS_JORNADA_LESTE]",
+         "ObjectType": 3
+      },
+      {
+         "Name": "[dbo].[CNS_JORNADA_TEMAS_RJES]",
          "ObjectType": 3
       },
       {
@@ -1628,7 +1652,7 @@
          "ObjectType": 3
       }
    ],
-   "UiHint": "BRTDTBGS0081FU.Vivo_MAIS",
+   "UiHint": "brtdtbgs0081fu.Vivo_MAIS.dbo",
    "UncountableWords": null,
    "UseBoolPropertiesWithoutDefaultSql": false,
    "UseDatabaseNames": true,
