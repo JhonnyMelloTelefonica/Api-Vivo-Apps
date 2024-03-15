@@ -64,7 +64,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<Folder Include="Data\" />
 		<Folder Include="DB_Context_Vivo_MAIS\" />
 	</ItemGroup>
 	<Import Project="..\..\Shared_Class_Vivo_Apps\Shared_Class_Vivo_Apps\Shared_Class_Vivo_Apps.projitems" Label="Shared" />
