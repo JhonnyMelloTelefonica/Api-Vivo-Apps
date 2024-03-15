@@ -18,7 +18,8 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development",
         "ASPNETCORE_HOSTINGSTARTUPASSEMBLIES": "Microsoft.Azure.SignalR"
-      }
+      },
+      "nativeDebugging": true
     }
   },
   "$schema": "https://json.schemastore.org/launchsettings.json",

@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
 using Shared_Class_Vivo_Apps.Models;
 using System;
+using System.Text;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -10,9 +12,14 @@ namespace Vivo_Apps_API.Controllers
     public class WebhookController : ControllerBase
     {
         private readonly ILogger<WebhookController> _logger;
+        private readonly IDistributedCache _cache;
 
-        public WebhookController(ILogger<WebhookController> logger)
+        public string? CachedTimeUTC { get; set; }
+        public string? ASP_Environment { get; set; }
+        public WebhookController(ILogger<WebhookController> logger,
+            IDistributedCache cache)
         {
+            _cache = cache;
             _logger = logger;
         }
 

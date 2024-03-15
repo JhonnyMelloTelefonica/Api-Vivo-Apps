@@ -21,11 +21,12 @@ namespace Vivo_Apps_API.Controllers
     public class Register : ControllerBase
     {
         private Vivo_MaisContext CD = new Vivo_MaisContext();
+        private DemandasContext Demanda = new DemandasContext();
 
         private readonly ILogger<RandomFunctions> _logger;
         private readonly IMapper _mapper;
 
-        public Register(ILogger<RandomFunctions> logger)
+        public Register(ILogger<RandomFunctions> logger, DemandasContext demanda)
         {
             _logger = logger;
 
@@ -39,6 +40,7 @@ namespace Vivo_Apps_API.Controllers
             });
 
             _mapper = config.CreateMapper();
+            Demanda = demanda;
         }
 
         [HttpGet("VerifyCurrentUserExists")]
@@ -76,6 +78,40 @@ namespace Vivo_Apps_API.Controllers
                 return new JsonResult(new Response<ACESSOS_MOBILE_PENDENTE?>
                 {
                     Data = new(),
+                    Succeeded = true,
+                    Message = "Você está habilitado a solicitação de acesso a ferramenta."
+                });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    },
+                });
+            }
+        }
+
+        [HttpGet("GetUser")]
+        [ProducesResponseType(typeof(Response<ACESSOS_MOBILE>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public JsonResult GetUser(int matricula)
+        {
+            try
+            {
+                var result = Demanda.ACESSOS_MOBILE.Where(x => x.MATRICULA == matricula)
+                    .Include(x=> x.DemandasResponsavel)
+                    .Include(x=> x.DemandasSolicitadas).FirstOrDefault();
+
+                return new JsonResult(new Response<ACESSOS_MOBILE>
+                {
+                    Data = result,
                     Succeeded = true,
                     Message = "Você está habilitado a solicitação de acesso a ferramenta."
                 });

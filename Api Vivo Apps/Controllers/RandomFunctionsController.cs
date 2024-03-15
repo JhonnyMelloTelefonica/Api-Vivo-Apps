@@ -20,6 +20,8 @@ using System.Runtime.ConstrainedExecution;
 using System.Text.Json.Serialization;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using static Vivo_Apps_API.Converters.Converters;
+using System.Linq;
+using Oracle.ManagedDataAccess.Client;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -29,6 +31,7 @@ namespace Vivo_Apps_API.Controllers
     {
         private Vivo_MaisContext CD = new Vivo_MaisContext();
         private Vivo_PBIContext CD_PBI = new Vivo_PBIContext();
+        private VICContext CD_VIC = new VICContext();
 
         private readonly ILogger<RandomFunctions> _logger;
 
@@ -45,6 +48,102 @@ namespace Vivo_Apps_API.Controllers
             public required string content { get; set; }
         }
 
+        [HttpGet("Update_Manual_Audit")]
+        public async Task<IActionResult> Update_Manual_Audit()
+        {
+            try
+            {
+                var query = @"
+            SELECT
+                O.NM_FNTS AS LOJA,
+                O.CENT,
+                O.CD,
+                O.ORDEM_VEND,
+                O.TPOV,
+                O.CPF_CNPJ,
+                O.MATERIAL,
+                O.DATA_NF,
+                O.NR_SRAL AS N_DE_SERIE,
+                O.VALOR_NF,
+                O.DOC_FATURAMENTO AS NUMERO_PED,
+                O.NO_LOGN_ATND_MVMT AS CRIADO_POR,
+                O.DS_PLNO AS NM_PLANO,
+                NULL AS APRL_DPAV,
+                NULL AS STATUS_DA_FIDELIZAÇÃO,
+                NULL AS NÚMERO_DA_LINHA_FIDELIZADA,
+                NULL AS VIVO_RENOVA_NÚMERO_DO_VOUCHER_DO_VIVO_RENOVA,
+                NULL AS DATA_DA_EMISSÃO_DO_VOUCHER_DO_VIVO_RENOVA,
+                NULL AS VALOR_DO_VOUCHER_VIVO_RENOVA,
+                NULL AS VIVO_VALORIZA_VALOR_DO_RESGATE_DA_PONTUAÇÃO_DO_VIVO_VALORIZA,
+                NULL AS VALOR_DO_RESGATE_VIVO_VALORIZA,
+                NULL AS DATA_DO_REGATE_DO_VIVO_VALORIZA,
+                NULL AS VALOR_NA_TABELA_DE_PREÇO,
+                NULL AS DELTA_DO_SUBSÍDIO_X_FATURAMENTO,
+                NULL AS PROTOCOLO_DE_DIGITALIZAÇÃO,
+                NULL AS OBSERVAÇÃO_DA_LOJA,
+                NULL AS LOGIN_RESPONSÁVEL,
+                NULL AS NÚMERO_DO_CHAMADO,
+                NULL AS AVALIÇÃO_REGIONAL,
+                NULL AS EMAIL_DO_RESPONSÁVEL_DA_REGIONAL,
+                O.NU_ANO_MES_RFRN AS ANOMES,
+                '' AS RETORNO_REGIONAL,
+                'N' AS IsSaved, 
+                'N' AS IsRESPONDIDO,
+                O.NOME_COMERCIAL,
+                O.DS_TIPO_MVMT_LNHA,
+                '1' AS AUDITORIA
+            FROM VPV_SDBX_PLNJ.VVIC_TRML_SUBSIDIO O
+            WHERE
+                o.nu_ano_mes_rfrn BETWEEN TO_CHAR(trunc(ADD_MONTHS (TO_DATE(TO_CHAR(trunc(sysdate),'YYYYMM'),'YYYYMM'),-2)),'YYYYMM')
+                AND TO_CHAR(trunc(sysdate),'YYYYMM')
+                AND SEGMENTO='B2C'
+                AND DEPOSITO NOT IN ('FGAR','RDMA','RPAR','SNOV','SNTR','SUCT','USAD')
+                AND CANAL_FATURAMENTO <>'Funcionários'
+                AND CLASSIF_CATEGORIA IN ('APARELHOS','SMARTPHONES')
+                AND O.SG_RGNL IN ('NE')
+                AND O.CANAL_FATURAMENTO IN ('LOJAS PROPRIAS','CLIENTES ESPECIAIS')
+                AND O.DEPOSITO = 'LVUT'
+                AND FLAG_VNDA_MANUAL_APRL = 1";
+
+                DataTable dataTable = new DataTable();
+                using (OracleConnection connection = new OracleConnection(CD_VIC.Database.GetConnectionString()))
+                {
+                    using (OracleCommand command = new OracleCommand(query, connection))
+                    {
+                        connection.Open();
+
+                        using (OracleDataAdapter adapter = new OracleDataAdapter(command))
+                        {
+                            adapter.Fill(dataTable);
+                        }
+
+                        connection.Close();
+                    }
+                }
+                List<T_VIC_VNDA_MANUAL_AUDIT> resultList = new List<T_VIC_VNDA_MANUAL_AUDIT>();
+
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    T_VIC_VNDA_MANUAL_AUDIT item = new T_VIC_VNDA_MANUAL_AUDIT
+                    {
+                        LOJA = row["LOJA"].ToString(),
+                        CENT = row["CENT"].ToString(),
+                        CD = Convert.ToDecimal(row["CD"]),
+                        ORDEM_VEND = Convert.ToDecimal(row["ORDEM_VEND"]),
+                        
+                    };
+
+                    resultList.Add(item);
+                }
+
+
+                return Ok("Tudo certo!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
         [HttpGet("Att_Visao_Cargos_VivoTask")]
         public async Task<string> Att_Visao_Cargos_VivoTask()
         {
@@ -117,8 +216,8 @@ namespace Vivo_Apps_API.Controllers
                     Cor = item.Field<string>("Cor"),
                     Serial = item.Field<string>("Serial"),
                     Dias_em_Estoque = item.Field<string>("Dias em Estoque"),
-                    Valor = decimal.TryParse(item.Field<string?>("Valor").Replace(".",","), out decimal resultado)
-                    ? Math.Round(resultado,2)
+                    Valor = decimal.TryParse(item.Field<string?>("Valor").Replace(".", ","), out decimal resultado)
+                    ? Math.Round(resultado, 2)
                     : 0,
                     //decimal.TryParse(, out decimal resultado) == true ? Math.Round(resultado, 2) : 0
                     Quantidade = Convert.ToDouble(item.Field<string?>("Quantidade") ?? "0.0"),

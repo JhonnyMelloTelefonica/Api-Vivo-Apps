@@ -15,6 +15,15 @@ using System.Data;
 using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
 using Shared_Class_Vivo_Apps.Models;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Collections.Generic;
+using System.IO.Compression;
+using DocumentFormat.OpenXml.Office2010.Excel;
+using Microsoft.Extensions.Caching.Distributed;
+using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text.Json.Serialization.Metadata;
+using DocumentFormat.OpenXml.Vml.Spreadsheet;
+using DocumentFormat.OpenXml.Office.CustomUI;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -24,17 +33,25 @@ namespace Vivo_Apps_API.Controllers
     {
         private readonly ILogger<DemandasController> _logger;
         private readonly IMapper _mapper;
-        private readonly IHubContext<VivoXHub> _hubContext;
-        public DemandasController(ILogger<DemandasController> logger, IHubContext<VivoXHub> hubContext)
+        private readonly ISuporteDemandaHub _hubContext;
+        private static Vivo_MaisContext CD;
+        private IDbContextFactory<DemandasContext> DbFactory;
+        private DemandasContext Demanda_BD;
+        public DemandasController(
+            ILogger<DemandasController> logger
+            , ISuporteDemandaHub hubContext
+            , Vivo_MaisContext bd_context
+            , IDbContextFactory<DemandasContext> dbContextFactory)
         {
+            DbFactory = dbContextFactory;
+            Demanda_BD = DbFactory.CreateDbContext();
+            CD = bd_context;
+            _hubContext = hubContext;
             _logger = logger;
             var config = new MapperConfiguration(cfg =>
             {
-                //cfg.CreateMap<CONTROLE_DE_DEMANDAS_FILA, DEMANDAS_FILA_DTO>();
-                //cfg.CreateMap<CONTROLE_DE_DEMANDAS_CAMPOS_FILA, DEMANDAS_CAMPOS_FILA_DTO>();                
-                //cfg.CreateMap<CONTROLE_DE_DEMANDAS_CAMPO_COMBOBOX_FILA, DEMANDAS_CAMPO_COMBOBOX_FILA_DTO>();
-
                 cfg.CreateMap<DEMANDA_TIPO_FILA, DEMANDA_TIPO_FILA_DTO>();
+                cfg.CreateMap<DEMANDA_SUB_FILA, PAINEL_DEMANDA_SUB_FILA_DTO>();
                 cfg.CreateMap<DEMANDA_SUB_FILA, DEMANDA_SUB_FILA_DTO>()
                 .ForMember(
                     dest => dest.Responsaveis,
@@ -49,8 +66,6 @@ namespace Vivo_Apps_API.Controllers
 
                 cfg.CreateMap<DEMANDA_VALORES_CAMPOS_SUSPENSO, DEMANDA_VALORES_CAMPOS_SUSPENSO_DTO>();
 
-                cfg.CreateMap<ACESSO, ACESSO_DTO>();
-
                 cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_DTO>()
                 .ForMember(
                     dest => dest.CARGO,
@@ -59,30 +74,13 @@ namespace Vivo_Apps_API.Controllers
                 .ForMember(
                     dest => dest.CANAL,
                     opt => opt.MapFrom(src => (Canal)src.CANAL)
-                    );
-
-                cfg.CreateMap<CONTROLE_DE_DEMANDAS_RELACAO_STATUS_CHAMADO, DEMANDAS_STATUS_CHAMADO_DTO>()
-                .ForMember(
-                    dest => dest.RESPOSTAS,
-                    opt => opt.MapFrom(src => CD.CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTAs
-                                .Where(x => x.ID == src.ID_RESPOSTA).FirstOrDefault())
                     )
                 .ForMember(
-                    dest => dest.MAT_QUEM_REDIRECIONOU,
-                    opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs
-                                .Where(x => x.MATRICULA.ToString() == src.MAT_QUEM_REDIRECIONOU)
-                                .FirstOrDefault())
+                    dest => dest.DemandasResponsavel,
+                    opt => opt.MapFrom(src => src.DemandasResponsavel.AsEnumerable())
                     );
 
-                cfg.CreateMap<CONTROLE_DE_DEMANDAS_CHAMADO_ARQUIVO, DEMANDAS_CHAMADO_ARQUIVO_DTO>();
-                cfg.CreateMap<CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADO, DEMANDAS_CAMPOS_CHAMADO_DTO>();
-                cfg.CreateMap<CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTum, DEMANDAS_CHAMADO_RESPOSTA_DTO>()
-                .ForMember(
-                    dest => dest.MATRICULA_RESPONSAVEL,
-                    opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs
-                                .Where(x => x.MATRICULA.ToString() == src.MATRICULA_RESPONSAVEL)
-                                .FirstOrDefault())
-                    );
+
                 cfg.CreateMap<DEMANDA_BD_OPERADORE, DEMANDA_BD_OPERADORES_DTO>()
                 .ForMember(
                     dest => dest.MATRICULA,
@@ -95,69 +93,20 @@ namespace Vivo_Apps_API.Controllers
                                 .Where(x => x.MATRICULA == src.MATRICULA_MOD)
                                 .FirstOrDefault())
                     );
-                cfg.CreateMap<CONTROLE_DEMANDAS_ARQUIVOS_RESPOSTum, DEMANDAS_ARQUIVOS_RESPOSTA_DTO>();
 
-                cfg.CreateMap<CONTROLE_DE_DEMANDAS_CHAMADO, PAINEL_DEMANDAS_CHAMADO_DTO>()
-               .ForMember(
-                   dest => dest.ID_FILA_CHAMADO,
-                   opt => opt.MapFrom(src => CD.DEMANDA_SUB_FILAs
-                               .Where(x => x.ID_SUB_FILA == src.ID_FILA_CHAMADO || x.ID_ANTIGO == src.ID_FILA_CHAMADO)
-                               .FirstOrDefault())
-                   )
-               .ForMember(
-                   dest => dest.ID_STATUS_CHAMADO,
-                   opt => opt.MapFrom(src => CD.CONTROLE_DE_DEMANDAS_RELACAO_STATUS_CHAMADOs
-                               .Where(x => x.ID_STATUS_CHAMADO == src.ID_STATUS_CHAMADO))
-                   )
-               .ForMember(
-                   dest => dest.MATRICULA_RESPONSAVEL,
-                   opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs
-                                .Where(x => x.MATRICULA.ToString() == src.MATRICULA_RESPONSAVEL)
-                               .FirstOrDefault())
-                   )
-               .ForMember(
-                   dest => dest.MATRICULA_SOLICITANTE,
-                   opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs
-                                .Where(x => x.MATRICULA.ToString() == src.MATRICULA_SOLICITANTE)
-                               .FirstOrDefault()));
+                cfg.CreateMap<DEMANDA_CHAMADO, PAINEL_DEMANDAS_CHAMADO_DTO>();
 
-                //cfg.CreateMap<CONTROLE_DE_DEMANDAS_CHAMADO, DEMANDAS_CHAMADO_DTO>()
-                //.ForMember(
-                //    dest => dest.CAMPOS,
-                //    opt => opt.MapFrom(src => CD.CONTROLE_DE_DEMANDAS_CAMPOS_CHAMADOs.Where(x => x.ID_CHAMADO == src.ID).AsEnumerable())
-                //    )
-                //.ForMember(
-                //    dest => dest.STATUS,
-                //    opt => opt.MapFrom(src => CD.CONTROLE_DE_DEMANDAS_STATUS_CHAMADOs.Where(x => x.ID_CHAMADO == src.ID).AsEnumerable())
-                //    )
-                //.ForMember(
-                //    dest => dest.FILA,
-                //    opt => opt.MapFrom(src => src.ID_FILA_CHAMADONavigation)
-                //    )
-                //.ForMember(
-                //    dest => dest.ANEXOS_ABERTURA,
-                //    opt => opt.MapFrom(src => src.CONTROLE_DE_DEMANDAS_CHAMADO_ARQUIVOs)
-                //    )
-                //.ForMember(
-                //    dest => dest.RESPOSTAS,
-                //    opt => opt.MapFrom(src => src.CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTa)
-                //    )
-                //.ForMember(
-                //    dest => dest.RESPONSAVEL,
-                //    opt => opt.MapFrom(src => CD.ACESSOs
-                //                .Where(x => x.Login == src.MATRICULA_RESPONSAVEL)
-                //                .FirstOrDefault()))
-                //.ForMember(
-                //    dest => dest.SOLICITANTE,
-                //    opt => opt.MapFrom(src => CD.ACESSOs
-                //                .Where(x => x.Login == src.MATRICULA_SOLICITANTE)
-                //                .FirstOrDefault())
-                //    );
+                cfg.CreateMap<DEMANDA_CHAMADO, DEMANDAS_CHAMADO_DTO>();
+                cfg.CreateMap<DEMANDA_CHAMADO_RESPOSTA, DEMANDA_CHAMADO_RESPOSTA_DTO>();
+                cfg.CreateMap<DEMANDA_ARQUIVOS_RESPOSTA, DEMANDA_ARQUIVOS_RESPOSTA_DTO>()
+                .ForMember(
+                    dest => dest.ARQUIVO,
+                    opt => opt.MapFrom(src => ConvertFile(src.ARQUIVO))
+                    );
             });
             _mapper = config.CreateMapper();
         }
 
-        private Vivo_MaisContext CD = new Vivo_MaisContext();
 
         [HttpGet("GetAnalistasByRegional")]
         [ProducesResponseType(typeof(Response<IEnumerable<ACESSOS_MOBILE_DTO>>), 200)]
@@ -229,7 +178,8 @@ namespace Vivo_Apps_API.Controllers
                             NOME_SUB_FILA = sub_fila.NOME_SUB_FILA,
                             DESCRICAO = sub_fila.DESCRICAO,
                             REGIONAL = regional,
-                            STATUS_SUB_FILA = true
+                            STATUS_SUB_FILA = true,
+                            SLA = sub_fila.SLA
                         }).Entity;
 
                         CD.SaveChanges();
@@ -337,7 +287,8 @@ namespace Vivo_Apps_API.Controllers
                             NOME_SUB_FILA = sub_fila.NOME_SUB_FILA,
                             REGIONAL = regional,
                             DESCRICAO = sub_fila.DESCRICAO,
-                            STATUS_SUB_FILA = true
+                            STATUS_SUB_FILA = true,
+                            SLA = sub_fila.SLA
                         }).Entity;
 
                         CD.SaveChanges();
@@ -437,6 +388,7 @@ namespace Vivo_Apps_API.Controllers
                 NewSubFila.CAMPOS_IDENT_USER = data.CAMPOS_IDENT_USER;
                 NewSubFila.NOME_SUB_FILA = data.NOME_SUB_FILA;
                 NewSubFila.DESCRICAO = data.DESCRICAO;
+                NewSubFila.SLA = data.SLA;
                 //NewSubFila.STATUS_SUB_FILA = true;
 
                 CD.SaveChanges();
@@ -564,7 +516,7 @@ namespace Vivo_Apps_API.Controllers
                     if (data.Responsaveis.Any())
                     {
                         List<int> listaOperadores = CD.DEMANDA_RESPONSAVEL_FILAs.Where(x =>
-                            x.ID_SUB_FILA == data.ID_SUB_FILA).Select(x => x.MATRICULA_RESPONSAVEL.Value).ToList();
+                            x.ID_SUB_FILA == data.ID_SUB_FILA).Select(x => x.MATRICULA_RESPONSAVEL).ToList();
                         // Buscando todas os responsaveis que já existe dentro da fila
                         if (data.Responsaveis.Count() > listaOperadores.Count) // Usuário adicionado
                         {
@@ -805,7 +757,7 @@ namespace Vivo_Apps_API.Controllers
                             CD.DEMANDA_RESPONSAVEL_FILAs
                                 .Where(postAndMeta => filter.Value.responsável
                                         .Select(x => x.MATRICULA)
-                                        .Contains(postAndMeta.MATRICULA_RESPONSAVEL.Value))
+                                        .Contains(postAndMeta.MATRICULA_RESPONSAVEL))
                                 .Select(l => l.ID_SUB_FILA).Contains(k.ID_SUB_FILA)
                         );
                     }
@@ -815,9 +767,7 @@ namespace Vivo_Apps_API.Controllers
                .Skip((filter.PageNumber - 1) * filter.PageSize)
                .Take(filter.PageSize);
 
-                var demandas = dataAfterFilter
-                        //.ProjectTo<PAINEL_DEMANDAS_CHAMADO_DTO>(_mapper.ConfigurationProvider)
-                        .ToList();
+                var demandas = dataAfterFilter.AsNoTracking().ToList();
 
                 var totalRecords = dataBeforeFilter.Count();
                 var totalPages = ((double)totalRecords / (double)filter.PageSize);
@@ -857,18 +807,13 @@ namespace Vivo_Apps_API.Controllers
                 var datafilters = new FilterFilaDemandasModel();
 
                 datafilters.filas = CD.DEMANDA_TIPO_FILAs
-                    .Where(x => x.REGIONAL == regional).Distinct()
+                    .Where(x => x.REGIONAL == regional)
                     .ProjectTo<DEMANDA_TIPO_FILA_DTO>(_mapper.ConfigurationProvider);
-
-                datafilters.tipo_filas = CD.DEMANDA_SUB_FILAs
-                    .Where(x => x.REGIONAL == regional).Distinct()
-                    .ProjectTo<DEMANDA_SUB_FILA_DTO>(_mapper.ConfigurationProvider);
 
                 datafilters.AnalistaSuporte = CD.ACESSOS_MOBILEs.Where(x =>
                     CD.DEMANDA_RESPONSAVEL_FILAs
                             .Select(x => x.MATRICULA_RESPONSAVEL)
-                            .Distinct()
-                            .Contains(x.MATRICULA)
+                            .Distinct().Contains(x.MATRICULA.Value)
                 ).ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider);
 
                 return new JsonResult(new Response<FilterFilaDemandasModel>
@@ -900,31 +845,29 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var fila = CD.CONTROLE_DE_DEMANDAS_FILAs.Where(x => x.REGIONAL == regional)
-                    .GroupBy(x => new { FILA = x.FILA, TIPO_FILA = x.TIPO_CHAMADO })
-                    .Select(y => new
-                    {
-                        FILA = y.Key.FILA,
-                        TIPO_FILA = y.Key.TIPO_FILA,
-                    });
+                var fila = CD.DEMANDA_TIPO_FILAs.Where(x => x.REGIONAL == regional).IgnoreAutoIncludes()
+                    .ProjectTo<DEMANDA_TIPO_FILA_DTO>(_mapper.ConfigurationProvider).AsEnumerable();
 
-                var analistassuporte = CD.ACESSOs.Where(k => k.Regional == regional).Where(k =>
-                    CD.DEMANDA_RESPONSAVEL_FILAs.Select(x => x.MATRICULA_RESPONSAVEL.ToString()).Distinct().Contains(k.Login)
-                    );
-                var status = CD.CONTROLE_DE_DEMANDAS_RELACAO_STATUS_CHAMADOs.Select(k => k.STATUS).Distinct();
+                var analistassuporte = CD.ACESSOS_MOBILEs.Where(k => k.REGIONAL == regional).Where(k =>
+                            CD.DEMANDA_RESPONSAVEL_FILAs.Select(x => x.MATRICULA_RESPONSAVEL).Distinct().Contains(k.MATRICULA.Value)
+                        ).IgnoreAutoIncludes().ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider).AsEnumerable();
 
-                return new JsonResult(new Response<object>
+                var options = new JsonSerializerOptions
                 {
-                    Data = new
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                };
+
+                return new JsonResult(new Response<FilterFilaDemandasModel>
+                {
+                    Data = new FilterFilaDemandasModel
                     {
-                        analistassuporte,
-                        fila,
-                        status
+                        filas = fila,
+                        AnalistaSuporte = analistassuporte
                     },
                     Succeeded = true,
                     Errors = null,
                     Message = "Tudo Certo!"
-                });
+                }, options);
             }
             catch (Exception ex)
             {
@@ -950,27 +893,9 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var Dados_Fila = CD.DEMANDA_TIPO_FILAs.Select(x => new DEMANDA_TIPO_FILA_DTO
-                {
-                    ID_TIPO_FILA = x.ID_TIPO_FILA,
-                    NOME_TIPO_FILA = x.NOME_TIPO_FILA,
-                    REGIONAL = x.REGIONAL,
-                    STATUS_TIPO_FILA = x.STATUS_TIPO_FILA,
-                    DESCRICAO = x.DESCRICAO,
-                    DEMANDA_SUB_FILAs = CD.DEMANDA_SUB_FILAs.Where(y => y.ID_TIPO_FILA == x.ID_TIPO_FILA)
-                    .Select(y => new DEMANDA_SUB_FILA_DTO
-                    {
-                        ID_SUB_FILA = y.ID_SUB_FILA,
-                        NOME_SUB_FILA = y.NOME_SUB_FILA,
-                        REGIONAL = y.REGIONAL,
-                        DESCRICAO = y.DESCRICAO,
-                        CAMPOS_AUTO = y.CAMPOS_AUTO,
-                        CAMPOS_IDENT_USER = y.CAMPOS_IDENT_USER,
-                        STATUS_SUB_FILA = y.STATUS_SUB_FILA,
-                        ID_TIPO_FILA = y.ID_TIPO_FILA,
-                        ID_ANTIGO = y.ID_ANTIGO
-                    }).ToList()
-                }).AsEnumerable();
+                var Dados_Fila = CD.DEMANDA_TIPO_FILAs
+                    .ProjectTo<DEMANDA_TIPO_FILA_DTO>(_mapper.ConfigurationProvider)
+                    .ToList();
 
                 return new JsonResult(new Response<IEnumerable<DEMANDA_TIPO_FILA_DTO>>
                 {
@@ -1034,179 +959,255 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
-        [HttpPost("InsertRespostaFechamento")]
-        public string InsertRespostaFechamento([FromBody] RespostaFechamento data)
+        [HttpPost("InsertRespostaChangeStatus")]
+        [ProducesResponseType(typeof(Response<DEMANDAS_CHAMADO_DTO>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public async Task<JsonResult> InsertRespostaChangeStatus([FromBody] RespostaDemandaModel data)
         {
             try
             {
-                var retorno = CD.CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTAs.Add(new CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTum
+                var retorno = Demanda_BD.DEMANDA_CHAMADO_RESPOSTA.Add(new DEMANDA_CHAMADO_RESPOSTA
                 {
                     RESPOSTA = data.resposta,
                     ID_CHAMADO = data.IdChamado,
                     MATRICULA_RESPONSAVEL = data.MATRICULA,
-                    DATA_RESPOSTA = data.Data
+                    DATA_RESPOSTA = data.Data,
+                    Status = new DEMANDA_STATUS_CHAMADO
+                    {
+                        ID_CHAMADO = data.IdChamado,
+                        STATUS = data.Status,
+                        DATA = data.Data,
+                        MAT_QUEM_REDIRECIONOU = data.MATRICULA,
+                        MAT_DESTINATARIO = data.MATRICULA_REDIRECIONADO
+                    },
+                    ARQUIVOS = data.Arquivos.Any() ? data.Arquivos.Select(x => new DEMANDA_ARQUIVOS_RESPOSTA
+                    {
+                        NOME_CAMPO = x.FileName.Split('.')[0],
+                        ARQUIVO = x.Bytes,
+                        EXT_ARQUIVO = x.Extensao,
+                    }).ToList() : null
                 });
 
-                var chamado = CD.CONTROLE_DE_DEMANDAS_CHAMADOs.Where(x => x.ID == data.IdChamado).FirstOrDefault();
+                //Demanda_BD.SaveChanges();
 
-                CD.CONTROLE_DE_DEMANDAS_RELACAO_STATUS_CHAMADOs.Add(new CONTROLE_DE_DEMANDAS_RELACAO_STATUS_CHAMADO
+                //Demanda_BD.DEMANDA_STATUS_CHAMADO.Add(new DEMANDA_STATUS_CHAMADO
+                //{
+                //    ID_CHAMADO = data.IdChamado,
+                //    STATUS = data.Status,
+                //    DATA = data.Data,
+                //    MAT_QUEM_REDIRECIONOU = data.MATRICULA,
+                //    MAT_DESTINATARIO = data.MATRICULA_REDIRECIONADO,
+                //    ID_RESPOSTA = retorno.ID
+                //});
+
+                var chamado = Demanda_BD.DEMANDA_CHAMADO.Find(data.IdChamado);
+
+                if (data.MATRICULA_REDIRECIONADO.HasValue)
                 {
-                    ID_STATUS_CHAMADO = (int)chamado.ID_STATUS_CHAMADO,
-                    STATUS = data.Status,
-                    DATA = data.Data,
-                    ID_RESPOSTA = chamado.ID,
-                });
+                    chamado.MATRICULA_RESPONSAVEL = data.MATRICULA_REDIRECIONADO;
+                }
 
-                CD.SaveChanges();
-
-                return JsonConvert.SerializeObject(retorno);
-            }
-            catch (Exception ex)
-            {
-                return $"500 -> {ex.Message} ---------------------- {ex.ToString()}";
-            }
-        }
-
-        [HttpPost("InsertRespostaIntoDemandaChangeStatus")]
-        public string InsertRespostaIntoDemandaChangeStatus([FromBody] RespostaFechamento data)
-        {
-            try
-            {
-                var retorno = CD.CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTAs.Add(new CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTum
-                {
-                    RESPOSTA = data.resposta,
-                    ID_CHAMADO = data.IdChamado,
-                    MATRICULA_RESPONSAVEL = data.MATRICULA,
-                    DATA_RESPOSTA = DateTime.Now
-                }).Entity;
-
-                CD.SaveChanges();
-                var chamado = CD.CONTROLE_DE_DEMANDAS_CHAMADOs.Find(data.IdChamado);
-                CD.CONTROLE_DE_DEMANDAS_RELACAO_STATUS_CHAMADOs.Add(new CONTROLE_DE_DEMANDAS_RELACAO_STATUS_CHAMADO
-                {
-                    ID_STATUS_CHAMADO = (int)chamado.ID_STATUS_CHAMADO,
-                    STATUS = data.Status,
-                    DATA = DateTime.Now,
-                    ID_RESPOSTA = retorno.ID
-                });
-                CD.SaveChanges();
-                if (data.Status == "FECHADO")
+                if ("CONCLUÍDO" == data.Status)
                 {
                     chamado.DATA_FECHAMENTO = DateTime.Now;
                 }
-                else if (data.Status == "CHAMADO REABERTO")
+                else if (data.Status == "REABERTO")
                 {
                     chamado.DATA_FECHAMENTO = null;
                 }
-                CD.SaveChanges();
 
-                return JsonConvert.SerializeObject(retorno);
+                Demanda_BD.SaveChanges();
+
+                _hubContext.SendTableDemandas();
+
+                var demanda = await GetDemandaByID(data.IdChamado);
+                var options = new JsonSerializerOptions
+                {
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                };
+
+                return new JsonResult(new Response<DEMANDAS_CHAMADO_DTO>
+                {
+                    Data = demanda,
+                    Succeeded = true,
+                    Errors = null,
+                    Message = "Tudo Certo!"
+                }, options);
             }
             catch (Exception ex)
             {
-                return $"500 -> {ex.Message} ---------------------- {ex.ToString()}";
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Erro ao Executar ação",
+                    Succeeded = false,
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    },
+                    Message = "Erro ao Executar ação"
+                });
             }
         }
 
-        [HttpPost("InsertRespostaIntoDemanda")]
-        public string InsertRespostaIntoDemanda([FromBody] RespostaFechamento data)
+        [HttpPost("InsertResposta")]
+        [ProducesResponseType(typeof(Response<DEMANDAS_CHAMADO_DTO>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public async Task<JsonResult> InsertResposta([FromBody] RespostaDemandaModel data)
         {
             try
             {
-                var retorno = CD.CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTAs.Add(new CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTum
+                var retorno = Demanda_BD.DEMANDA_CHAMADO_RESPOSTA.Add(new DEMANDA_CHAMADO_RESPOSTA
                 {
                     RESPOSTA = data.resposta,
                     ID_CHAMADO = data.IdChamado,
                     MATRICULA_RESPONSAVEL = data.MATRICULA,
-                    DATA_RESPOSTA = DateTime.Now
+                    DATA_RESPOSTA = data.Data,
+                    Status = null,
+                    ARQUIVOS = data.Arquivos.Any() ? data.Arquivos.Select(x => new DEMANDA_ARQUIVOS_RESPOSTA
+                    {
+                        NOME_CAMPO = x.FileName.Split('.')[0],
+                        ARQUIVO = x.Bytes,
+                        EXT_ARQUIVO = x.Extensao,
+                    }).ToList() : null
                 });
-                CD.SaveChanges();
-                return JsonConvert.SerializeObject(retorno);
+
+                Demanda_BD.SaveChanges();
+                _hubContext.SendTableDemandas();
+                var demanda = await GetDemandaByID(data.IdChamado);
+                _hubContext.UpdateDemanda(demanda);
+
+                return new JsonResult(new Response<DEMANDAS_CHAMADO_DTO>
+                {
+                    Data = demanda,
+                    Succeeded = true,
+                    Errors = null,
+                    Message = "Tudo Certo!"
+                }
+                , new JsonSerializerOptions
+                {
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                });
             }
             catch (Exception ex)
             {
-                return $"500 -> {ex.Message} ---------------------- {ex.ToString()}";
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Erro ao Executar ação",
+                    Succeeded = false,
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    },
+                    Message = "Erro ao Executar ação"
+                });
             }
         }
 
         [HttpPost("AbrirDemanda")]
-        [ProducesResponseType(typeof(Response<int>), 200)]
+        [ProducesResponseType(typeof(Response<ACESSOS_MOBILE_DTO>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public string AbrirDemanda([FromBody] DEMANDAS_FILA data)
+        public async Task<JsonResult> AbrirDemanda([FromBody] DEMANDAS_FILA data)
         {
             try
             {
-                var demanda = CD.CONTROLE_DE_DEMANDAS_CHAMADOs.Add(new CONTROLE_DE_DEMANDAS_CHAMADO
+                var fila = Demanda_BD.DEMANDA_SUB_FILA.Include(x => x.DEMANDA_RESPONSAVEL_FILAs).First(x => x.ID_SUB_FILA == data.FILA_DTO.ID_SUB_FILA);
+                int responsavel;
+
+                if (fila.DEMANDA_RESPONSAVEL_FILAs.Count > 1)
                 {
-                    ID_FILA_CHAMADO = data.FILA_DTO.ID_SUB_FILA,
-                    MATRICULA_SOLICITANTE = data.MAT_SOLICITANTE,
-                    REGIONAL = data.REGIONAL,
-                    EMAIL_SECUNDARIO = data.SEC_EMAIL,
-                    DATA_ABERTURA = DateTime.Now,
-                    PRIORIDADE = "BAIXA"
-                }).Entity;
+                    List<(int, int)> saida = new();
 
-                CD.SaveChanges();
-
-                var relacao_campos = CD.CONTROLE_DE_DEMANDAS_CAMPOS_CHAMADOs.Add(new CONTROLE_DE_DEMANDAS_CAMPOS_CHAMADO
-                {
-                    ID_CHAMADO = demanda.ID
-                }).Entity;
-                CD.SaveChanges();
-
-                demanda.ID_CAMPOS_CHAMADO = relacao_campos.ID;
-
-                foreach (var campo in data.CAMPOS)
-                {
-                    CD.CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADOs.Add(new CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADO
+                    foreach (var item in fila.DEMANDA_RESPONSAVEL_FILAs)
                     {
-                        ID_CAMPOS_CHAMADO = relacao_campos.ID,
-                        VALOR = campo.RESPOSTA,
-                        CAMPO = campo.CAMPO
-                    });
+                        saida.Add((Demanda_BD.DEMANDA_CHAMADO.Count(x => x.MATRICULA_RESPONSAVEL == item.MATRICULA_RESPONSAVEL), item.MATRICULA_RESPONSAVEL));
+                    }
+
+                    responsavel = saida.MinBy(x => x.Item1).Item2;
+                }
+                else
+                {
+                    responsavel = fila.DEMANDA_RESPONSAVEL_FILAs.First().MATRICULA_RESPONSAVEL;
                 }
 
-                CD.SaveChanges();
 
-                var relacao_status = CD.CONTROLE_DE_DEMANDAS_STATUS_CHAMADOs.Add(new CONTROLE_DE_DEMANDAS_STATUS_CHAMADO { ID_CHAMADO = demanda.ID }).Entity;
-
-                CD.SaveChanges();
-
-                demanda.ID_STATUS_CHAMADO = relacao_status.ID;
-
-                CD.CONTROLE_DE_DEMANDAS_RELACAO_STATUS_CHAMADOs.Add(new CONTROLE_DE_DEMANDAS_RELACAO_STATUS_CHAMADO
+                var demanda = new DEMANDA_CHAMADO
                 {
-                    ID_STATUS_CHAMADO = relacao_status.ID,
-                    STATUS = "EM ABERTO",
-                    DATA = DateTime.Now,
-                });
-                CD.SaveChanges();
+                    ID_FILA_CHAMADO = data.FILA_DTO.ID_SUB_FILA,
+                    MATRICULA_RESPONSAVEL = responsavel,
+                    MATRICULA_SOLICITANTE = int.Parse(data.MAT_SOLICITANTE),
+                    DATA_ABERTURA = DateTime.Now,
+                    DATA_FECHAMENTO = null,
+                    PRIORIDADE = "BAIXA",
+                    REGIONAL = data.REGIONAL,
+                    Respostas = new List<DEMANDA_CHAMADO_RESPOSTA>
+                    {
+                        new DEMANDA_CHAMADO_RESPOSTA
+                        {
+                            RESPOSTA = data.PROBLEMA,
+                            MATRICULA_RESPONSAVEL = int.Parse(data.MAT_SOLICITANTE),
+                            DATA_RESPOSTA = DateTime.Now,
+                            ARQUIVOS = data.Arquivos.Select(x => new DEMANDA_ARQUIVOS_RESPOSTA
+                            {
+                                NOME_CAMPO = x.FileName.Split('.')[0],
+                                ARQUIVO = x.Bytes,
+                                EXT_ARQUIVO = x.FileName.Split('.')[1]
+                            }).ToList()
+                        }
+                    },
+                    Campos = data.CAMPOS.Select(campo => new DEMANDA_CAMPOS_CHAMADO
+                    {
+                        VALOR = campo.RESPOSTA,
+                        CAMPO = campo.CAMPO
+                    }).ToList(),
+                };
 
-                var resposta = CD.CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTAs.Add(new CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTum
+                Demanda_BD.DEMANDA_CHAMADO.Add(demanda);
+
+                await Demanda_BD.SaveChangesAsync();
+
+                demanda.Status.Add(new DEMANDA_STATUS_CHAMADO
                 {
-                    RESPOSTA = data.CAMPOS.Where(x => x.CAMPO == "Problema").First().RESPOSTA,
                     ID_CHAMADO = demanda.ID,
-                    MATRICULA_RESPONSAVEL = data.MAT_SOLICITANTE,
-                    DATA_RESPOSTA = DateTime.Now
-                }).Entity;
+                    STATUS = "EM ABERTO",
+                    ID_RESPOSTA = demanda.Respostas.First().ID,
+                    DATA = DateTime.Now
+                });
 
-                CD.SaveChanges();
+                await Demanda_BD.SaveChangesAsync();
 
-                CD.CONTROLE_DE_DEMANDAS_ARQUIVOS_RESPOSTAs.AddRange(data.Arquivos.Select(x => new CONTROLE_DE_DEMANDAS_ARQUIVOS_RESPOSTum
+                var retorno = Demanda_BD.ACESSOS_MOBILE
+                    .Where(x => x.MATRICULA == demanda.MATRICULA_RESPONSAVEL)
+                    .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
+                    .First();
+
+                var options = new JsonSerializerOptions
                 {
-                    ID_RESPOSTA = resposta.ID,
-                    NOME_CAMPO = x.FileName,
-                    ARQUIVO = x.Bytes,
-                    EXT_ARQUIVO = x.MIMEType,
-                }));
+                    ReferenceHandler = ReferenceHandler.Preserve
+                };
 
-                CD.SaveChanges();
+                await _hubContext.SendTableDemandas();
+                await _hubContext.NewNotificationByUser(responsavel, demanda);
+                await _hubContext.NewNotificationByUser(int.Parse(data.MAT_SOLICITANTE), demanda);
 
-                return $"{demanda.ID}";
+                return new JsonResult(new Response<ACESSOS_MOBILE_DTO>
+                {
+                    Data = retorno,
+                    Succeeded = true,
+                    Message = $"Tudo certo!",
+                    Errors = null,
+                }, options);
             }
             catch (Exception ex)
             {
-                return $"500 -> {ex.Message} ---------------------- {ex.ToString()}";
+                return new JsonResult(new Response<string>
+                {
+                    Data = $"500 -> {ex.Message} ---------------------- {ex.ToString()}",
+                    Succeeded = false,
+                    Message = $"Algum erro ocorreu!",
+                    Errors = null,
+                });
             }
         }
 
@@ -1217,102 +1218,141 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var dataBeforeFilter = CD.CONTROLE_DE_DEMANDAS_CHAMADOs.AsQueryable();
-
-                if (filter.Value.matricula != 0)
+                if (!filter.Value.IsRealTime)
                 {
-                    dataBeforeFilter = dataBeforeFilter.Where(x => x.MATRICULA_SOLICITANTE == filter.Value.matricula.ToString());
-                }
+                    var dataBeforeFilter = CD.CONTROLE_DE_DEMANDAS_CHAMADOs.AsQueryable();
 
-                if (filter.Value.datas is not null)
-                {
-                    if (filter.Value.datas.Count() == 2)
+                    if (filter.Value.matricula != 0)
                     {
-                        dataBeforeFilter = dataBeforeFilter.Where(x => x.DATA_ABERTURA >= filter.Value.datas[0] &&
-                        x.DATA_ABERTURA <= filter.Value.datas[1]);
+                        dataBeforeFilter = dataBeforeFilter.Where(x => x.MATRICULA_SOLICITANTE == filter.Value.matricula.ToString());
                     }
-                }
 
-                if (filter.Value.regional is not null)
-                {
-
-                    if (filter.Value.regional.Any())
+                    if (filter.Value.datas is not null)
                     {
-                        dataBeforeFilter = dataBeforeFilter.Where(x => filter.Value.regional.Contains(x.REGIONAL));
+                        if (filter.Value.datas.Count() == 2)
+                        {
+                            dataBeforeFilter = dataBeforeFilter.Where(x => x.DATA_ABERTURA >= filter.Value.datas[0] &&
+                            x.DATA_ABERTURA <= filter.Value.datas[1]);
+                        }
                     }
-                }
 
-                if (filter.Value.status is not null)
-                {
-                    if (filter.Value.status.Any())
+                    if (filter.Value.regional is not null)
                     {
-                        dataBeforeFilter = dataBeforeFilter
-                                    .Where(c => filter.Value.status.Contains(
+
+                        if (filter.Value.regional.Any())
+                        {
+                            dataBeforeFilter = dataBeforeFilter.Where(x => filter.Value.regional.Contains(x.REGIONAL));
+                        }
+                    }
+
+                    if (filter.Value.status is not null)
+                    {
+                        if (filter.Value.status.Any())
+                        {
+                            dataBeforeFilter = dataBeforeFilter
+                                        .Where(c => filter.Value.status.Contains(
+                                            CD.CONTROLE_DE_DEMANDAS_RELACAO_STATUS_CHAMADOs
+                                                .Where(s => s.ID_STATUS_CHAMADO == c.ID_STATUS_CHAMADO)
+                                                .OrderByDescending(s => s.DATA)
+                                                .Select(s => s.STATUS)
+                                                .FirstOrDefault()));
+                        }
+                    }
+
+                    if (filter.Value.tipo_fila is not null)
+                    {
+                        if (filter.Value.tipo_fila.Any())
+                        {
+                            dataBeforeFilter = dataBeforeFilter.Where(k =>
+                                CD.CONTROLE_DE_DEMANDAS_FILAs
+                                    .Where(postAndMeta => filter.Value.tipo_fila.Select(x => x.TIPO_FILA).Contains(postAndMeta.TIPO_CHAMADO))
+                                    .Select(l => l.ID).Contains(k.ID_FILA_CHAMADO));
+
+                            if (filter.Value.fila is not null)
+                            {
+                                if (filter.Value.fila.Any())
+                                {
+                                    dataBeforeFilter = dataBeforeFilter.Where(k =>
+                                    CD.CONTROLE_DE_DEMANDAS_FILAs
+                                        .Where(postAndMeta => filter.Value.fila.Select(x => x.FILA).Contains(postAndMeta.FILA))
+                                        .Select(l => l.ID).Contains(k.ID_FILA_CHAMADO));
+                                }
+                            }
+                        }
+                    }
+
+                    if (filter.Value.responsável is not null)
+                    {
+                        if (filter.Value.responsável.Any())
+                        {
+                            dataBeforeFilter = dataBeforeFilter.Where(x => filter.Value.responsável.Select(y => y.Login).Contains(x.MATRICULA_RESPONSAVEL));
+                        }
+                    }
+
+                    if (filter.Value.id_demandas is not null)
+                    {
+                        if (filter.Value.id_demandas.Any())
+                        {
+                            dataBeforeFilter = dataBeforeFilter.Where(x => filter.Value.id_demandas.Contains(x.ID.ToString()));
+                        }
+                    }
+
+                    var dataAfterFilter = dataBeforeFilter.OrderByDescending(x => x.ID)
+                   .Skip((filter.PageNumber - 1) * filter.PageSize)
+                   .Take(filter.PageSize);
+
+                    var demandas = dataAfterFilter.AsNoTracking()
+                            .ProjectTo<PAINEL_DEMANDAS_CHAMADO_DTO>(_mapper.ConfigurationProvider)
+                            .IgnoreAutoIncludes();
+
+
+                    var totalRecords = dataBeforeFilter.Count();
+                    var totalPages = ((double)totalRecords / (double)filter.PageSize);
+
+                    return new JsonResult(new Response<PagedModelResponse<IEnumerable<PAINEL_DEMANDAS_CHAMADO_DTO>>>
+                    {
+                        Data = PagedResponse.CreatePagedReponse<PAINEL_DEMANDAS_CHAMADO_DTO, PaginationDemandasModel>(demandas, filter, totalRecords),
+                        Succeeded = true,
+                        Message = $"Tudo certo!",
+                        Errors = null,
+                    });
+                }
+                else
+                {
+                    var dataBeforeFilter = CD.CONTROLE_DE_DEMANDAS_CHAMADOs
+                        .AsQueryable();
+
+                    dataBeforeFilter = dataBeforeFilter
+                                .Where(c =>
                                         CD.CONTROLE_DE_DEMANDAS_RELACAO_STATUS_CHAMADOs
                                             .Where(s => s.ID_STATUS_CHAMADO == c.ID_STATUS_CHAMADO)
                                             .OrderByDescending(s => s.DATA)
                                             .Select(s => s.STATUS)
-                                            .FirstOrDefault()));
-                    }
-                }
+                                            .FirstOrDefault() == "EM ABERTO");
 
-                if (filter.Value.tipo_fila is not null)
-                {
-                    if (filter.Value.tipo_fila.Any())
+                    dataBeforeFilter = dataBeforeFilter
+                        .Where(x =>
+                            x.DATA_ABERTURA >= DateTime.Today.AddDays(-30)
+                            && x.DATA_ABERTURA <= DateTime.Today);
+
+                    var dataAfterFilter = dataBeforeFilter.OrderByDescending(x => x.ID)
+                        .Skip((filter.PageNumber - 1) * filter.PageSize)
+                        .Take(filter.PageSize);
+
+                    var demanda = dataAfterFilter.AsNoTracking()
+                            .ProjectTo<PAINEL_DEMANDAS_CHAMADO_DTO>(_mapper.ConfigurationProvider)
+                            .IgnoreAutoIncludes();
+
+                    var totalRecords = demanda.Count();
+                    var totalPages = ((double)totalRecords / (double)filter.PageSize);
+                    return new JsonResult(new Response<PagedModelResponse<IEnumerable<PAINEL_DEMANDAS_CHAMADO_DTO>>>
                     {
-                        dataBeforeFilter = dataBeforeFilter.Where(k =>
-                            CD.CONTROLE_DE_DEMANDAS_FILAs
-                                .Where(postAndMeta => filter.Value.tipo_fila.Select(x => x.TIPO_FILA).Contains(postAndMeta.TIPO_CHAMADO))
-                                .Select(l => l.ID).Contains(k.ID_FILA_CHAMADO));
-
-                        if (filter.Value.fila is not null)
-                        {
-                            if (filter.Value.fila.Any())
-                            {
-                                dataBeforeFilter = dataBeforeFilter.Where(k =>
-                                CD.CONTROLE_DE_DEMANDAS_FILAs
-                                    .Where(postAndMeta => filter.Value.fila.Select(x => x.FILA).Contains(postAndMeta.FILA))
-                                    .Select(l => l.ID).Contains(k.ID_FILA_CHAMADO));
-                            }
-                        }
-                    }
+                        Data = PagedResponse.CreatePagedReponse<PAINEL_DEMANDAS_CHAMADO_DTO, PaginationDemandasModel>(demanda, filter, totalRecords),
+                        Succeeded = true,
+                        Message = $"Tudo certo!",
+                        Errors = null,
+                    });
                 }
-
-                if (filter.Value.responsável is not null)
-                {
-                    if (filter.Value.responsável.Any())
-                    {
-                        dataBeforeFilter = dataBeforeFilter.Where(x => filter.Value.responsável.Select(y => y.Login).Contains(x.MATRICULA_RESPONSAVEL));
-                    }
-                }
-
-                if (filter.Value.id_demandas is not null)
-                {
-                    if (filter.Value.id_demandas.Any())
-                    {
-                        dataBeforeFilter = dataBeforeFilter.Where(x => filter.Value.id_demandas.Contains(x.ID.ToString()));
-                    }
-                }
-
-                var dataAfterFilter = dataBeforeFilter.OrderByDescending(x => x.ID)
-               .Skip((filter.PageNumber - 1) * filter.PageSize)
-               .Take(filter.PageSize);
-
-                var demandas = dataAfterFilter.AsNoTracking()
-                        .ProjectTo<PAINEL_DEMANDAS_CHAMADO_DTO>(_mapper.ConfigurationProvider)
-                        .IgnoreAutoIncludes().AsEnumerable();
-
-                var totalRecords = dataBeforeFilter.Count();
-                var totalPages = ((double)totalRecords / (double)filter.PageSize);
-
-                return new JsonResult(new Response<PagedModelResponse<IEnumerable<PAINEL_DEMANDAS_CHAMADO_DTO>>>
-                {
-                    Data = PagedResponse.CreatePagedReponse<PAINEL_DEMANDAS_CHAMADO_DTO, PaginationDemandasModel>(demandas, filter, totalRecords),
-                    Succeeded = true,
-                    Message = $"Tudo certo!",
-                    Errors = null,
-                });
-
             }
             catch (Exception ex)
             {
@@ -1528,55 +1568,23 @@ namespace Vivo_Apps_API.Controllers
         [HttpGet("GetDemandaById")]
         [ProducesResponseType(typeof(Response<DEMANDAS_CHAMADO_DTO>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult GetDemandaById(int IdDemanda)
+        public async Task<JsonResult> GetDemandaById(int IdDemanda)
         {
             try
             {
-                var demanda = CD.CONTROLE_DE_DEMANDAS_CHAMADOs.Where(x => x.ID == IdDemanda).FirstOrDefault();
-
-                var campos = CD.CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADOs.Where(x => x.ID_CAMPOS_CHAMADO == demanda.ID_CAMPOS_CHAMADO)
-                    .ProjectTo<DEMANDAS_CAMPOS_CHAMADO_DTO>(_mapper.ConfigurationProvider);
-
-                var status = CD.CONTROLE_DE_DEMANDAS_RELACAO_STATUS_CHAMADOs.Where(x => x.ID_STATUS_CHAMADO == demanda.ID_STATUS_CHAMADO)
-                    .ProjectTo<DEMANDAS_STATUS_CHAMADO_DTO>(_mapper.ConfigurationProvider);
-                
-                var respostas = CD.CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTAs.Where(x => x.ID_CHAMADO == IdDemanda)
-                    .ProjectTo<DEMANDAS_CHAMADO_RESPOSTA_DTO>(_mapper.ConfigurationProvider);
-
-                var retorno = new DEMANDAS_CHAMADO_DTO
+                var demanda = await GetDemandaByID(IdDemanda);
+                var options = new JsonSerializerOptions
                 {
-                    ID = demanda.ID,
-                    ID_FILA_CHAMADO = CD.DEMANDA_SUB_FILAs.Where(x => x.ID_SUB_FILA == demanda.ID_FILA_CHAMADO).ProjectTo<DEMANDA_SUB_FILA_DTO>(_mapper.ConfigurationProvider).FirstOrDefault(),
-                    MATRICULA_SOLICITANTE = CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA.ToString() == demanda.MATRICULA_SOLICITANTE).ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider).FirstOrDefault(),
-                    MATRICULA_RESPONSAVEL = CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA.ToString() == demanda.MATRICULA_RESPONSAVEL).ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider).FirstOrDefault(),
-                    DATA_FECHAMENTO = demanda.DATA_FECHAMENTO,
-                    MOTIVO_FECHAMENTO_SUPORTE = demanda.MOTIVO_FECHAMENTO_SUPORTE,
-                    REGIONAL = demanda.REGIONAL,
-                    EMAIL_SECUNDARIO = demanda.EMAIL_SECUNDARIO,
-                    RESPONSAVEL_OUTRA_AREA = CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA.ToString() == demanda.RESPONSAVEL_OUTRA_AREA).ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider).FirstOrDefault(),
-                    ID_CAMPOS_CHAMADO = campos,
-                    ID_STATUS_CHAMADO = status,
-                    DATA_ABERTURA = demanda.DATA_ABERTURA,
-                    PBI = demanda.PBI,
-                    PRIORIDADE = demanda.PRIORIDADE,
-                    CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTa = respostas,
-                    CONTROLE_DE_DEMANDAS_CHAMADO_ARQUIVOs = CD.CONTROLE_DE_DEMANDAS_CHAMADO_ARQUIVOs.Where(x => x.ID_CHAMADO == demanda.ID).Select(x => new DEMANDAS_CHAMADO_ARQUIVO_DTO
-                    {
-                        Id = x.Id,
-                        ID_CHAMADO = x.ID_CHAMADO,
-                        NOME_CAMPO = x.NOME_CAMPO,
-                        EXT_ARQUIVO = x.EXT_ARQUIVO,
-                        ARQUIVO = x.ARQUIVO,
-                    })
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
                 };
 
                 return new JsonResult(
                   new Response<DEMANDAS_CHAMADO_DTO>
                   {
-                      Data = retorno,
+                      Data = demanda,
                       Succeeded = true,
                       Message = "Tudo Certo"
-                  });
+                  }, options);
 
             }
             catch (Exception ex)
@@ -1595,6 +1603,49 @@ namespace Vivo_Apps_API.Controllers
                 });
             }
         }
+        private async Task<DEMANDAS_CHAMADO_DTO> GetDemandaByID(int IdDemanda)
+            => Demanda_BD.DEMANDA_CHAMADO
+                    .IgnoreAutoIncludes()
+                    .Include(x => x.Responsavel)
+                    .Include(x => x.Solicitante)
+                    .Include(x => x.Fila)
+                        .ThenInclude(x => x.DEMANDA_RESPONSAVEL_FILAs)
+                    .Include(x => x.Respostas)
+                        .ThenInclude(x => x.Responsavel)
+                            .ThenInclude(x => x.DemandasResponsavel)
+                    .Include(x => x.Respostas)
+                        .ThenInclude(x => x.Status)
+                    .Include(x => x.Respostas)
+                        .ThenInclude(x => x.ARQUIVOS)
+                    .ProjectTo<DEMANDAS_CHAMADO_DTO>(_mapper.ConfigurationProvider)
+                    .First(x => x.ID == IdDemanda);
+
+
+        public static byte[] ConvertFile(byte[] Unconvertedfiles)
+        {
+            try
+            {
+                byte[] decompressedBytes;
+                using (MemoryStream memoryStream = new MemoryStream(Unconvertedfiles))
+                {
+                    using (GZipStream gzipStream = new GZipStream(memoryStream, CompressionMode.Decompress))
+                    {
+                        using (MemoryStream decompressedStream = new MemoryStream())
+                        {
+                            gzipStream.CopyTo(decompressedStream);
+                            decompressedBytes = decompressedStream.ToArray();
+                        }
+                    }
+                }
+
+                return decompressedBytes;
+            }
+            catch
+            {
+                return new byte[0];
+            }
+        }
+
 
     }
 }

@@ -118,6 +118,7 @@ namespace Vivo_Apps_API.Hubs
             {
                 AllUsersConnected.Where(x => x.Equals(Users[Context.ConnectionId])).First().Connected = false;
             }
+
             UsersOnlineCount();
         }
     }
