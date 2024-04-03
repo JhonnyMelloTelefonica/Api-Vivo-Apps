@@ -12,8 +12,8 @@ using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
 namespace Vivo_Apps_API.Migrations
 {
     [DbContext(typeof(DemandasContext))]
-    [Migration("20240308132013_DemandasContextMigration")]
-    partial class DemandasContextMigration
+    [Migration("20240401190521_EstruturaTabelaDemandas-Acesso-Desligamento")]
+    partial class EstruturaTabelaDemandasAcessoDesligamento
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -21,7 +21,7 @@ namespace Vivo_Apps_API.Migrations
 #pragma warning disable 612, 618
             modelBuilder
                 .UseCollation("Latin1_General_CI_AS")
-                .HasAnnotation("ProductVersion", "8.0.2")
+                .HasAnnotation("ProductVersion", "8.0.3")
                 .HasAnnotation("Relational:MaxIdentifierLength", 128);
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
@@ -110,7 +110,177 @@ namespace Vivo_Apps_API.Migrations
 
                     b.HasKey("ID");
 
-                    b.ToTable("ACESSOS_MOBILE", "dbo");
+                    b.ToTable("ACESSOS_MOBILE", null, t =>
+                        {
+                            t.ExcludeFromMigrations();
+                        });
+                });
+
+            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_ACESSOS", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+
+                    b.Property<string>("Acao")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("AceiteSenha")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Adabas")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Area")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Bairro")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Celular")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Cep")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Cidade")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Cnpj")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Complemento")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Cpf")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("DataCadastro")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DataContratoFim")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DataContratoInicio")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DataExtracao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DataFinalizacao")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DataMatricula")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DataNascimento")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DataStatus")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Ddd")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Email")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Estado")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Funcao")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ID_RELACAO")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Login")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MATRICULA_SOLICITANTE")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Matricula")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("MobileToken")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Nome")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NomeContato")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NomeMae")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Numero")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Obs")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("OrgaoEmissor")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Origem")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("PIS")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Perfil")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Regional")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("RejeitarSenha")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Rg")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Rua")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Senha")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Sexo")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Sobrenome")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Status")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SubArea")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SubGrupo")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Telefone")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TipoAcesso")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("ID_RELACAO")
+                        .IsUnique();
+
+                    b.HasIndex("MATRICULA_SOLICITANTE");
+
+                    b.ToTable("DEMANDA_ACESSOS", "Demandas");
                 });
 
             modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_ARQUIVOS_RESPOSTA", b =>
@@ -141,6 +311,47 @@ namespace Vivo_Apps_API.Migrations
                     b.HasIndex("ID_RESPOSTA");
 
                     b.ToTable("DEMANDA_ARQUIVOS_RESPOSTA", "Demandas");
+                });
+
+            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_AVALIACAO_ANALISTA", b =>
+                {
+                    b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("AVALIACAO_ANALISTA")
+                        .IsUnicode(false)
+                        .HasColumnType("int");
+
+                    b.Property<string>("AVALIACAO_GERAL")
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(max)");
+
+                    b.Property<int>("AVALIACAO_PLATAFORMA")
+                        .IsUnicode(false)
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("DATA")
+                        .HasColumnType("datetime");
+
+                    b.Property<int>("ID_CHAMADO")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MATRICULA_ANALISTA")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MATRICULA_AVALIADOR")
+                        .HasColumnType("int");
+
+                    b.Property<bool>("PROBLEMA_RESOLVIDO")
+                        .HasColumnType("bit");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("ID_CHAMADO")
+                        .IsUnique();
+
+                    b.ToTable("DEMANDA_AVALIACAO_ANALISTA", "Demandas");
                 });
 
             modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_CAMPOS_CHAMADO", b =>
@@ -213,9 +424,12 @@ namespace Vivo_Apps_API.Migrations
 
                     b.HasKey("ID_CAMPOS");
 
-                    b.HasIndex("ID_SUB_FILA");
+                    b.HasIndex(new[] { "ID_SUB_FILA" }, "IX_DEMANDA_CAMPOS_FILA_ID_SUB_FILA");
 
-                    b.ToTable("DEMANDA_CAMPOS_FILA", "dbo");
+                    b.ToTable("DEMANDA_CAMPOS_FILA", null, t =>
+                        {
+                            t.ExcludeFromMigrations();
+                        });
                 });
 
             modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_CHAMADO", b =>
@@ -226,6 +440,9 @@ namespace Vivo_Apps_API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
 
+                    b.Property<int?>("CLIENTE_ALTO_VALOR")
+                        .HasColumnType("int");
+
                     b.Property<DateTime?>("DATA_ABERTURA")
                         .HasColumnType("datetime");
 
@@ -234,6 +451,9 @@ namespace Vivo_Apps_API.Migrations
 
                     b.Property<int>("ID_FILA_CHAMADO")
                         .HasColumnType("int");
+
+                    b.Property<Guid>("ID_RELACAO")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int?>("MATRICULA_RESPONSAVEL")
                         .IsUnicode(false)
@@ -255,18 +475,18 @@ namespace Vivo_Apps_API.Migrations
 
                     b.HasKey("ID");
 
+                    b.HasIndex("CLIENTE_ALTO_VALOR");
+
                     b.HasIndex("ID_FILA_CHAMADO");
+
+                    b.HasIndex("ID_RELACAO")
+                        .IsUnique();
 
                     b.HasIndex("MATRICULA_RESPONSAVEL");
 
                     b.HasIndex("MATRICULA_SOLICITANTE");
 
-                    b.ToTable("DEMANDA_CHAMADO", "Demandas", t =>
-                        {
-                            t.HasTrigger("tr_Demandas_DEMANDA_CHAMADO_85b3748a-c03c-4495-b002-e1b60e5965c5_Sender");
-                        });
-
-                    b.HasAnnotation("SqlServer:UseSqlOutputClause", false);
+                    b.ToTable("DEMANDA_CHAMADO", "Demandas");
                 });
 
             modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_CHAMADO_RESPOSTA", b =>
@@ -283,6 +503,9 @@ namespace Vivo_Apps_API.Migrations
                     b.Property<int>("ID_CHAMADO")
                         .HasColumnType("int");
 
+                    b.Property<Guid>("ID_RELACAO_CHAMADO")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<int>("MATRICULA_RESPONSAVEL")
                         .IsUnicode(false)
                         .HasColumnType("int");
@@ -294,11 +517,74 @@ namespace Vivo_Apps_API.Migrations
 
                     b.HasKey("ID");
 
-                    b.HasIndex("ID_CHAMADO");
+                    b.HasIndex("ID_RELACAO_CHAMADO");
 
                     b.HasIndex("MATRICULA_RESPONSAVEL");
 
                     b.ToTable("DEMANDA_CHAMADO_RESPOSTA", "Demandas");
+                });
+
+            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_DESLIGAMENTOS", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+
+                    b.Property<string>("ADABAS")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CONFIRMA_DESLIGAMENTO")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("CPF")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("DATA_CADASTRO_DESLIGAMENTO")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("DATA_CONFIRMA_DESLIGAMENTO")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DDD")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ID_RELACAO")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("LOGIN_FUNCIONARIO")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("MATRICULA_FUNCIONARIO")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("MATRICULA_SOLICITANTE")
+                        .HasColumnType("int");
+
+                    b.Property<string>("MOTIVO")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("NOME_FUNCIONARIO")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("REGIONAL")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UF")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("USUARIO")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ID");
+
+                    b.HasIndex("ID_RELACAO")
+                        .IsUnique();
+
+                    b.HasIndex("MATRICULA_SOLICITANTE");
+
+                    b.ToTable("DEMANDA_DESLIGAMENTOS", "Demandas");
                 });
 
             modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_HISTORICO_PRIORIDADE", b =>
@@ -333,6 +619,69 @@ namespace Vivo_Apps_API.Migrations
                     b.ToTable("DEMANDA_HISTORICO_PRIORIDADE", "Demandas");
                 });
 
+            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_PARQUE", b =>
+                {
+                    b.Property<int>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
+
+                    b.Property<DateTime>("DATA")
+                        .HasColumnType("datetime");
+
+                    b.Property<string>("DS_DCTO_PRNC")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DS_ORIG_PRDT")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DS_SGMN_CLNT")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("ID_PLNO")
+                        .HasColumnType("int");
+
+                    b.Property<int>("NU_ANO_MES")
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("int");
+
+                    b.Property<int>("NU_DDD")
+                        .HasMaxLength(10)
+                        .IsUnicode(false)
+                        .HasColumnType("int");
+
+                    b.Property<string>("NU_TLFN")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SG_UF")
+                        .HasMaxLength(5)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(5)");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("DEMANDA_PARQUE", "Demandas");
+                });
+
+            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_RELACAO_CHAMADO", b =>
+                {
+                    b.Property<Guid>("ID")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("ID_CHAMADO")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Tabela")
+                        .HasColumnType("int");
+
+                    b.HasKey("ID");
+
+                    b.ToTable("DEMANDA_RELACAO_CHAMADO", "Demandas");
+                });
+
             modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_RESPONSAVEL_FILA", b =>
                 {
                     b.Property<int>("ID")
@@ -349,9 +698,12 @@ namespace Vivo_Apps_API.Migrations
 
                     b.HasKey("ID");
 
-                    b.HasIndex("ID_SUB_FILA");
+                    b.HasIndex(new[] { "ID_SUB_FILA" }, "IX_DEMANDA_RESPONSAVEL_FILA_ID_SUB_FILA");
 
-                    b.ToTable("DEMANDA_RESPONSAVEL_FILA", "dbo");
+                    b.ToTable("DEMANDA_RESPONSAVEL_FILA", null, t =>
+                        {
+                            t.ExcludeFromMigrations();
+                        });
                 });
 
             modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_STATUS_CHAMADO", b =>
@@ -368,10 +720,10 @@ namespace Vivo_Apps_API.Migrations
                     b.Property<int>("ID_CHAMADO")
                         .HasColumnType("int");
 
-                    b.Property<int>("ID_RESPOSTA")
-                        .HasColumnType("int");
+                    b.Property<Guid>("ID_RELACAO_CHAMADO")
+                        .HasColumnType("uniqueidentifier");
 
-                    b.Property<int?>("MAT_DESTINARARIO")
+                    b.Property<int>("ID_RESPOSTA")
                         .HasColumnType("int");
 
                     b.Property<int?>("MAT_DESTINATARIO")
@@ -389,12 +741,12 @@ namespace Vivo_Apps_API.Migrations
 
                     b.HasKey("ID");
 
-                    b.HasIndex("ID_CHAMADO");
+                    b.HasIndex("ID_RELACAO_CHAMADO");
 
                     b.HasIndex("ID_RESPOSTA")
                         .IsUnique();
 
-                    b.HasIndex("MAT_DESTINARARIO");
+                    b.HasIndex("MAT_DESTINATARIO");
 
                     b.HasIndex("MAT_QUEM_REDIRECIONOU");
 
@@ -443,7 +795,6 @@ namespace Vivo_Apps_API.Migrations
                         .HasColumnType("varchar(max)");
 
                     b.Property<int>("SLA")
-                        .IsUnicode(false)
                         .HasColumnType("int");
 
                     b.Property<bool>("STATUS_SUB_FILA")
@@ -451,9 +802,12 @@ namespace Vivo_Apps_API.Migrations
 
                     b.HasKey("ID_SUB_FILA");
 
-                    b.HasIndex("ID_TIPO_FILA");
+                    b.HasIndex(new[] { "ID_TIPO_FILA" }, "IX_DEMANDA_SUB_FILA_ID_TIPO_FILA");
 
-                    b.ToTable("DEMANDA_SUB_FILA", "dbo");
+                    b.ToTable("DEMANDA_SUB_FILA", null, t =>
+                        {
+                            t.ExcludeFromMigrations();
+                        });
                 });
 
             modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_TIPO_FILA", b =>
@@ -491,7 +845,10 @@ namespace Vivo_Apps_API.Migrations
 
                     b.HasKey("ID_TIPO_FILA");
 
-                    b.ToTable("DEMANDA_TIPO_FILA", "dbo");
+                    b.ToTable("DEMANDA_TIPO_FILA", null, t =>
+                        {
+                            t.ExcludeFromMigrations();
+                        });
                 });
 
             modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_VALORES_CAMPOS_SUSPENSO", b =>
@@ -515,9 +872,31 @@ namespace Vivo_Apps_API.Migrations
 
                     b.HasKey("ID_VALORES");
 
-                    b.HasIndex("ID_CAMPOS");
+                    b.HasIndex(new[] { "ID_CAMPOS" }, "IX_DEMANDA_VALORES_CAMPOS_SUSPENSO_ID_CAMPOS");
 
-                    b.ToTable("DEMANDA_VALORES_CAMPOS_SUSPENSO", "dbo");
+                    b.ToTable("DEMANDA_VALORES_CAMPOS_SUSPENSO", null, t =>
+                        {
+                            t.ExcludeFromMigrations();
+                        });
+                });
+
+            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_ACESSOS", b =>
+                {
+                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_RELACAO_CHAMADO", "Relacao")
+                        .WithOne("AcessoRelacao")
+                        .HasForeignKey("Shared_Class_Vivo_Apps.Data.DEMANDA_ACESSOS", "ID_RELACAO")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Shared_Class_Vivo_Apps.Data.ACESSOS_MOBILE", "Solicitante")
+                        .WithMany()
+                        .HasForeignKey("MATRICULA_SOLICITANTE")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Relacao");
+
+                    b.Navigation("Solicitante");
                 });
 
             modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_ARQUIVOS_RESPOSTA", b =>
@@ -529,6 +908,17 @@ namespace Vivo_Apps_API.Migrations
                         .IsRequired();
 
                     b.Navigation("RESPOSTANav");
+                });
+
+            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_AVALIACAO_ANALISTA", b =>
+                {
+                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_CHAMADO", "DEMANDANav")
+                        .WithOne("Avaliacao_Solicitante")
+                        .HasForeignKey("Shared_Class_Vivo_Apps.Data.DEMANDA_AVALIACAO_ANALISTA", "ID_CHAMADO")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("DEMANDANav");
                 });
 
             modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_CAMPOS_CHAMADO", b =>
@@ -555,9 +945,19 @@ namespace Vivo_Apps_API.Migrations
 
             modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_CHAMADO", b =>
                 {
+                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_PARQUE", "Has_Cliente_Valor")
+                        .WithMany("DEMANDA")
+                        .HasForeignKey("CLIENTE_ALTO_VALOR");
+
                     b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_SUB_FILA", "Fila")
                         .WithMany("DEMANDAS")
                         .HasForeignKey("ID_FILA_CHAMADO")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_RELACAO_CHAMADO", "Relacao")
+                        .WithOne("ChamadoRelacao")
+                        .HasForeignKey("Shared_Class_Vivo_Apps.Data.DEMANDA_CHAMADO", "ID_RELACAO")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -575,6 +975,10 @@ namespace Vivo_Apps_API.Migrations
 
                     b.Navigation("Fila");
 
+                    b.Navigation("Has_Cliente_Valor");
+
+                    b.Navigation("Relacao");
+
                     b.Navigation("Responsavel");
 
                     b.Navigation("Solicitante");
@@ -582,21 +986,41 @@ namespace Vivo_Apps_API.Migrations
 
             modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_CHAMADO_RESPOSTA", b =>
                 {
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_CHAMADO", "DEMANDANav")
+                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_RELACAO_CHAMADO", "Relacao_DEMANDA")
                         .WithMany("Respostas")
-                        .HasForeignKey("ID_CHAMADO")
+                        .HasForeignKey("ID_RELACAO_CHAMADO")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.HasOne("Shared_Class_Vivo_Apps.Data.ACESSOS_MOBILE", "Responsavel")
-                        .WithMany()
+                        .WithMany("RespostasDemandas")
                         .HasForeignKey("MATRICULA_RESPONSAVEL")
+                        .HasPrincipalKey("MATRICULA")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("DEMANDANav");
+                    b.Navigation("Relacao_DEMANDA");
 
                     b.Navigation("Responsavel");
+                });
+
+            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_DESLIGAMENTOS", b =>
+                {
+                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_RELACAO_CHAMADO", "Relacao")
+                        .WithOne("DesligamentoRelacao")
+                        .HasForeignKey("Shared_Class_Vivo_Apps.Data.DEMANDA_DESLIGAMENTOS", "ID_RELACAO")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Shared_Class_Vivo_Apps.Data.ACESSOS_MOBILE", "Solicitante")
+                        .WithMany()
+                        .HasForeignKey("MATRICULA_SOLICITANTE")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Relacao");
+
+                    b.Navigation("Solicitante");
                 });
 
             modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_HISTORICO_PRIORIDADE", b =>
@@ -629,9 +1053,9 @@ namespace Vivo_Apps_API.Migrations
 
             modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_STATUS_CHAMADO", b =>
                 {
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_CHAMADO", "DEMANDANav")
+                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_RELACAO_CHAMADO", "Relacao_DEMANDA")
                         .WithMany("Status")
-                        .HasForeignKey("ID_CHAMADO")
+                        .HasForeignKey("ID_RELACAO_CHAMADO")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -643,17 +1067,17 @@ namespace Vivo_Apps_API.Migrations
 
                     b.HasOne("Shared_Class_Vivo_Apps.Data.ACESSOS_MOBILE", "Para_Quem_redirecionou")
                         .WithMany()
-                        .HasForeignKey("MAT_DESTINARARIO");
+                        .HasForeignKey("MAT_DESTINATARIO");
 
                     b.HasOne("Shared_Class_Vivo_Apps.Data.ACESSOS_MOBILE", "Quem_redirecionou")
                         .WithMany()
                         .HasForeignKey("MAT_QUEM_REDIRECIONOU");
 
-                    b.Navigation("DEMANDANav");
-
                     b.Navigation("Para_Quem_redirecionou");
 
                     b.Navigation("Quem_redirecionou");
+
+                    b.Navigation("Relacao_DEMANDA");
 
                     b.Navigation("Resposta");
                 });
@@ -685,6 +1109,8 @@ namespace Vivo_Apps_API.Migrations
                     b.Navigation("DemandasResponsavel");
 
                     b.Navigation("DemandasSolicitadas");
+
+                    b.Navigation("RespostasDemandas");
                 });
 
             modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_CAMPOS_FILA", b =>
@@ -694,18 +1120,34 @@ namespace Vivo_Apps_API.Migrations
 
             modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_CHAMADO", b =>
                 {
+                    b.Navigation("Avaliacao_Solicitante");
+
                     b.Navigation("Campos");
 
                     b.Navigation("Historico_Prioridade");
-
-                    b.Navigation("Respostas");
-
-                    b.Navigation("Status");
                 });
 
             modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_CHAMADO_RESPOSTA", b =>
                 {
                     b.Navigation("ARQUIVOS");
+
+                    b.Navigation("Status");
+                });
+
+            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_PARQUE", b =>
+                {
+                    b.Navigation("DEMANDA");
+                });
+
+            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_RELACAO_CHAMADO", b =>
+                {
+                    b.Navigation("AcessoRelacao");
+
+                    b.Navigation("ChamadoRelacao");
+
+                    b.Navigation("DesligamentoRelacao");
+
+                    b.Navigation("Respostas");
 
                     b.Navigation("Status");
                 });

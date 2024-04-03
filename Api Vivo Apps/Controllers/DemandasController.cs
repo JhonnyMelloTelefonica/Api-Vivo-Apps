@@ -24,6 +24,12 @@ using System.Text.Json.Serialization;
 using System.Text.Json.Serialization.Metadata;
 using DocumentFormat.OpenXml.Vml.Spreadsheet;
 using DocumentFormat.OpenXml.Office.CustomUI;
+using DocumentFormat.OpenXml.InkML;
+using System.Net;
+using DocumentFormat.OpenXml.Drawing;
+using System.Net.Http;
+using System.Text;
+using Blazorise;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -35,14 +41,17 @@ namespace Vivo_Apps_API.Controllers
         private readonly IMapper _mapper;
         private readonly ISuporteDemandaHub _hubContext;
         private static Vivo_MaisContext CD;
+        private static HttpClient _httpclient;
         private IDbContextFactory<DemandasContext> DbFactory;
         private DemandasContext Demanda_BD;
         public DemandasController(
             ILogger<DemandasController> logger
             , ISuporteDemandaHub hubContext
             , Vivo_MaisContext bd_context
-            , IDbContextFactory<DemandasContext> dbContextFactory)
+            , IDbContextFactory<DemandasContext> dbContextFactory
+            , HttpClient httpclient)
         {
+            _httpclient = httpclient;
             DbFactory = dbContextFactory;
             Demanda_BD = DbFactory.CreateDbContext();
             CD = bd_context;
@@ -55,8 +64,8 @@ namespace Vivo_Apps_API.Controllers
                 cfg.CreateMap<DEMANDA_SUB_FILA, DEMANDA_SUB_FILA_DTO>()
                 .ForMember(
                     dest => dest.Responsaveis,
-                    opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs.Where(y =>
-                        CD.DEMANDA_RESPONSAVEL_FILAs
+                    opt => opt.MapFrom(src => Demanda_BD.ACESSOS_MOBILE.Where(y =>
+                        Demanda_BD.DEMANDA_RESPONSAVEL_FILA
                                 .Where(x => x.ID_SUB_FILA == src.ID_SUB_FILA)
                                 .Select(x => x.MATRICULA_RESPONSAVEL)
                                 .Distinct()
@@ -94,9 +103,16 @@ namespace Vivo_Apps_API.Controllers
                                 .FirstOrDefault())
                     );
 
-                cfg.CreateMap<DEMANDA_CHAMADO, PAINEL_DEMANDAS_CHAMADO_DTO>();
-
-                cfg.CreateMap<DEMANDA_CHAMADO, DEMANDAS_CHAMADO_DTO>();
+                cfg.CreateMap<DEMANDA_CHAMADO, PAINEL_DEMANDAS_CHAMADO_DTO>()
+                .ForMember(
+                    dest => dest.Respostas,
+                    opt => opt.MapFrom(src => src.Relacao.Respostas)
+                    );
+                cfg.CreateMap<DEMANDA_CHAMADO, DEMANDAS_CHAMADO_DTO>()
+                .ForMember(
+                    dest => dest.Respostas,
+                    opt => opt.MapFrom(src => src.Relacao.Respostas)
+                    );
                 cfg.CreateMap<DEMANDA_CHAMADO_RESPOSTA, DEMANDA_CHAMADO_RESPOSTA_DTO>();
                 cfg.CreateMap<DEMANDA_ARQUIVOS_RESPOSTA, DEMANDA_ARQUIVOS_RESPOSTA_DTO>()
                 .ForMember(
@@ -117,9 +133,10 @@ namespace Vivo_Apps_API.Controllers
             {
                 var AnalistaSuporte = CD.ACESSOS_MOBILEs.Where(x =>
                     CD.DEMANDA_BD_OPERADOREs.Where(y => y.REGIONAL == regional)
-                            .Select(x => x.MATRICULA)
-                            .Distinct().Contains(x.MATRICULA)
-                ).ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider).ToList();
+                    .Select(x => x.MATRICULA)
+                    .Distinct().Contains(x.MATRICULA)
+                ).IgnoreAutoIncludes()
+                .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider).ToList();
 
                 return new JsonResult(new Response<IEnumerable<ACESSOS_MOBILE_DTO>>
                 {
@@ -516,7 +533,7 @@ namespace Vivo_Apps_API.Controllers
                     if (data.Responsaveis.Any())
                     {
                         List<int> listaOperadores = CD.DEMANDA_RESPONSAVEL_FILAs.Where(x =>
-                            x.ID_SUB_FILA == data.ID_SUB_FILA).Select(x => x.MATRICULA_RESPONSAVEL).ToList();
+                            x.ID_SUB_FILA == data.ID_SUB_FILA).Select(x => x.MATRICULA_RESPONSAVEL.Value).ToList();
                         // Buscando todas os responsaveis que já existe dentro da fila
                         if (data.Responsaveis.Count() > listaOperadores.Count) // Usuário adicionado
                         {
@@ -680,8 +697,13 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var fila = CD.DEMANDA_SUB_FILAs.Where(x => x.ID_SUB_FILA == id)
+                var fila = Demanda_BD.DEMANDA_SUB_FILA.Where(x => x.ID_SUB_FILA == id)
                         .ProjectTo<DEMANDA_SUB_FILA_DTO>(_mapper.ConfigurationProvider).FirstOrDefault();
+
+                var options = new JsonSerializerOptions
+                {
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                };
 
                 return new JsonResult(new Response<DEMANDA_SUB_FILA_DTO>
                 {
@@ -689,7 +711,7 @@ namespace Vivo_Apps_API.Controllers
                     Succeeded = true,
                     Message = "",
                     Errors = null,
-                });
+                }, options);
             }
             catch (Exception ex)
             {
@@ -757,7 +779,7 @@ namespace Vivo_Apps_API.Controllers
                             CD.DEMANDA_RESPONSAVEL_FILAs
                                 .Where(postAndMeta => filter.Value.responsável
                                         .Select(x => x.MATRICULA)
-                                        .Contains(postAndMeta.MATRICULA_RESPONSAVEL))
+                                        .Contains(postAndMeta.MATRICULA_RESPONSAVEL.Value))
                                 .Select(l => l.ID_SUB_FILA).Contains(k.ID_SUB_FILA)
                         );
                     }
@@ -806,12 +828,12 @@ namespace Vivo_Apps_API.Controllers
             {
                 var datafilters = new FilterFilaDemandasModel();
 
-                datafilters.filas = CD.DEMANDA_TIPO_FILAs
+                datafilters.filas = Demanda_BD.DEMANDA_TIPO_FILA
                     .Where(x => x.REGIONAL == regional)
                     .ProjectTo<DEMANDA_TIPO_FILA_DTO>(_mapper.ConfigurationProvider);
 
-                datafilters.AnalistaSuporte = CD.ACESSOS_MOBILEs.Where(x =>
-                    CD.DEMANDA_RESPONSAVEL_FILAs
+                datafilters.AnalistaSuporte = Demanda_BD.ACESSOS_MOBILE.Where(x =>
+                    Demanda_BD.DEMANDA_RESPONSAVEL_FILA
                             .Select(x => x.MATRICULA_RESPONSAVEL)
                             .Distinct().Contains(x.MATRICULA.Value)
                 ).ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider);
@@ -845,11 +867,11 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var fila = CD.DEMANDA_TIPO_FILAs.Where(x => x.REGIONAL == regional).IgnoreAutoIncludes()
+                var fila = Demanda_BD.DEMANDA_TIPO_FILA.Where(x => x.REGIONAL == regional).IgnoreAutoIncludes()
                     .ProjectTo<DEMANDA_TIPO_FILA_DTO>(_mapper.ConfigurationProvider).AsEnumerable();
 
-                var analistassuporte = CD.ACESSOS_MOBILEs.Where(k => k.REGIONAL == regional).Where(k =>
-                            CD.DEMANDA_RESPONSAVEL_FILAs.Select(x => x.MATRICULA_RESPONSAVEL).Distinct().Contains(k.MATRICULA.Value)
+                var analistassuporte = Demanda_BD.ACESSOS_MOBILE.Where(k => k.REGIONAL == regional).Where(k =>
+                            Demanda_BD.DEMANDA_RESPONSAVEL_FILA.Select(x => x.MATRICULA_RESPONSAVEL).Distinct().Contains(k.MATRICULA.Value)
                         ).IgnoreAutoIncludes().ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider).AsEnumerable();
 
                 var options = new JsonSerializerOptions
@@ -893,9 +915,14 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var Dados_Fila = CD.DEMANDA_TIPO_FILAs
+                var Dados_Fila = Demanda_BD.DEMANDA_TIPO_FILA
                     .ProjectTo<DEMANDA_TIPO_FILA_DTO>(_mapper.ConfigurationProvider)
-                    .ToList();
+                    .AsEnumerable();
+
+                var options = new JsonSerializerOptions
+                {
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                };
 
                 return new JsonResult(new Response<IEnumerable<DEMANDA_TIPO_FILA_DTO>>
                 {
@@ -903,7 +930,7 @@ namespace Vivo_Apps_API.Controllers
                     Succeeded = true,
                     Errors = null,
                     Message = "Tudo Certo!"
-                });
+                }, options);
             }
             catch (Exception ex)
             {
@@ -1121,18 +1148,38 @@ namespace Vivo_Apps_API.Controllers
 
                     foreach (var item in fila.DEMANDA_RESPONSAVEL_FILAs)
                     {
-                        saida.Add((Demanda_BD.DEMANDA_CHAMADO.Count(x => x.MATRICULA_RESPONSAVEL == item.MATRICULA_RESPONSAVEL), item.MATRICULA_RESPONSAVEL));
+                        saida.Add((Demanda_BD.DEMANDA_CHAMADO.Count(x => x.MATRICULA_RESPONSAVEL == item.MATRICULA_RESPONSAVEL.Value), item.MATRICULA_RESPONSAVEL.Value));
                     }
 
                     responsavel = saida.MinBy(x => x.Item1).Item2;
                 }
                 else
                 {
-                    responsavel = fila.DEMANDA_RESPONSAVEL_FILAs.First().MATRICULA_RESPONSAVEL;
+                    responsavel = fila.DEMANDA_RESPONSAVEL_FILAs.First().MATRICULA_RESPONSAVEL.Value;
                 }
+                var demanda = new DEMANDA_RELACAO_CHAMADO
+                {
+                    Sequence = Demanda_BD.DEMANDA_RELACAO_CHAMADO.Count() + 1,
+                    Tabela = DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao,
+                    ChamadoRelacao = new DEMANDA_CHAMADO
+                    {
+                        ID_FILA_CHAMADO = data.FILA_DTO.ID_SUB_FILA,
+                        MATRICULA_RESPONSAVEL = responsavel,
+                        MATRICULA_SOLICITANTE = int.Parse(data.MAT_SOLICITANTE),
+                        DATA_ABERTURA = DateTime.Now,
+                        DATA_FECHAMENTO = null,
+                        PRIORIDADE = "BAIXA",
+                        REGIONAL = data.REGIONAL,
+                        CLIENTE_ALTO_VALOR = null,
+                        Campos = data.CAMPOS.Select(campo => new DEMANDA_CAMPOS_CHAMADO
+                        {
+                            VALOR = campo.RESPOSTA,
+                            CAMPO = campo.CAMPO
+                        }).ToList(),
+                    }
+                };
 
-
-                var demanda = new DEMANDA_CHAMADO
+                /*var demanda = new DEMANDA_CHAMADO
                 {
                     ID_FILA_CHAMADO = data.FILA_DTO.ID_SUB_FILA,
                     MATRICULA_RESPONSAVEL = responsavel,
@@ -1141,6 +1188,7 @@ namespace Vivo_Apps_API.Controllers
                     DATA_FECHAMENTO = null,
                     PRIORIDADE = "BAIXA",
                     REGIONAL = data.REGIONAL,
+                    CLIENTE_ALTO_VALOR = null,
                     Respostas = new List<DEMANDA_CHAMADO_RESPOSTA>
                     {
                         new DEMANDA_CHAMADO_RESPOSTA
@@ -1161,16 +1209,33 @@ namespace Vivo_Apps_API.Controllers
                         VALOR = campo.RESPOSTA,
                         CAMPO = campo.CAMPO
                     }).ToList(),
-                };
+                };*/
 
-                Demanda_BD.DEMANDA_CHAMADO.Add(demanda);
+                Demanda_BD.DEMANDA_RELACAO_CHAMADO.Add(demanda);
 
+                await Demanda_BD.SaveChangesAsync();
+                demanda.ID_CHAMADO = demanda.ChamadoRelacao.ID;
+                demanda.Respostas.Add(new DEMANDA_CHAMADO_RESPOSTA
+                {
+                    ID_RELACAO_CHAMADO = demanda.ID,
+                    ID_CHAMADO = demanda.ChamadoRelacao.ID,
+                    RESPOSTA = data.PROBLEMA,
+                    MATRICULA_RESPONSAVEL = int.Parse(data.MAT_SOLICITANTE),
+                    DATA_RESPOSTA = DateTime.Now,
+                    ARQUIVOS = data.Arquivos.Select(x => new DEMANDA_ARQUIVOS_RESPOSTA
+                    {
+                        NOME_CAMPO = x.FileName.Split('.')[0],
+                        ARQUIVO = x.Bytes,
+                        EXT_ARQUIVO = x.FileName.Split('.')[1]
+                    }).ToList()
+                }
+                    );
                 await Demanda_BD.SaveChangesAsync();
 
                 demanda.Status.Add(new DEMANDA_STATUS_CHAMADO
                 {
-                    ID_CHAMADO = demanda.ID,
-                    STATUS = "EM ABERTO",
+                    ID_CHAMADO = demanda.ChamadoRelacao.ID,
+                    STATUS = "ABERTO",
                     ID_RESPOSTA = demanda.Respostas.First().ID,
                     DATA = DateTime.Now
                 });
@@ -1178,22 +1243,54 @@ namespace Vivo_Apps_API.Controllers
                 await Demanda_BD.SaveChangesAsync();
 
                 var retorno = Demanda_BD.ACESSOS_MOBILE
-                    .Where(x => x.MATRICULA == demanda.MATRICULA_RESPONSAVEL)
+                    .Where(x => x.MATRICULA == demanda.ChamadoRelacao.MATRICULA_RESPONSAVEL)
                     .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
                     .First();
 
                 var options = new JsonSerializerOptions
                 {
-                    ReferenceHandler = ReferenceHandler.Preserve
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
                 };
 
                 await _hubContext.SendTableDemandas();
-                await _hubContext.NewNotificationByUser(responsavel, demanda);
-                await _hubContext.NewNotificationByUser(int.Parse(data.MAT_SOLICITANTE), demanda);
+                await _hubContext.NewNotificationByUser(responsavel, demanda.ChamadoRelacao);
+                await _hubContext.NewNotificationByUser(int.Parse(data.MAT_SOLICITANTE), demanda.ChamadoRelacao);
 
-                return new JsonResult(new Response<ACESSOS_MOBILE_DTO>
+                var demandaCompleta = await GetDemandaByID(demanda.ChamadoRelacao.ID);
+
+                var arquivosDemanda = demandaCompleta.Respostas.Where(x => x.ARQUIVOS is not null)
+                    .SelectMany(x => x.ARQUIVOS)
+                    .Select(x => new
+                    {
+                        nome = x.NOME_CAMPO,
+                        anexo = x.ARQUIVO
+                    });
+
+                /*string jsonContent = JsonConvert.SerializeObject(new
                 {
-                    Data = retorno,
+                    matricula = demandaCompleta.Solicitante.MATRICULA,
+                    link = $"/consultar/consultardemandasbyid/{demandaCompleta.ID}",
+                    descricaolink = "link para demanda",
+                    matriculaanalista = retorno.MATRICULA,
+                    matriculasolicitante = demandaCompleta.Solicitante.MATRICULA,
+                    emailanalista = retorno.EMAIL,
+                    emailsolicitante = demandaCompleta.Solicitante.EMAIL,
+                    detalhes = "Apenas uma solicitação de avaliação via TEAMS"
+                }, Formatting.Indented);
+
+                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+                HttpResponseMessage response = 
+                    await _httpclient.PostAsync("https://prod-188.westeurope.logic.azure.com:443/workflows/540ad6ef9e2e4d8692e84d4a313cfb81/triggers/manual/paths/invoke?api-version=2016-06-01&sp=%2Ftriggers%2Fmanual%2Frun&sv=1.0&sig=PhKC8KY0im_9hJdWPAczoj99UBvho4gaRovaDo2ZaII"
+                    , content);*/
+
+                return new JsonResult(new Response<dynamic>
+                {
+                    Data = new
+                    {
+                        responsavel = retorno,
+                        demanda = demandaCompleta
+                    },
                     Succeeded = true,
                     Message = $"Tudo certo!",
                     Errors = null,
@@ -1603,6 +1700,146 @@ namespace Vivo_Apps_API.Controllers
                 });
             }
         }
+
+        [HttpPost("GetDataDash")]
+        [ProducesResponseType(typeof(Response<DEMANDAS_CHAMADO_DTO>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public async Task<JsonResult> GetDataDash([FromBody] Tuple<IEnumerable<int>, IEnumerable<DateTime?>, IEnumerable<ACESSOS_MOBILE_DTO>?, DEMANDA_TIPO_FILA_DTO?, DEMANDA_SUB_FILA_DTO?> Data, string regional, int matricula,
+            //Nullable Parameters
+            string? status, bool? Prioridade)
+        {
+            try
+            {
+                IQueryable<DEMANDA_CHAMADO?> linqFiltered = Demanda_BD.DEMANDA_CHAMADO.Where(x => x.REGIONAL == regional);
+
+                if (Data.Item1.Any(x => new int[] { 1, 20 }.Contains(x))) //filtra demandas por gerente
+                {
+                    if (!string.IsNullOrEmpty(status))
+                        linqFiltered = linqFiltered.Where(x => x.Relacao.Status.Any(y => y.STATUS == status));
+
+                    if (Data.Item3.Any())
+                        linqFiltered = linqFiltered.Where(x => Data.Item3.Select(x => x.MATRICULA).Contains(x.MATRICULA_RESPONSAVEL.Value));
+                }
+                else if (Data.Item1.Any(x => new int[] { 14, 15 }.Contains(x))) //filtra demandas por analista
+                {
+                    linqFiltered.Where(x => x.MATRICULA_RESPONSAVEL == matricula);
+                }
+                else if (Data.Item1.Any(x => new int[] { 13 }.Contains(x))) //filtra demandas por solicitante
+                {
+                    linqFiltered.Where(x => x.MATRICULA_SOLICITANTE == matricula);
+                }
+
+                if (Data.Item2 is not null && Data.Item2.Count() > 1)
+                    linqFiltered = linqFiltered.Where(x => x.DATA_ABERTURA >= Data.Item2.ElementAt(0) && x.DATA_ABERTURA <= Data.Item2.ElementAt(1));
+
+                if (Prioridade.HasValue)
+                    linqFiltered = linqFiltered.Where(x => Prioridade == true ? x.PRIORIDADE == "ALTA" : x.PRIORIDADE == "BAIXA");
+
+                if (Data.Item4 is not null)
+                    linqFiltered = linqFiltered.Where(x => x.Fila.ID_TIPO_FILA == Data.Item4.ID_TIPO_FILA);
+
+                if (Data.Item5 is not null)
+                    linqFiltered = linqFiltered.Where(x => x.Fila.ID_SUB_FILA == Data.Item5.ID_SUB_FILA);
+
+
+                var Total_de_Demandas = linqFiltered
+                    .Count();
+
+                int Concluído = 0;
+                int Em_andamento = 0;
+                double Porc_Primeiro_SLA_24h = 0.0;
+                double Porc_Dentro_SLA = 0.0;
+                int Aguardando_outra_área = 0;
+                int Em_Aberto = 0;
+                int Devolvido = 0;
+                int DemandaPrioridade = 0;
+                if (Total_de_Demandas > 0)
+                {
+
+                    Concluído = linqFiltered
+                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS == "CONCLUÍDO")
+                        .Count();
+
+                    Em_andamento = linqFiltered
+                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS != "CONCLUÍDO")
+                        .Count();
+
+                    var list24Diferences = linqFiltered
+                          .Where(x => x.Relacao.Status.Count > 1)
+                          .Select(x => calculeDate(x.Relacao.Status.OrderBy(k => k.DATA).First().DATA, x.Relacao.Status.OrderBy(k => k.DATA).ElementAt(1).DATA));
+
+                    var Qtd_Primeiro_SLA_24h = list24Diferences.AsEnumerable()
+                          .Where(x => x <= 24)
+                          .Count();
+
+                    Porc_Primeiro_SLA_24h = Math.Round((Qtd_Primeiro_SLA_24h / (double)Total_de_Demandas) * 100.0, 1);
+
+                    var list_Dentro_SLA = linqFiltered
+                          .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).Last().STATUS == "CONCLUÍDO")
+                          .Select(x => new { lastdate = x.Relacao.Status.OrderBy(k => k.DATA).Last().DATA, dt_abertura = x.DATA_ABERTURA.Value, sla = x.Fila.SLA })
+                          .AsEnumerable();
+
+                    var Qtd_Dentro_SLA = list_Dentro_SLA.Where(x => calculeDate(x.lastdate, x.dt_abertura) <= x.sla).Count();
+
+                    Porc_Dentro_SLA = Math.Round((Qtd_Dentro_SLA / (double)Total_de_Demandas) * 100.0, 1);
+
+                    Aguardando_outra_área = linqFiltered
+                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS == "AGUARDANDO OUTRA ÁREA")
+                        .Count();
+                    Em_Aberto = linqFiltered
+                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS == "ABERTO")
+                        .Count();
+                    Devolvido = linqFiltered
+                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS == "DEVOLVIDO AO ANALISTA")
+                        .Count();
+                    DemandaPrioridade = linqFiltered
+                        .Where(x => x.PRIORIDADE == "ALTA")
+                        .Count();
+                }
+
+                var options = new JsonSerializerOptions
+                {
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                };
+
+                return new JsonResult(
+                  new Response<dynamic>
+                  {
+                      Data = new
+                      {
+                          Total_de_Demandas,
+                          Concluído,
+                          Em_andamento,
+                          Porc_Primeiro_SLA_24h,
+                          Porc_Dentro_SLA,
+                          Aguardando_outra_área,
+                          Em_Aberto,
+                          Devolvido,
+                          Prioridade
+                      },
+                      Succeeded = true,
+                      Message = "Tudo Certo"
+                  }, options);
+
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Erro ao encontrar buscar informações",
+                    Succeeded = false,
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace,
+                        ex.Source
+                    },
+                    Message = "Erro ao encontrar buscar informações"
+                });
+            }
+        }
+
+        //------------------------------------------------------------------------------------
         private async Task<DEMANDAS_CHAMADO_DTO> GetDemandaByID(int IdDemanda)
             => Demanda_BD.DEMANDA_CHAMADO
                     .IgnoreAutoIncludes()
@@ -1610,16 +1847,20 @@ namespace Vivo_Apps_API.Controllers
                     .Include(x => x.Solicitante)
                     .Include(x => x.Fila)
                         .ThenInclude(x => x.DEMANDA_RESPONSAVEL_FILAs)
-                    .Include(x => x.Respostas)
-                        .ThenInclude(x => x.Responsavel)
-                            .ThenInclude(x => x.DemandasResponsavel)
-                    .Include(x => x.Respostas)
-                        .ThenInclude(x => x.Status)
-                    .Include(x => x.Respostas)
-                        .ThenInclude(x => x.ARQUIVOS)
+                    .Include(x => x.Fila)
+                        .ThenInclude(x => x.ID_TIPO_FILANavigation)
+                    .Include(x => x.Relacao)
+                        .ThenInclude(x => x.Respostas)
+                            .ThenInclude(x => x.Responsavel)
+                                .ThenInclude(x => x.DemandasResponsavel)
+                    .Include(x => x.Relacao)
+                        .ThenInclude(x => x.Respostas)
+                            .ThenInclude(x => x.Status)
+                    .Include(x => x.Relacao)
+                        .ThenInclude(x => x.Respostas)
+                            .ThenInclude(x => x.ARQUIVOS)
                     .ProjectTo<DEMANDAS_CHAMADO_DTO>(_mapper.ConfigurationProvider)
                     .First(x => x.ID == IdDemanda);
-
 
         public static byte[] ConvertFile(byte[] Unconvertedfiles)
         {
@@ -1646,6 +1887,88 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
+        private static int calculeDate(DateTime startDate, DateTime endDate)
+        {
+
+            int days = 0;
+            var saida = ObterFeriados(DateTime.Now.Year);
+            while (startDate.Date <= endDate.Date)
+            {
+                if (startDate.DayOfWeek != DayOfWeek.Saturday
+                   && startDate.DayOfWeek != DayOfWeek.Sunday
+                   && !saida.Contains(startDate.Date))
+                    days++;
+
+                startDate = startDate.AddDays(1);
+            }
+
+            return days;
+        }
+
+        private static List<DateTime> ObterFeriados(int ano)
+        {
+            List<DateTime> feriados = new List<DateTime>
+        {
+            // Feriados fixos
+            new DateTime(ano, 1, 1), // Ano Novo
+            new DateTime(ano, 4, 21), // Tiradentes
+            new DateTime(ano, 5, 1), // Dia do Trabalhador
+            new DateTime(ano, 9, 7), // Independência do Brasil
+            new DateTime(ano, 10, 12), // Nossa Senhora Aparecida
+            new DateTime(ano, 11, 2), // Finados
+            new DateTime(ano, 11, 15), // Proclamação da República
+            new DateTime(ano, 12, 25), // Natal
+
+            // Feriados móveis
+            CalcularCarnaval(ano),
+            CalcularSextaFeiraSanta(ano),
+            CalcularCorpusChristi(ano)
+        };
+
+            return feriados;
+        }
+
+        // Função para calcular o Carnaval (terça-feira antes da Quarta-feira de Cinzas)
+        private static DateTime CalcularCarnaval(int ano)
+        {
+            DateTime pascoa = CalcularPascoa(ano);
+            return pascoa.AddDays(-47); // Carnaval é 47 dias antes da Páscoa
+        }
+
+        // Função para calcular a Sexta-feira Santa (2 dias antes da Páscoa)
+        private static DateTime CalcularSextaFeiraSanta(int ano)
+        {
+            DateTime pascoa = CalcularPascoa(ano);
+            return pascoa.AddDays(-2);
+        }
+
+        // Função para calcular o Corpus Christi (60 dias após a Páscoa)
+        private static DateTime CalcularCorpusChristi(int ano)
+        {
+            DateTime pascoa = CalcularPascoa(ano);
+            return pascoa.AddDays(60);
+        }
+
+        // Função para calcular a data da Páscoa (baseado no algoritmo de Meeus/Jones/Butcher)
+        private static DateTime CalcularPascoa(int ano)
+        {
+            int a = ano % 19;
+            int b = ano / 100;
+            int c = ano % 100;
+            int d = b / 4;
+            int e = b % 4;
+            int f = (b + 8) / 25;
+            int g = (b - f + 1) / 3;
+            int h = (19 * a + b - d - g + 15) % 30;
+            int i = c / 4;
+            int k = c % 4;
+            int l = (32 + 2 * e + 2 * i - h - k) % 7;
+            int m = (a + 11 * h + 22 * l) / 451;
+            int mes = (h + l - 7 * m + 114) / 31;
+            int dia = ((h + l - 7 * m + 114) % 31) + 1;
+
+            return new DateTime(ano, mes, dia);
+        }
 
     }
 }

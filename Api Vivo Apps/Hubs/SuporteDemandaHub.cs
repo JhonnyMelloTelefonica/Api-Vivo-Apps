@@ -110,7 +110,7 @@ namespace Vivo_Apps_API.Hubs
 
                 var saida = dataBeforeFilter
                     .Include(x => x.Campos)
-                    .Include(x => x.Status)
+                    .Include(x => x.Relacao.Status)
                     .Include(x => x.Fila)
                     .Include(x => x.Responsavel)
                     .Include(x => x.Solicitante)
@@ -153,19 +153,30 @@ namespace Vivo_Apps_API.Hubs
             await _context.Clients.Group(data.ID.ToString()).SendAsync("Update-Demanda", data);
         }
 
-        public async Task SetPriority(int matricula, string prioridade, int id)
+        public async Task SetPriority(int matricula, IEnumerable<int> ids)
         {
-            var item = data.Where(x => x.ID == id).FirstOrDefault();
-            item.PRIORIDADE = prioridade;
-
-            var demanda = Demanda_BD.DEMANDA_CHAMADO.Find(id);
-            demanda.PRIORIDADE = prioridade;
-            demanda.Historico_Prioridade.Add(new DEMANDA_HISTORICO_PRIORIDADE
+            foreach (var item in data.Where(x => ids.Contains(x.ID)))
             {
-                MAT_RESPONSAVEL = matricula,
-                PRIORIDADE = prioridade,
-                DATA = DateTime.Now
-            });
+                if (item.PRIORIDADE == "BAIXA")
+                    item.PRIORIDADE = "ALTA";
+                else if (item.PRIORIDADE == "ALTA")
+                    item.PRIORIDADE = "BAIXA";
+            }
+
+            foreach (var item in Demanda_BD.DEMANDA_CHAMADO.Where(x => ids.Contains(x.ID)))
+            {
+                if (item.PRIORIDADE == "BAIXA")
+                    item.PRIORIDADE = "ALTA";
+                else if (item.PRIORIDADE == "ALTA")
+                    item.PRIORIDADE = "BAIXA";
+
+                item.Historico_Prioridade.Add(new DEMANDA_HISTORICO_PRIORIDADE
+                {
+                    MAT_RESPONSAVEL = matricula,
+                    PRIORIDADE = item.PRIORIDADE,
+                    DATA = DateTime.Now
+                });
+            }
 
             Demanda_BD.SaveChanges();
 

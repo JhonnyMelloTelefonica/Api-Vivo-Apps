@@ -75,13 +75,13 @@ var app = builder.Build();
 
 app.Lifetime.ApplicationStarted.Register(async () =>
 {
-    var currentTimeUTC = DateTime.UtcNow.ToString();
-    byte[] encodedCurrentTimeUTC = System.Text.Encoding.UTF8.GetBytes(currentTimeUTC);
-    var options = new DistributedCacheEntryOptions()
-        .SetSlidingExpiration(TimeSpan.FromSeconds(20));
+    //var currentTimeUTC = DateTime.UtcNow.ToString();
+    //byte[] encodedCurrentTimeUTC = System.Text.Encoding.UTF8.GetBytes(currentTimeUTC);
+    //var options = new DistributedCacheEntryOptions()
+    //    .SetSlidingExpiration(TimeSpan.FromSeconds(20));
 
-    app.Services.GetService<IDistributedCache>()
-    .Set("cachedTimeUTC", encodedCurrentTimeUTC, options);
+    //app.Services.GetService<IDistributedCache>()
+    //.Set("cachedTimeUTC", encodedCurrentTimeUTC, options);
 
     await app.Services.GetRequiredService<ISuporteDemandaHub>()
     .SendTableDemandas();

@@ -22,6 +22,16 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 using static Vivo_Apps_API.Converters.Converters;
 using System.Linq;
 using Oracle.ManagedDataAccess.Client;
+using Microsoft.EntityFrameworkCore.Internal;
+using Blazorise;
+using DocumentFormat.OpenXml.Drawing.Charts;
+using Microsoft.Extensions.Hosting;
+using DocumentFormat.OpenXml.InkML;
+using DocumentFormat.OpenXml.Office2013.Drawing.ChartStyle;
+using DocumentFormat.OpenXml.Vml.Spreadsheet;
+using System.Runtime.Intrinsics.X86;
+using StackExchange.Redis;
+using System.Data.Entity;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -31,13 +41,17 @@ namespace Vivo_Apps_API.Controllers
     {
         private Vivo_MaisContext CD = new Vivo_MaisContext();
         private Vivo_PBIContext CD_PBI = new Vivo_PBIContext();
+        private IDbContextFactory<DemandasContext> DbFactory;
+        private DemandasContext Demanda_BD;
         private VICContext CD_VIC = new VICContext();
 
         private readonly ILogger<RandomFunctions> _logger;
 
-        public RandomFunctions(ILogger<RandomFunctions> logger)
+        public RandomFunctions(ILogger<RandomFunctions> logger, IDbContextFactory<DemandasContext> dbFactory)
         {
             _logger = logger;
+            DbFactory = dbFactory;
+            Demanda_BD = DbFactory.CreateDbContext();
         }
 
         public partial class PABody
@@ -46,6 +60,71 @@ namespace Vivo_Apps_API.Controllers
             public required string contenttype { get; set; }
             [JsonPropertyName("$content")]
             public required string content { get; set; }
+        }
+
+        [HttpGet("Update_Cliente_alto_Valor")]
+        public async Task<IActionResult> Update_Cliente_alto_Valor(string telefone)
+        {
+            try
+            {
+                DataTable dataTable = new DataTable();
+                string oracleConnectionString =
+                    "Data Source=10.240.44.198:1521/VICPR;User Id=VPV_RGNL_NE;Password=NE_IC_2022";
+                
+
+                //string sqlServerConnectionString = "Data Source=10.124.100.153;Initial Catalog=Vivo_MAIS;TrustServerCertificate=True;User ID=RegionalNE;Password=RegionalNEvivo2019";
+                string oraclequery = @$"SELECT DISTINCT 
+                    ID_SGMN_CLNT
+                    FROM TVIC_ODS_MVEL_PRQE 
+                    WHERE NU_ANO_MES=202402
+                    AND NU_TLFN = '81982675236'";
+                //using (var sqlServerConnection = new SqlConnection(sqlServerConnectionString))
+                //{ (DateTime.Now.Month < 10 ? string.Concat(DateTime.Now.Year, 0, DateTime.Now.Month) : string.Concat(DateTime.Now.Year, DateTime.Now.Month))}
+
+
+
+                using (OracleConnection connection = new OracleConnection(oracleConnectionString))
+                {
+                    using (OracleCommand command = new OracleCommand(oraclequery, connection))
+                    {
+                        connection.Open();
+
+                        using (OracleDataAdapter adapter = new OracleDataAdapter(command))
+                        {
+                            adapter.Fill(dataTable);
+                        }
+                        connection.Close();
+                    }
+                }
+
+                List<DEMANDA_PARQUE> resultList = new List<DEMANDA_PARQUE>();
+
+                var data = DateTime.Now;
+
+                foreach (DataRow row in dataTable.Rows)
+                {
+                    DEMANDA_PARQUE item = new DEMANDA_PARQUE
+                    {
+                        DS_SGMN_CLNT = row["DS_SGMN_CLNT"].ToString(),
+                        NU_TLFN = row["NU_TLFN"].ToString(),
+                        NU_ANO_MES = int.Parse(row["NU_ANO_MES"].ToString()),
+                        DS_ORIG_PRDT = row["DS_ORIG_PRDT"].ToString(),
+                        SG_UF = row["SG_UF"].ToString(),
+                        NU_DDD = int.Parse(row["NU_DDD"].ToString() ?? "0"),
+                        ID_PLNO = int.Parse(row["ID_PLNO"].ToString() ?? "0"),
+                        DS_DCTO_PRNC = row["DS_DCTO_PRNC"].ToString(),
+                        DATA = DateTime.Now
+                    };
+
+                    resultList.Add(item);
+                }
+
+                return Ok("Tudo certo!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet("Update_Manual_Audit")]
@@ -130,7 +209,7 @@ namespace Vivo_Apps_API.Controllers
                         CENT = row["CENT"].ToString(),
                         CD = Convert.ToDecimal(row["CD"]),
                         ORDEM_VEND = Convert.ToDecimal(row["ORDEM_VEND"]),
-                        
+
                     };
 
                     resultList.Add(item);
@@ -144,6 +223,7 @@ namespace Vivo_Apps_API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+
         [HttpGet("Att_Visao_Cargos_VivoTask")]
         public async Task<string> Att_Visao_Cargos_VivoTask()
         {
