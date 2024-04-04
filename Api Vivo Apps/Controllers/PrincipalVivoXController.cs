@@ -126,6 +126,7 @@ namespace Vivo_Apps_API.Controllers
                     FIXA = y.FIXA,
                     TP_AFASTAMENTO = y.TP_AFASTAMENTO,
                     OBS = y.OBS,
+                    DDD = y.DDD ?? 0,
                     UserAvatar = y.UserAvatar,
                     LOGIN_MOD = y.LOGIN_MOD,
                     DT_MOD = y.DT_MOD,
