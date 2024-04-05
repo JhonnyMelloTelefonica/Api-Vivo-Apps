@@ -160,7 +160,7 @@ namespace Vivo_Apps_API.Controllers
 
                 IEnumerable<Option<int>> cargos = Enum.GetValues(typeof(Cargos))
                     .Cast<Cargos>().ToList().Where(x => !list.Contains(x))
-                    .Select(x => new Option<int> { Value = Convert.ToInt32(x), Text = x.GetDisplayName(), });
+                    .Select(x => new Option<int> (Convert.ToInt32(x),x.GetDisplayName()));
 
                 return new JsonResult(new Response<IEnumerable<Option<int>>>
                 {

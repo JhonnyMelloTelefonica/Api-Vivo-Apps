@@ -1,20 +1,31 @@
 using AutoMapper;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.OpenApi.Models;
 using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
 using Shared_Class_Vivo_Apps.Model_DTO;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Text.Json;
+using System.Text;
 using Vivo_Apps_API;
 using Vivo_Apps_API.Controllers;
 using Vivo_Apps_API.Hubs;
+using Microsoft.Net.Http.Headers;
+using DocumentFormat.OpenXml.InkML;
+using System.Text.Json.Serialization;
+using Newtonsoft.Json.Converters;
+using System.Runtime.Serialization;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container. 
 
-builder.Services.AddControllers();
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new Iso8601DateTimeConverter());
+});
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
@@ -129,5 +140,22 @@ public class CustomDocumentFilter : IDocumentFilter
                 operation.Value.Summary = pathItem.Key.Split('/')[3];
             }
         }
+    }
+}
+
+
+// Custom DateTime converter
+public class Iso8601DateTimeConverter : JsonConverter<DateTime>
+{
+    public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        if (reader.TokenType == JsonTokenType.String && DateTime.TryParse(reader.GetString(), out var dateTime))
+            return dateTime;
+        throw new JsonException("Invalid DateTime format");
+    }
+
+    public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(value.ToString("yyyy-MM-ddTHH:mm:ssZ"));
     }
 }

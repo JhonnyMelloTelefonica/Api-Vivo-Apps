@@ -13,6 +13,9 @@ using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
 using static Shared_Class_Vivo_Apps.Model_DTO.JORNADA_DTO;
 using static Vivo_Apps_API.Converters.Converters;
 using Shared_Class_Vivo_Apps.Models;
+using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using Shared_Class_Vivo_Apps.Model_DTO;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -23,10 +26,47 @@ namespace Vivo_Apps_API.Controllers
         private Vivo_MaisContext CD = new Vivo_MaisContext();
 
         private readonly ILogger<ControleQuestionsJornadaController> _logger;
+        private readonly IMapper _mapper;
 
         public ControleQuestionsJornadaController(ILogger<ControleQuestionsJornadaController> logger)
         {
             _logger = logger;
+            var config = new MapperConfiguration(cfg =>
+            {
+                cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_DTO>();
+
+                cfg.CreateMap<JORNADA_BD_QUESTION, QuestionModel>()
+                .ForMember(
+                    dest => dest.LOGIN_MOD,
+                    opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == src.LOGIN_MOD))
+                    )
+                .ForMember(
+                    dest => dest.TEMA,
+                    opt => opt.MapFrom(src => CD.JORNADA_BD_TEMAS_SUB_TEMAs.FirstOrDefault(k => k.ID_TEMAS == src.ID_TEMAS).TEMAS)
+                    )
+                .ForMember(
+                    dest => dest.CARGOS,
+                    opt => opt.MapFrom(src => GetCargosFromStringList(src.CARGO))
+                    )
+                .ForMember(
+                    dest => dest.CANAIS,
+                    opt => opt.MapFrom(src => GetCanaisFromCargos(src.CARGO))
+                    )
+                .ForMember(
+                    dest => dest.STATUS_QUESTION,
+                    opt => opt.MapFrom(src => src.STATUS_QUESTION.Value)
+                    )
+                .ForMember(
+                    dest => dest.SUB_TEMA,
+                    opt => opt.MapFrom(src => CD.JORNADA_BD_TEMAS_SUB_TEMAs.FirstOrDefault(k => k.ID_SUB_TEMAS == src.ID_SUB_TEMAS).SUB_TEMAS)
+                    )
+                .ForMember(
+                    dest => dest.DT_MOD,
+                    opt => opt.MapFrom(src => Convert.ToDateTime(src.DT_MOD))
+                    );
+            });
+
+            _mapper = config.CreateMapper();
         }
 
         [HttpPost("CreateQuestionMassivo")]
@@ -195,7 +235,7 @@ namespace Vivo_Apps_API.Controllers
 
                 IEnumerable<Option<int>> cargos = Enum.GetValues(typeof(Cargos))
                     .Cast<Cargos>().ToList().Where(x => !list.Contains(x))
-                    .Select(x => new Option<int> { Value = Convert.ToInt32(x), Text = x.GetDisplayName(), });
+                    .Select(x => new Option<int> ( Convert.ToInt32(x),x.GetDisplayName()));
 
                 var tema_subtema = CD.JORNADA_BD_TEMAS_SUB_TEMAs;
 
@@ -233,7 +273,7 @@ namespace Vivo_Apps_API.Controllers
             try
             {
 
-                var Data = CD.JORNADA_BD_QUESTIONs.AsQueryable();
+                var Data = CD.JORNADA_BD_QUESTIONs.Where(x=> x.REGIONAL == filter.Value.Regional).AsQueryable();
 
                 if (filter.Value.Status is not null)
                 {
@@ -280,19 +320,11 @@ namespace Vivo_Apps_API.Controllers
                     }
                 }
 
-                if (filter.Value.TP_Forms is not null)
-                {
-                    if (filter.Value.TP_Forms.Any())
-                    {
-                        Data = Data.AsEnumerable().Where(x => x.TP_FORMS.Split(new[] { ';' }).Any(cargo => filter.Value.TP_Forms.Contains(cargo))).AsQueryable();
-                    }
-                }
-
                 if (filter.Value.TP_questao is not null)
                 {
                     if (filter.Value.TP_questao.Any())
                     {
-                        Data = Data.Where(x => filter.Value.TP_questao.Contains(x.TP_QUESTAO));
+                        Data = Data.Where(x => filter.Value.TP_questao.Select(x=> x.Value).Contains(x.TP_QUESTAO));
                     }
                 }
 
@@ -309,24 +341,7 @@ namespace Vivo_Apps_API.Controllers
                 var totalRecords = Data.Count();
                 var totalPages = ((double)totalRecords / (double)filter.PageSize);
 
-                IEnumerable<QuestionModel> listaModel = lista.Select(x => new QuestionModel
-                {
-                    ID_QUESTION = x.ID_QUESTION,
-                    TEMA = CD.JORNADA_BD_TEMAS_SUB_TEMAs.Where(k => k.ID_TEMAS == x.ID_TEMAS).FirstOrDefault().TEMAS,
-                    TP_FORMS = x.TP_FORMS,
-                    TP_QUESTAO = x.TP_QUESTAO,
-                    PERGUNTA = x.PERGUNTA,
-                    REGIONAL = x.REGIONAL,
-                    PESO = x.PESO,
-                    EXPLICACAO = x.EXPLICACAO,
-                    CANAIS = GetCanaisFromCargos(x.CARGO),
-                    CARGOS = GetCargosFromStringList(x.CARGO),
-                    STATUS_QUESTION = x.STATUS_QUESTION,
-                    FIXA = x.FIXA,
-                    SUB_TEMA = CD.JORNADA_BD_TEMAS_SUB_TEMAs.Where(k => k.ID_SUB_TEMAS == x.ID_SUB_TEMAS).FirstOrDefault().SUB_TEMAS,
-                    DT_MOD = Convert.ToDateTime(x.DT_MOD),
-                    LOGIN_MOD = CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA == x.LOGIN_MOD).FirstOrDefault()
-                }).ToList();
+                IEnumerable<QuestionModel> listaModel = lista.ProjectTo<QuestionModel>(_mapper.ConfigurationProvider).ToList();
 
 
                 return new JsonResult(new Response<PagedModelResponse<IEnumerable<QuestionModel>>>
