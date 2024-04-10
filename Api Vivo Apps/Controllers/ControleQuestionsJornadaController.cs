@@ -27,7 +27,6 @@ namespace Vivo_Apps_API.Controllers
 
         private readonly ILogger<ControleQuestionsJornadaController> _logger;
         private readonly IMapper _mapper;
-
         public ControleQuestionsJornadaController(ILogger<ControleQuestionsJornadaController> logger)
         {
             _logger = logger;
@@ -272,8 +271,9 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-
-                var Data = CD.JORNADA_BD_QUESTIONs.Where(x=> x.REGIONAL == filter.Value.Regional).AsQueryable();
+                var Data = CD.JORNADA_BD_QUESTIONs
+                    .Where(x=> x.REGIONAL == filter.Value.Regional)
+                    .AsQueryable();
 
                 if (filter.Value.Status is not null)
                 {
