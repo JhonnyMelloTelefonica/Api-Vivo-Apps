@@ -41,3 +41,7 @@ Content-Type: application/json
 GET {{Api_Vivo_Apps_HostAddress}}/api/randomfunctions/Update_Cliente_alto_Valor?telefone=81982675236
 
 ###
+
+GET {{Api_Vivo_Apps_HostAddress}}/api/raking/GetActualRanking
+
+###

@@ -160,7 +160,7 @@ namespace Vivo_Apps_API.Controllers
 
                 IEnumerable<Option<int>> cargos = Enum.GetValues(typeof(Cargos))
                     .Cast<Cargos>().ToList().Where(x => !list.Contains(x))
-                    .Select(x => new Option<int> (Convert.ToInt32(x),x.GetDisplayName()));
+                    .Select(x => new Option<int>(Convert.ToInt32(x), x.GetDisplayName()));
 
                 return new JsonResult(new Response<IEnumerable<Option<int>>>
                 {
@@ -1702,7 +1702,7 @@ namespace Vivo_Apps_API.Controllers
             DateTime? Dt_fim,
             Cargos Cargo,
             bool? Fixa,
-            [FromBody]IEnumerable<JORNADA_QUESTION_DTO?> Questions
+            [FromBody] IEnumerable<JORNADA_QUESTION_DTO?> Questions
             )
         {
             try
@@ -2127,7 +2127,6 @@ namespace Vivo_Apps_API.Controllers
             .Where(y => y.TP_FORMS == "Jornada")
             .Where(y => y.CARGO == CARGO)
             .Where(y => y.FIXA == FIXA)
-            .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
             .Where(y => y.REGIONAL == REGIONAL)
             .Max(y => y.CADERNO);
 
@@ -2135,7 +2134,6 @@ namespace Vivo_Apps_API.Controllers
             .Where(y => y.TP_FORMS == "Jornada")
             .Where(y => y.CARGO == CARGO)
             .Where(y => y.FIXA == FIXA)
-            .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
             .Where(y => y.REGIONAL == REGIONAL)
             .Where(y => y.CADERNO == maxcadernojornada)
             .ToList();
@@ -2180,7 +2178,6 @@ namespace Vivo_Apps_API.Controllers
 
                     var actualquestionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
                     .Where(y => y.TP_FORMS == "Jornada Gestor")
-                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
                     .Where(y => y.CARGO == CARGO)
                     .Where(y => y.FIXA == FIXA)
                     .Where(y => y.REGIONAL == REGIONAL)
@@ -2234,7 +2231,6 @@ namespace Vivo_Apps_API.Controllers
                     .Where(y => y.TP_FORMS == "Jornada Gestor")
                     .Where(y => y.ID_CRIADOR == PDVDivisão.DIVISAO.Value)
                     .Where(y => y.CARGO == CARGO)
-                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
                     .Where(y => y.FIXA == FIXA)
                     .Where(y => y.REGIONAL == REGIONAL)
                     .ToList();
@@ -2276,7 +2272,6 @@ namespace Vivo_Apps_API.Controllers
                     .Where(y => y.TP_FORMS == "Jornada Gestor")
                     .Where(y => y.ID_CRIADOR == PDVDivisão.DIVISAO.Value)
                     .Where(y => y.CARGO == CARGO)
-                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
                     .Where(y => y.FIXA == FIXA)
                     .Where(y => y.REGIONAL == REGIONAL)
                     .ToList();
@@ -2317,7 +2312,6 @@ namespace Vivo_Apps_API.Controllers
                     .Where(y => y.TP_FORMS == "Jornada Gestor")
                     .Where(y => y.ID_CRIADOR == PDVDivisão.DIVISAO.Value)
                     .Where(y => y.CARGO == CARGO)
-                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
                     .Where(y => y.FIXA == FIXA)
                     .Where(y => y.REGIONAL == REGIONAL)
                     .ToList();
@@ -2356,7 +2350,6 @@ namespace Vivo_Apps_API.Controllers
                     .Where(y => y.TP_FORMS == "Jornada Gestor")
                     .Where(y => y.ID_CRIADOR == PDVDivisão.DIVISAO.Value)
                     .Where(y => y.CARGO == CARGO)
-                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
                     .Where(y => y.FIXA == FIXA)
                     .Where(y => y.REGIONAL == REGIONAL)
                     .ToList();
@@ -2408,7 +2401,6 @@ namespace Vivo_Apps_API.Controllers
                     .Where(y => y.TP_FORMS == "Jornada Gestor")
                     .Where(y => y.ID_CRIADOR == int.Parse(PDVDivisão.RE_GA))
                     .Where(y => y.CARGO == CARGO)
-                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
                     .Where(y => y.FIXA == FIXA)
                     .Where(y => y.REGIONAL == REGIONAL)
                     .ToList();
@@ -2468,7 +2460,6 @@ namespace Vivo_Apps_API.Controllers
                     .Where(y => y.TP_FORMS == "Jornada Gestor")
                     .Where(y => y.ID_CRIADOR == int.Parse(PDVDivisão.RE_GGP))
                     .Where(y => y.CARGO == CARGO)
-                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
                     .Where(y => y.FIXA == FIXA)
                     .Where(y => y.REGIONAL == REGIONAL)
                     .ToList();
@@ -2522,7 +2513,6 @@ namespace Vivo_Apps_API.Controllers
                     .Where(y => y.TP_FORMS == "Jornada Gestor")
                     .Where(y => y.ID_CRIADOR == int.Parse(PDVDivisão.RE_GV))
                     .Where(y => y.CARGO == CARGO)
-                    .Where(y => (ELEGIVEL == true ? y.FIXA == FIXA : y.ELEGIVEL != null))
                     .Where(y => y.FIXA == FIXA)
                     .Where(y => y.REGIONAL == REGIONAL)
                     .ToList();

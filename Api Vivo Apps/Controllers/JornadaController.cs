@@ -135,18 +135,21 @@ namespace Vivo_Apps_API.Controllers
         public string GetAllJornadas() => JsonConvert.SerializeObject(CD.JORNADA_BD_QUESTION_HISTORICOs.Where(x => x.TP_FORMS == "Jornada"));
 
         [HttpPost("UpdateAvatarImage")]
+        [ProducesResponseType(typeof(bool), 200)]
+        [ProducesResponseType(typeof(Exception), 500)]
         public bool UpdateAvatarImage([FromBody] AvatarImageModel data)
         {
             try
             {
-                var user = CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA == data.matricula).FirstOrDefault();
+                var user = CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == data.matricula);
                 user.UserAvatar = data.bytes;
                 CD.SaveChanges();
+
                 return true;
             }
             catch (Exception ex)
             {
-                throw ex;
+                return false;
             }
         }
 

@@ -9,7 +9,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-	  <Compile Remove="DB_Context_Vivo_MAIS\Vivo_MaisContext.cs" />
+		<Compile Remove="DB_Context_Vivo_MAIS\Vivo_MaisContext.cs" />
 	</ItemGroup>
 	<ItemGroup>
 		<!-- Include the folder and its content in the publish output -->
@@ -61,6 +61,7 @@
 		<Content Update="FilesTemplates\usericon.png">
 			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</Content>
 	</ItemGroup>
 
