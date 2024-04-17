@@ -26,7 +26,6 @@ namespace Vivo_Apps_API.Controllers
         private readonly IDistributedCache _cache;
         private static Vivo_MaisContext CD;
         private readonly IMapper _mapper;
-        private byte[] defaultImage { get; set; }
         public RakingController(ILogger<RakingController> logger
             , Vivo_MaisContext bd_context
             , IDistributedCache cache)
@@ -34,14 +33,10 @@ namespace Vivo_Apps_API.Controllers
             CD = bd_context;
             _cache = cache;
             _logger = logger;
-            defaultImage = System.IO.File.ReadAllBytes(Path.Combine(AppContext.BaseDirectory, "FilesTemplates", "usericon.png"));
 
             var config = new MapperConfiguration(cfg =>
             {
-                cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_DTO>()
-                .ForMember(dest => dest.UserAvatar, opt =>
-                        opt.MapFrom(src => src.UserAvatar ?? defaultImage
-                        ));
+                cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_DTO>();
 
                 cfg.CreateMap<JORNADA_BD_ANSWER_AVALIACAO, RakingJornada>()
                 .ForMember(
@@ -78,7 +73,7 @@ namespace Vivo_Apps_API.Controllers
                         Pontuação = (double)x.Sum(y => y.NOTA.Value),
                         Classificação = i + 1,
                         Media = (double)x.Sum(y => y.NOTA.Value) / x.Count(),
-                    }).Take(30).AsEnumerable();
+                    }).Take(20).AsEnumerable();
 
                 return new JsonResult(rank);
 

@@ -114,12 +114,6 @@ app.UseRouting();
 app.UseFileServer();
 app.UseRouting();
 
-app.Use(async (context,next) =>
-{
-    context.Response.ContentType = "application/json; charset=utf-8";
-    await next();
-});
-
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapControllers();
