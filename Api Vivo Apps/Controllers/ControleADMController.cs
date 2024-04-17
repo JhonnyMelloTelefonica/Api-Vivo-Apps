@@ -507,11 +507,11 @@ namespace Vivo_Apps_API.Controllers
             }
             if (filter.Cargo.Count() > 0)
             {
-                pagedData = pagedData.Where(x => filter.Cargo.Contains(x.CARGO.ToString()));
+                pagedData = pagedData.Where(x => filter.Cargo.Contains(x.CARGO));
             }
             if (filter.Canal.Count() > 0)
             {
-                pagedData = pagedData.Where(x => filter.Canal.Contains(x.CANAL.ToString()));
+                pagedData = pagedData.Where(x => filter.Canal.Contains(x.CANAL));
             }
             if (filter.Regional.Count() > 0)
             {
@@ -525,12 +525,14 @@ namespace Vivo_Apps_API.Controllers
             {
                 pagedData = pagedData.Where(x => x.NOME.ToLower().Contains(filter.Nome.ToLower()));
             }
-            if (!string.IsNullOrEmpty(filter.MatriculaDivisao))
-            {
+            if (filter.MatriculaDivisao != null && filter.MatriculaDivisao.Any())
+                //if (!string.IsNullOrEmpty(filter.MatriculaDivisao))
+              {
                 pagedData = pagedData.Where(x =>
                     CD.JORNADA_BD_CARTEIRA_DIVISAOs
                         .Where(y => y.DIVISAO != null)
-                        .Where(y => y.DIVISAO.Value.ToString() == filter.MatriculaDivisao)
+                        //.Where(y => y.DIVISAO.Value.ToString() == filter.MatriculaDivisao)
+                        .Where(y => filter.MatriculaDivisao.Contains(y.DIVISAO.Value.ToString()))
                         .Select(y => y.Vendedor).Contains(x.PDV)
                     );
             }
@@ -1956,11 +1958,11 @@ namespace Vivo_Apps_API.Controllers
                 }
                 if (filter.Cargo.Count() > 0)
                 {
-                    pagedData = pagedData.Where(x => filter.Cargo.Contains(x.CARGO.ToString()));
+                    pagedData = pagedData.Where(x => filter.Cargo.Contains(x.CARGO));
                 }
                 if (filter.Canal.Count() > 0)
                 {
-                    pagedData = pagedData.Where(x => filter.Canal.Contains(x.CANAL.ToString()));
+                    pagedData = pagedData.Where(x => filter.Canal.Contains(x.CANAL));
                 }
                 if (filter.Regional.Count() > 0)
                 {
@@ -1974,14 +1976,24 @@ namespace Vivo_Apps_API.Controllers
                 {
                     pagedData = pagedData.Where(x => x.NOME.ToLower().Contains(filter.Nome.ToLower()));
                 }
-                if (!string.IsNullOrEmpty(filter.MatriculaDivisao))
+                //if (!string.IsNullOrEmpty(filter.MatriculaDivisao))
+                //{
+                //    pagedData = pagedData.Where(x =>
+                //        CD.JORNADA_BD_CARTEIRA_DIVISAOs
+                //            .Where(y => y.DIVISAO != null)
+                //            .Where(y => y.DIVISAO.Value.ToString() == filter.MatriculaDivisao)
+                //            .Select(y => y.Vendedor).Contains(x.PDV)
+                //        );
+                //}
+                if (filter.MatriculaDivisao != null && filter.MatriculaDivisao.Any())
                 {
                     pagedData = pagedData.Where(x =>
                         CD.JORNADA_BD_CARTEIRA_DIVISAOs
                             .Where(y => y.DIVISAO != null)
-                            .Where(y => y.DIVISAO.Value.ToString() == filter.MatriculaDivisao)
-                            .Select(y => y.Vendedor).Contains(x.PDV)
-                        );
+                            .Where(y => filter.MatriculaDivisao.Contains(y.DIVISAO.Value.ToString()))
+                            .Select(y => y.Vendedor)
+                            .Contains(x.PDV)
+                    );
                 }
                 if (filter.Matricula is not null)
                 {
