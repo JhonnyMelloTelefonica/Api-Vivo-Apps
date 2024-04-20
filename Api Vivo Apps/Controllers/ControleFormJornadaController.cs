@@ -852,7 +852,7 @@ namespace Vivo_Apps_API.Controllers
                     });
                 }
 
-                InsertQuestionsIntoForm(REGIONAL, TIPO_PROVA, CARGO, FIXA, MATRICULA, DT_INIT, DT_FINAL, Formulario, ELEGIVEL, proximocaderno);
+                InsertQuestionsIntoForm(REGIONAL, TIPO_PROVA, CARGO, FIXA, MATRICULA, DT_INIT, DT_FINAL, Formulario, proximocaderno);
 
                 await CD.SaveChangesAsync();
 
@@ -972,15 +972,15 @@ namespace Vivo_Apps_API.Controllers
                 };
 
                 // Busca Provas de Rota
-                List<JORNADA_BD_QUESTION_HISTORICO> questions = GetListaProvasRotaCruzadaDisponiveis(MATRICULA, userGet.ELEGIVEL.Value);
+                List<JORNADA_BD_QUESTION_HISTORICO> questions = GetListaProvasRotaCruzadaDisponiveis(MATRICULA);
 
                 // Busca Provas de Jornada Regional
-                GetListaProvasJornadaDisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet.ELEGIVEL.Value, out questionsjornada, out resposta);
+                GetListaProvasJornadaDisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, out questionsjornada, out resposta);
 
                 if (CargosProvaJornadaGestorDireto.Contains((Cargos)userGet.CARGO))
                 {
                     // Busca Provas de Jornada 1-1 em PDV
-                    GetListaProvasJornadaGestorDisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet, out questionsjornadaGestor, userGet.ELEGIVEL.Value);
+                    GetListaProvasJornadaGestorDisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet, out questionsjornadaGestor);
                 }
                 else
                 {
@@ -990,7 +990,7 @@ namespace Vivo_Apps_API.Controllers
                 if (CargosProvaDivisao.Contains((Cargos)userGet.CARGO))
                 {
                     // Busca Provas de Jornada por Divisão
-                    GetListaProvasJornadaGestorDivisaoDisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet, userGet.ELEGIVEL.Value, out questionsjornadaGestorDivisao);
+                    GetListaProvasJornadaGestorDivisaoDisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet, out questionsjornadaGestorDivisao);
                 }
                 else
                 {
@@ -1000,7 +1000,7 @@ namespace Vivo_Apps_API.Controllers
                 if (CargosProvaGa.Contains((Cargos)userGet.CARGO))
                 {
                     // Busca Provas de Jornada por GA
-                    GetListaProvasJornadaGestorGADisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet, userGet.ELEGIVEL.Value, out questionsjornadaGA);
+                    GetListaProvasJornadaGestorGADisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet, out questionsjornadaGA);
                 }
                 else
                 {
@@ -1009,7 +1009,7 @@ namespace Vivo_Apps_API.Controllers
                 if (CargosProvaGGP.Contains((Cargos)userGet.CARGO))
                 {
                     // Busca Provas de Jornada por GGP
-                    GetListaProvasJornadaGestorGGPDisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet, userGet.ELEGIVEL.Value, out questionsjornadaGGP);
+                    GetListaProvasJornadaGestorGGPDisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet, out questionsjornadaGGP);
                 }
                 else
                 {
@@ -1018,7 +1018,7 @@ namespace Vivo_Apps_API.Controllers
                 if (CargosProvaGV.Contains((Cargos)userGet.CARGO))
                 {
                     // Busca Provas de Jornada por GV
-                    GetListaProvasJornadaGestorGVDisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet, userGet.ELEGIVEL.Value, out questionsjornadaGV);
+                    GetListaProvasJornadaGestorGVDisponiveis(REGIONAL, CARGO, MATRICULA, FIXA, userGet, out questionsjornadaGV);
                 }
                 else
                 {
@@ -1799,7 +1799,6 @@ namespace Vivo_Apps_API.Controllers
             string DT_INIT,
             string? DT_FINAL,
             List<JORNADA_BD_QUESTION> Formulario,
-            bool ELEGIVEL,
             int proximocaderno)
         {
             var entityrelacao = CD.JORNADA_BD_RELACAO_HISTORICOs.Add(new JORNADA_BD_RELACAO_HISTORICO
@@ -1832,7 +1831,7 @@ namespace Vivo_Apps_API.Controllers
                     DT_FINALIZACAO = !string.IsNullOrEmpty(DT_FINAL) ? Convert.ToDateTime(DT_FINAL) : null,
                     FIXA = FIXA,
                     REGIONAL = REGIONAL,
-                    ELEGIVEL = ELEGIVEL
+                    ELEGIVEL = false
                 });
             }
         }
@@ -2093,7 +2092,7 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
-        private List<JORNADA_BD_QUESTION_HISTORICO> GetListaProvasRotaCruzadaDisponiveis(int MATRICULA, bool ELEGIVEL)
+        private List<JORNADA_BD_QUESTION_HISTORICO> GetListaProvasRotaCruzadaDisponiveis(int MATRICULA)
         {
             var actual = DateTime.Now;
             var questions = CD.JORNADA_BD_QUESTION_HISTORICOs
@@ -2118,7 +2117,6 @@ namespace Vivo_Apps_API.Controllers
             int CARGO,
             int MATRICULA,
             bool FIXA,
-            bool ELEGIVEL,
             out List<JORNADA_BD_QUESTION_HISTORICO> questionsjornada,
             out bool resposta)
         {
@@ -2157,8 +2155,7 @@ namespace Vivo_Apps_API.Controllers
             int MATRICULA,
             bool FIXA,
             ACESSOS_MOBILE usuario,
-            out List<JORNADA_BD_QUESTION_HISTORICO> questionsjornadaGestor,
-            bool ELEGIVEL)
+            out List<JORNADA_BD_QUESTION_HISTORICO> questionsjornadaGestor)
         {
             questionsjornadaGestor = new();
             var cargosGestor = new List<int> { 3, 6, 8 };
@@ -2214,7 +2211,6 @@ namespace Vivo_Apps_API.Controllers
             int MATRICULA,
             bool FIXA,
             ACESSOS_MOBILE usuario,
-            bool ELEGIVEL,
             out List<JORNADA_BD_QUESTION_HISTORICO> questionsjornadaGestor)
         {
             if ((Cargos)usuario.CARGO == Cargos.Gerente_Área)
@@ -2385,7 +2381,6 @@ namespace Vivo_Apps_API.Controllers
             int MATRICULA,
             bool FIXA,
             ACESSOS_MOBILE usuario,
-            bool ELEGIVEL,
             out List<JORNADA_BD_QUESTION_HISTORICO> questionsjornadaGestor)
         {
             JORNADA_BD_CARTEIRA_DIVISAO PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
@@ -2444,7 +2439,6 @@ namespace Vivo_Apps_API.Controllers
             int MATRICULA,
             bool FIXA,
             ACESSOS_MOBILE usuario,
-            bool ELEGIVEL,
             out List<JORNADA_BD_QUESTION_HISTORICO> questionsjornadaGestor)
         {
             JORNADA_BD_CARTEIRA_DIVISAO PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
@@ -2497,7 +2491,6 @@ namespace Vivo_Apps_API.Controllers
             int MATRICULA,
             bool FIXA,
             ACESSOS_MOBILE usuario,
-            bool ELEGIVEL,
             out List<JORNADA_BD_QUESTION_HISTORICO> questionsjornadaGestor)
         {
             JORNADA_BD_CARTEIRA_DIVISAO PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
