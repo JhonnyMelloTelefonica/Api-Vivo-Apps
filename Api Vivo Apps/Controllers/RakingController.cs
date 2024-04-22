@@ -56,7 +56,7 @@ namespace Vivo_Apps_API.Controllers
             {
                 var Avaliacoes = CD.JORNADA_BD_ANSWER_AVALIACAOs
                     .Where(x => x.TP_FORMS.Equals("Jornada") && x.ID_PROVA != null && x.RE_AVALIADO != 0)
-                    .Where(x => x.DT_AVALIACAO.HasValue && x.DT_AVALIACAO.Value.Year == 2023)
+                    .Where(x => x.DT_AVALIACAO.HasValue && x.DT_AVALIACAO.Value.Year == 2024)
                     .AsEnumerable();
 
                 /* total te questões respondidas em total provas respondidas = Num / 100 = Nota total possivel

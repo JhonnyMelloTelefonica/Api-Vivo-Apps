@@ -20,7 +20,7 @@ using Shared_Class_Vivo_Apps.Enums;
 using Microsoft.AspNetCore.Http.HttpResults;
 using System.Linq;
 using Microsoft.AspNetCore.StaticFiles;
-using static Vivo_Apps_API.Converters.Converters;
+using static Vivo_Apps_API.Models.Converters.Converters;
 using Shared_Class_Vivo_Apps.Models;
 
 

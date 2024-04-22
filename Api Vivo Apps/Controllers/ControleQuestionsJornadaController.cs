@@ -11,7 +11,7 @@ using System.Runtime.CompilerServices;
 using System.Linq;
 using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
 using static Shared_Class_Vivo_Apps.Model_DTO.JORNADA_DTO;
-using static Vivo_Apps_API.Converters.Converters;
+using static Vivo_Apps_API.Models.Converters.Converters;
 using Shared_Class_Vivo_Apps.Models;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;

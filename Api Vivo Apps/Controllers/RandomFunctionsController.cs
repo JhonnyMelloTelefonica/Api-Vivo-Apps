@@ -19,7 +19,7 @@ using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using System.Runtime.ConstrainedExecution;
 using System.Text.Json.Serialization;
 using static System.Runtime.InteropServices.JavaScript.JSType;
-using static Vivo_Apps_API.Converters.Converters;
+using static Vivo_Apps_API.Models.Converters.Converters;
 using System.Linq;
 using Oracle.ManagedDataAccess.Client;
 using Microsoft.EntityFrameworkCore.Internal;

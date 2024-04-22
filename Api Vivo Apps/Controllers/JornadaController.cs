@@ -22,7 +22,7 @@ using DataTable = System.Data.DataTable;
 using Microsoft.AspNetCore.StaticFiles;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using OfficeOpenXml;
-using static Vivo_Apps_API.Converters.Converters;
+using static Vivo_Apps_API.Models.Converters.Converters;
 using Shared_Class_Vivo_Apps.Models;
 using DocumentFormat.OpenXml.InkML;
 
