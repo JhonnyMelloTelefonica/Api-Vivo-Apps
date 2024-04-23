@@ -2,11 +2,12 @@
 using System.Data;
 using System.Text;
 using Vivo_Apps_API.Models;
-using Shared_Class_Vivo_Apps.Data;
-using Shared_Class_Vivo_Apps.Enums;
+using Shared_Static_Class.Data;
+using Shared_Static_Class.Converters;
+using Shared_Static_Class.Enums;
 using System.Linq;
-using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
-using Shared_Class_Vivo_Apps.Models;
+using Shared_Static_Class.DB_Context_Vivo_MAIS;
+using Shared_Static_Class.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.StaticFiles;
 using static Vivo_Apps_API.Models.Converters.Converters;

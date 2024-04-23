@@ -32,7 +32,7 @@
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
-		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.3" />
+		<PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.4" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="8.0.4" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.4">
 			<PrivateAssets>all</PrivateAssets>
@@ -44,14 +44,12 @@
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3">
 			<TreatAsUsed>true</TreatAsUsed>
 		</PackageReference>
-		<PackageReference Include="Oracle.EntityFrameworkCore" Version="7.21.13" />
-		<PackageReference Include="Oracle.ManagedDataAccess" Version="21.13.0" />
 		<PackageReference Include="Oracle.ManagedDataAccess.Core" Version="3.21.130" />
 		<PackageReference Include="Oracle.ManagedDataAccess.EntityFramework" Version="21.9.0" />
 		<PackageReference Include="Radzen.Blazor" Version="4.24.0" />
 		<PackageReference Include="SqlTableDependency" Version="8.5.8" />
 		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
-		<PackageReference Include="Syncfusion.Blazor.Navigations" Version="24.1.41" />
+		<PackageReference Include="Syncfusion.Blazor.Navigations" Version="24.1.46" />
 		<PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
 		<PackageReference Include="Z.EntityFramework.Extensions.EFCore" Version="8.102.2.2" />
 		<PublishFile Include="FilesTemplates" />
@@ -67,6 +65,11 @@
 
 	<ItemGroup>
 		<Folder Include="DB_Context_Vivo_MAIS\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\Shared_Razor_Components\Shared_Razor_Components.csproj" />
+	  <ProjectReference Include="..\..\Shared_Static_Class\Shared_Static_Class.csproj" />
 	</ItemGroup>
 	<Import Project="..\..\Shared_Class_Vivo_Apps\Shared_Class_Vivo_Apps\Shared_Class_Vivo_Apps.projitems" Label="Shared" />
 </Project>

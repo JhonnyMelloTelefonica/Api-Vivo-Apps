@@ -4,8 +4,8 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.OpenApi.Models;
-using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
-using Shared_Class_Vivo_Apps.Model_DTO;
+using Shared_Static_Class.DB_Context_Vivo_MAIS;
+using Shared_Static_Class.Model_DTO;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Text.Json;
 using System.Text;
@@ -62,11 +62,6 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 
 //builder.Services.AddSingleton<TableDependencyService>();
-
-builder.Services.AddDbContext<VICContext>(opt => {
-    opt.EnableSensitiveDataLogging();
-    opt.EnableDetailedErrors();
-}, ServiceLifetime.Singleton);
 
 builder.Services.AddDbContext<Vivo_MaisContext>(opt =>
 {

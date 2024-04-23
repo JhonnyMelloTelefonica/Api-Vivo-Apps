@@ -1,12 +1,13 @@
-﻿using Shared_Class_Vivo_Apps.Data;
+﻿using Shared_Static_Class.Data;
 using Vivo_Apps_API.Models;
 using Microsoft.AspNetCore.Mvc;
 using Newtonsoft.Json;
-using Shared_Class_Vivo_Apps.Enums;
+using Shared_Static_Class.Enums;
 using Vivo_Apps_API.Hubs;
 using Microsoft.AspNetCore.SignalR;
-using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
-using Shared_Class_Vivo_Apps.Models;
+using Shared_Static_Class.DB_Context_Vivo_MAIS;
+using Shared_Static_Class.Models;
+using Shared_Static_Class.Converters;
 
 namespace Vivo_Apps_API.Controllers
 {

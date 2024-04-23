@@ -2,9 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using TableDependency.SqlClient;
 using TableDependency.SqlClient.Base.EventArgs;
-using Shared_Class_Vivo_Apps.Data;
+using Shared_Static_Class.Data;
 using Vivo_Apps_API.Hubs;
-using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
+using Shared_Static_Class.DB_Context_Vivo_MAIS;
 using TableDependency.SqlClient.Base;
 using System.Data.Entity;
 using DocumentFormat.OpenXml.Spreadsheet;

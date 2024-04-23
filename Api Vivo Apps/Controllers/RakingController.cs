@@ -2,11 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
-using Shared_Class_Vivo_Apps.Data;
-using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
-using Shared_Class_Vivo_Apps.Enums;
-using Shared_Class_Vivo_Apps.Model_DTO;
-using Shared_Class_Vivo_Apps.Models;
+using Shared_Static_Class.Data;
+using Shared_Static_Class.DB_Context_Vivo_MAIS;
+using Shared_Static_Class.Enums;
+using Shared_Static_Class.Converters;
+using Shared_Static_Class.Model_DTO;
+using Shared_Static_Class.Models;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;

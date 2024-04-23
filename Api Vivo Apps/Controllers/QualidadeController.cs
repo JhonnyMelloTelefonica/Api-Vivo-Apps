@@ -5,23 +5,23 @@ using System.Globalization;
 using Vivo_Apps_API.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using Shared_Class_Vivo_Apps.Data;
+using Shared_Static_Class.Data;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Drawing;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using Shared_Class_Vivo_Apps.Model_DTO;
+using Shared_Static_Class.Model_DTO;
 using Microsoft.AspNetCore.SignalR;
 using Vivo_Apps_API.Hubs;
 using System.Numerics;
 using TableDependency.SqlClient.Base.Messages;
-using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
-using Shared_Class_Vivo_Apps.Enums;
+using Shared_Static_Class.DB_Context_Vivo_MAIS;
+using Shared_Static_Class.Enums;
 using Microsoft.AspNetCore.Http.HttpResults;
 using System.Linq;
 using Microsoft.AspNetCore.StaticFiles;
 using static Vivo_Apps_API.Models.Converters.Converters;
-using Shared_Class_Vivo_Apps.Models;
+using Shared_Static_Class.Models;
 
 
 namespace Vivo_Apps_API.Controllers

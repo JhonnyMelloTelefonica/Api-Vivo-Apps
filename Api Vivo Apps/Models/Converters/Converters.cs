@@ -2,8 +2,9 @@
 using DocumentFormat.OpenXml.Spreadsheet;
 using HtmlAgilityPack;
 using OfficeOpenXml;
-using Shared_Class_Vivo_Apps.Enums;
-using Shared_Class_Vivo_Apps.Models;
+using Shared_Static_Class.Converters;
+using Shared_Static_Class.Enums;
+using Shared_Static_Class.Models;
 using System.Data;
 
 namespace Vivo_Apps_API.Models.Converters
