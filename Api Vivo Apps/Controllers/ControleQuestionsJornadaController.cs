@@ -2,20 +2,21 @@
 using System.Data;
 using System.Text;
 using Vivo_Apps_API.Models;
-using Shared_Class_Vivo_Apps.Data;
+using Shared_Static_Class.Data;
 using System.Drawing;
 using Newtonsoft.Json;
-using Shared_Class_Vivo_Apps.Enums;
+using Shared_Static_Class.Enums;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Linq;
-using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
-using static Shared_Class_Vivo_Apps.Model_DTO.JORNADA_DTO;
-using static Vivo_Apps_API.Converters.Converters;
-using Shared_Class_Vivo_Apps.Models;
+using Shared_Static_Class.DB_Context_Vivo_MAIS;
+using static Shared_Static_Class.Model_DTO.JORNADA_DTO;
+using static Vivo_Apps_API.Models.Converters.Converters;
+using Shared_Static_Class.Models;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using Shared_Class_Vivo_Apps.Model_DTO;
+using Shared_Static_Class.Model_DTO;
+using Shared_Static_Class.Converters;
 
 namespace Vivo_Apps_API.Controllers
 {

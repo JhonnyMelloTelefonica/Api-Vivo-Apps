@@ -2,11 +2,12 @@
 using DocumentFormat.OpenXml.Spreadsheet;
 using HtmlAgilityPack;
 using OfficeOpenXml;
-using Shared_Class_Vivo_Apps.Enums;
-using Shared_Class_Vivo_Apps.Models;
+using Shared_Static_Class.Converters;
+using Shared_Static_Class.Enums;
+using Shared_Static_Class.Models;
 using System.Data;
 
-namespace Vivo_Apps_API.Converters
+namespace Vivo_Apps_API.Models.Converters
 {
     public class Converters
     {
@@ -102,7 +103,7 @@ namespace Vivo_Apps_API.Converters
                 package.Save();
             }
         }
-        public static string RemoveNonNumericCharacters(string input) => new string(input.ToCharArray().Where(c => Char.IsDigit(c)).ToArray());
+        public static string RemoveNonNumericCharacters(string input) => new string(input.ToCharArray().Where(c => char.IsDigit(c)).ToArray());
         public static List<TEnum> ConvertStringToEnumList<TEnum>(string input) where TEnum : struct
         {
             var enumList = new List<TEnum>();
@@ -213,6 +214,6 @@ namespace Vivo_Apps_API.Converters
                 return cell.InnerText;
             }
         }
-        
+
     }
 }

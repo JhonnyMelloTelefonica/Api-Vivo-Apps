@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
-using Shared_Class_Vivo_Apps.Models;
+using Shared_Static_Class.Models;
 using System;
 using System.Text;
 

@@ -2,11 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Logging;
-using Shared_Class_Vivo_Apps.Data;
-using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
-using Shared_Class_Vivo_Apps.Enums;
-using Shared_Class_Vivo_Apps.Model_DTO;
-using Shared_Class_Vivo_Apps.Models;
+using Shared_Static_Class.Data;
+using Shared_Static_Class.DB_Context_Vivo_MAIS;
+using Shared_Static_Class.Enums;
+using Shared_Static_Class.Converters;
+using Shared_Static_Class.Model_DTO;
+using Shared_Static_Class.Models;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
@@ -56,7 +57,7 @@ namespace Vivo_Apps_API.Controllers
             {
                 var Avaliacoes = CD.JORNADA_BD_ANSWER_AVALIACAOs
                     .Where(x => x.TP_FORMS.Equals("Jornada") && x.ID_PROVA != null && x.RE_AVALIADO != 0)
-                    .Where(x => x.DT_AVALIACAO.HasValue && x.DT_AVALIACAO.Value.Year == 2023)
+                    .Where(x => x.DT_AVALIACAO.HasValue && x.DT_AVALIACAO.Value.Year == 2024)
                     .AsEnumerable();
 
                 /* total te questões respondidas em total provas respondidas = Num / 100 = Nota total possivel

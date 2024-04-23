@@ -2,14 +2,15 @@
 using System.Data;
 using System.Text;
 using Vivo_Apps_API.Models;
-using Shared_Class_Vivo_Apps.Data;
-using Shared_Class_Vivo_Apps.Enums;
+using Shared_Static_Class.Data;
+using Shared_Static_Class.Converters;
+using Shared_Static_Class.Enums;
 using System.Linq;
-using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
-using Shared_Class_Vivo_Apps.Models;
+using Shared_Static_Class.DB_Context_Vivo_MAIS;
+using Shared_Static_Class.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.StaticFiles;
-using static Vivo_Apps_API.Converters.Converters;
+using static Vivo_Apps_API.Models.Converters.Converters;
 
 
 namespace Vivo_Apps_API.Controllers
@@ -507,11 +508,11 @@ namespace Vivo_Apps_API.Controllers
             }
             if (filter.Cargo.Count() > 0)
             {
-                pagedData = pagedData.Where(x => filter.Cargo.Contains(x.CARGO));
+                pagedData = pagedData.Where(x => filter.Cargo.Contains(x.CARGO.ToString()));
             }
             if (filter.Canal.Count() > 0)
             {
-                pagedData = pagedData.Where(x => filter.Canal.Contains(x.CANAL));
+                pagedData = pagedData.Where(x => filter.Canal.Contains(x.CANAL.ToString()));
             }
             if (filter.Regional.Count() > 0)
             {
@@ -1958,11 +1959,11 @@ namespace Vivo_Apps_API.Controllers
                 }
                 if (filter.Cargo.Count() > 0)
                 {
-                    pagedData = pagedData.Where(x => filter.Cargo.Contains(x.CARGO));
+                    pagedData = pagedData.Where(x => filter.Cargo.Contains(x.CARGO.ToString()));
                 }
                 if (filter.Canal.Count() > 0)
                 {
-                    pagedData = pagedData.Where(x => filter.Canal.Contains(x.CANAL));
+                    pagedData = pagedData.Where(x => filter.Canal.Contains(x.CANAL.ToString()));
                 }
                 if (filter.Regional.Count() > 0)
                 {

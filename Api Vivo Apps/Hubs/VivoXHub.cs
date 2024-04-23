@@ -1,10 +1,10 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.SignalR;
 using Newtonsoft.Json;
-using Shared_Class_Vivo_Apps.Data;
-using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
-using Shared_Class_Vivo_Apps.Enums;
-using Shared_Class_Vivo_Apps.Model_DTO;
+using Shared_Static_Class.Data;
+using Shared_Static_Class.DB_Context_Vivo_MAIS;
+using Shared_Static_Class.Converters;
+using Shared_Static_Class.Model_DTO;
 using System.Linq;
 using Vivo_Apps_API.Controllers;
 

@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using Shared_Class_Vivo_Apps.DB_Context_Vivo_MAIS;
+using Shared_Static_Class.DB_Context_Vivo_MAIS;
 
 #nullable disable
 
@@ -23,7 +23,7 @@ namespace Vivo_Apps_API.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.ACESSOS_MOBILE", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.ACESSOS_MOBILE", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
@@ -113,7 +113,7 @@ namespace Vivo_Apps_API.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_ACESSOS", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_ACESSOS", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
@@ -131,8 +131,8 @@ namespace Vivo_Apps_API.Migrations
                     b.Property<string>("Adabas")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Area")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Area")
+                        .HasColumnType("int");
 
                     b.Property<string>("Bairro")
                         .HasColumnType("nvarchar(max)");
@@ -185,11 +185,11 @@ namespace Vivo_Apps_API.Migrations
                     b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Estado")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Estado")
+                        .HasColumnType("int");
 
-                    b.Property<string>("Funcao")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Funcao")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("ID_RELACAO")
                         .HasColumnType("uniqueidentifier");
@@ -280,7 +280,7 @@ namespace Vivo_Apps_API.Migrations
                     b.ToTable("DEMANDA_ACESSOS", "Demandas");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_ARQUIVOS_RESPOSTA", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_ARQUIVOS_RESPOSTA", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
@@ -310,7 +310,7 @@ namespace Vivo_Apps_API.Migrations
                     b.ToTable("DEMANDA_ARQUIVOS_RESPOSTA", "Demandas");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_AVALIACAO_ANALISTA", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_AVALIACAO_ANALISTA", b =>
                 {
                     b.Property<Guid>("ID")
                         .ValueGeneratedOnAdd()
@@ -351,7 +351,7 @@ namespace Vivo_Apps_API.Migrations
                     b.ToTable("DEMANDA_AVALIACAO_ANALISTA", "Demandas");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_CAMPOS_CHAMADO", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_CAMPOS_CHAMADO", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
@@ -379,7 +379,7 @@ namespace Vivo_Apps_API.Migrations
                     b.ToTable("DEMANDA_CAMPOS_CHAMADO", "Demandas");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_CAMPOS_FILA", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_CAMPOS_FILA", b =>
                 {
                     b.Property<int>("ID_CAMPOS")
                         .ValueGeneratedOnAdd()
@@ -429,7 +429,7 @@ namespace Vivo_Apps_API.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_CHAMADO", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_CHAMADO", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
@@ -486,7 +486,7 @@ namespace Vivo_Apps_API.Migrations
                     b.ToTable("DEMANDA_CHAMADO", "Demandas");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_CHAMADO_RESPOSTA", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_CHAMADO_RESPOSTA", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
@@ -521,7 +521,7 @@ namespace Vivo_Apps_API.Migrations
                     b.ToTable("DEMANDA_CHAMADO_RESPOSTA", "Demandas");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_DESLIGAMENTOS", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_DESLIGAMENTOS", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
@@ -584,7 +584,7 @@ namespace Vivo_Apps_API.Migrations
                     b.ToTable("DEMANDA_DESLIGAMENTOS", "Demandas");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_HISTORICO_PRIORIDADE", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_HISTORICO_PRIORIDADE", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
@@ -616,7 +616,7 @@ namespace Vivo_Apps_API.Migrations
                     b.ToTable("DEMANDA_HISTORICO_PRIORIDADE", "Demandas");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_PARQUE", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_PARQUE", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
@@ -662,7 +662,7 @@ namespace Vivo_Apps_API.Migrations
                     b.ToTable("DEMANDA_PARQUE", "Demandas");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_RELACAO_CHAMADO", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_RELACAO_CHAMADO", b =>
                 {
                     b.Property<Guid>("ID")
                         .ValueGeneratedOnAdd()
@@ -682,7 +682,7 @@ namespace Vivo_Apps_API.Migrations
                     b.ToTable("DEMANDA_RELACAO_CHAMADO", "Demandas");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_RESPONSAVEL_FILA", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_RESPONSAVEL_FILA", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
@@ -706,7 +706,7 @@ namespace Vivo_Apps_API.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_STATUS_CHAMADO", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_STATUS_CHAMADO", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
@@ -753,7 +753,7 @@ namespace Vivo_Apps_API.Migrations
                     b.ToTable("DEMANDA_STATUS_CHAMADO", "Demandas");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_SUB_FILA", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_SUB_FILA", b =>
                 {
                     b.Property<int>("ID_SUB_FILA")
                         .ValueGeneratedOnAdd()
@@ -810,7 +810,7 @@ namespace Vivo_Apps_API.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_TIPO_FILA", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_TIPO_FILA", b =>
                 {
                     b.Property<int>("ID_TIPO_FILA")
                         .ValueGeneratedOnAdd()
@@ -851,7 +851,7 @@ namespace Vivo_Apps_API.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_VALORES_CAMPOS_SUSPENSO", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_VALORES_CAMPOS_SUSPENSO", b =>
                 {
                     b.Property<int>("ID_VALORES")
                         .ValueGeneratedOnAdd()
@@ -880,15 +880,15 @@ namespace Vivo_Apps_API.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_ACESSOS", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_ACESSOS", b =>
                 {
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_RELACAO_CHAMADO", "Relacao")
+                    b.HasOne("Shared_Static_Class.Data.DEMANDA_RELACAO_CHAMADO", "Relacao")
                         .WithOne("AcessoRelacao")
-                        .HasForeignKey("Shared_Class_Vivo_Apps.Data.DEMANDA_ACESSOS", "ID_RELACAO")
+                        .HasForeignKey("Shared_Static_Class.Data.DEMANDA_ACESSOS", "ID_RELACAO")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.ACESSOS_MOBILE", "Solicitante")
+                    b.HasOne("Shared_Static_Class.Data.ACESSOS_MOBILE", "Solicitante")
                         .WithMany()
                         .HasForeignKey("MATRICULA_SOLICITANTE")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -899,9 +899,9 @@ namespace Vivo_Apps_API.Migrations
                     b.Navigation("Solicitante");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_ARQUIVOS_RESPOSTA", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_ARQUIVOS_RESPOSTA", b =>
                 {
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_CHAMADO_RESPOSTA", "RESPOSTANav")
+                    b.HasOne("Shared_Static_Class.Data.DEMANDA_CHAMADO_RESPOSTA", "RESPOSTANav")
                         .WithMany("ARQUIVOS")
                         .HasForeignKey("ID_RESPOSTA")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -910,20 +910,20 @@ namespace Vivo_Apps_API.Migrations
                     b.Navigation("RESPOSTANav");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_AVALIACAO_ANALISTA", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_AVALIACAO_ANALISTA", b =>
                 {
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_CHAMADO", "DEMANDANav")
+                    b.HasOne("Shared_Static_Class.Data.DEMANDA_CHAMADO", "DEMANDANav")
                         .WithOne("Avaliacao_Solicitante")
-                        .HasForeignKey("Shared_Class_Vivo_Apps.Data.DEMANDA_AVALIACAO_ANALISTA", "ID_CHAMADO")
+                        .HasForeignKey("Shared_Static_Class.Data.DEMANDA_AVALIACAO_ANALISTA", "ID_CHAMADO")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
                     b.Navigation("DEMANDANav");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_CAMPOS_CHAMADO", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_CAMPOS_CHAMADO", b =>
                 {
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_CHAMADO", "DEMANDANav")
+                    b.HasOne("Shared_Static_Class.Data.DEMANDA_CHAMADO", "DEMANDANav")
                         .WithMany("Campos")
                         .HasForeignKey("ID_CHAMADO")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -932,9 +932,9 @@ namespace Vivo_Apps_API.Migrations
                     b.Navigation("DEMANDANav");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_CAMPOS_FILA", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_CAMPOS_FILA", b =>
                 {
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_SUB_FILA", "ID_SUB_FILANavigation")
+                    b.HasOne("Shared_Static_Class.Data.DEMANDA_SUB_FILA", "ID_SUB_FILANavigation")
                         .WithMany("DEMANDA_CAMPOS_FILAs")
                         .HasForeignKey("ID_SUB_FILA")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -943,30 +943,30 @@ namespace Vivo_Apps_API.Migrations
                     b.Navigation("ID_SUB_FILANavigation");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_CHAMADO", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_CHAMADO", b =>
                 {
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_PARQUE", "Has_Cliente_Valor")
+                    b.HasOne("Shared_Static_Class.Data.DEMANDA_PARQUE", "Has_Cliente_Valor")
                         .WithMany("DEMANDA")
                         .HasForeignKey("CLIENTE_ALTO_VALOR");
 
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_SUB_FILA", "Fila")
+                    b.HasOne("Shared_Static_Class.Data.DEMANDA_SUB_FILA", "Fila")
                         .WithMany("DEMANDAS")
                         .HasForeignKey("ID_FILA_CHAMADO")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_RELACAO_CHAMADO", "Relacao")
+                    b.HasOne("Shared_Static_Class.Data.DEMANDA_RELACAO_CHAMADO", "Relacao")
                         .WithOne("ChamadoRelacao")
-                        .HasForeignKey("Shared_Class_Vivo_Apps.Data.DEMANDA_CHAMADO", "ID_RELACAO")
+                        .HasForeignKey("Shared_Static_Class.Data.DEMANDA_CHAMADO", "ID_RELACAO")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.ACESSOS_MOBILE", "Responsavel")
+                    b.HasOne("Shared_Static_Class.Data.ACESSOS_MOBILE", "Responsavel")
                         .WithMany("DemandasResponsavel")
                         .HasForeignKey("MATRICULA_RESPONSAVEL")
                         .HasPrincipalKey("MATRICULA");
 
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.ACESSOS_MOBILE", "Solicitante")
+                    b.HasOne("Shared_Static_Class.Data.ACESSOS_MOBILE", "Solicitante")
                         .WithMany("DemandasSolicitadas")
                         .HasForeignKey("MATRICULA_SOLICITANTE")
                         .HasPrincipalKey("MATRICULA")
@@ -984,15 +984,15 @@ namespace Vivo_Apps_API.Migrations
                     b.Navigation("Solicitante");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_CHAMADO_RESPOSTA", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_CHAMADO_RESPOSTA", b =>
                 {
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_RELACAO_CHAMADO", "Relacao_DEMANDA")
+                    b.HasOne("Shared_Static_Class.Data.DEMANDA_RELACAO_CHAMADO", "Relacao_DEMANDA")
                         .WithMany("Respostas")
                         .HasForeignKey("ID_RELACAO_CHAMADO")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.ACESSOS_MOBILE", "Responsavel")
+                    b.HasOne("Shared_Static_Class.Data.ACESSOS_MOBILE", "Responsavel")
                         .WithMany("RespostasDemandas")
                         .HasForeignKey("MATRICULA_RESPONSAVEL")
                         .HasPrincipalKey("MATRICULA")
@@ -1004,15 +1004,15 @@ namespace Vivo_Apps_API.Migrations
                     b.Navigation("Responsavel");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_DESLIGAMENTOS", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_DESLIGAMENTOS", b =>
                 {
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_RELACAO_CHAMADO", "Relacao")
+                    b.HasOne("Shared_Static_Class.Data.DEMANDA_RELACAO_CHAMADO", "Relacao")
                         .WithOne("DesligamentoRelacao")
-                        .HasForeignKey("Shared_Class_Vivo_Apps.Data.DEMANDA_DESLIGAMENTOS", "ID_RELACAO")
+                        .HasForeignKey("Shared_Static_Class.Data.DEMANDA_DESLIGAMENTOS", "ID_RELACAO")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.ACESSOS_MOBILE", "Solicitante")
+                    b.HasOne("Shared_Static_Class.Data.ACESSOS_MOBILE", "Solicitante")
                         .WithMany()
                         .HasForeignKey("MATRICULA_SOLICITANTE")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1023,15 +1023,15 @@ namespace Vivo_Apps_API.Migrations
                     b.Navigation("Solicitante");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_HISTORICO_PRIORIDADE", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_HISTORICO_PRIORIDADE", b =>
                 {
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_CHAMADO", "DEMANDANav")
+                    b.HasOne("Shared_Static_Class.Data.DEMANDA_CHAMADO", "DEMANDANav")
                         .WithMany("Historico_Prioridade")
                         .HasForeignKey("ID_CHAMADO")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.ACESSOS_MOBILE", "Responsavel")
+                    b.HasOne("Shared_Static_Class.Data.ACESSOS_MOBILE", "Responsavel")
                         .WithMany()
                         .HasForeignKey("MAT_RESPONSAVEL")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1042,34 +1042,34 @@ namespace Vivo_Apps_API.Migrations
                     b.Navigation("Responsavel");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_RESPONSAVEL_FILA", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_RESPONSAVEL_FILA", b =>
                 {
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_SUB_FILA", "ID_SUB_FILANavigation")
+                    b.HasOne("Shared_Static_Class.Data.DEMANDA_SUB_FILA", "ID_SUB_FILANavigation")
                         .WithMany("DEMANDA_RESPONSAVEL_FILAs")
                         .HasForeignKey("ID_SUB_FILA");
 
                     b.Navigation("ID_SUB_FILANavigation");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_STATUS_CHAMADO", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_STATUS_CHAMADO", b =>
                 {
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_RELACAO_CHAMADO", "Relacao_DEMANDA")
+                    b.HasOne("Shared_Static_Class.Data.DEMANDA_RELACAO_CHAMADO", "Relacao_DEMANDA")
                         .WithMany("Status")
                         .HasForeignKey("ID_RELACAO_CHAMADO")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_CHAMADO_RESPOSTA", "Resposta")
+                    b.HasOne("Shared_Static_Class.Data.DEMANDA_CHAMADO_RESPOSTA", "Resposta")
                         .WithOne("Status")
-                        .HasForeignKey("Shared_Class_Vivo_Apps.Data.DEMANDA_STATUS_CHAMADO", "ID_RESPOSTA")
+                        .HasForeignKey("Shared_Static_Class.Data.DEMANDA_STATUS_CHAMADO", "ID_RESPOSTA")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.ACESSOS_MOBILE", "Para_Quem_redirecionou")
+                    b.HasOne("Shared_Static_Class.Data.ACESSOS_MOBILE", "Para_Quem_redirecionou")
                         .WithMany()
                         .HasForeignKey("MAT_DESTINATARIO");
 
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.ACESSOS_MOBILE", "Quem_redirecionou")
+                    b.HasOne("Shared_Static_Class.Data.ACESSOS_MOBILE", "Quem_redirecionou")
                         .WithMany()
                         .HasForeignKey("MAT_QUEM_REDIRECIONOU");
 
@@ -1082,9 +1082,9 @@ namespace Vivo_Apps_API.Migrations
                     b.Navigation("Resposta");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_SUB_FILA", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_SUB_FILA", b =>
                 {
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_TIPO_FILA", "ID_TIPO_FILANavigation")
+                    b.HasOne("Shared_Static_Class.Data.DEMANDA_TIPO_FILA", "ID_TIPO_FILANavigation")
                         .WithMany("DEMANDA_SUB_FILAs")
                         .HasForeignKey("ID_TIPO_FILA")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1093,9 +1093,9 @@ namespace Vivo_Apps_API.Migrations
                     b.Navigation("ID_TIPO_FILANavigation");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_VALORES_CAMPOS_SUSPENSO", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_VALORES_CAMPOS_SUSPENSO", b =>
                 {
-                    b.HasOne("Shared_Class_Vivo_Apps.Data.DEMANDA_CAMPOS_FILA", "ID_CAMPOSNavigation")
+                    b.HasOne("Shared_Static_Class.Data.DEMANDA_CAMPOS_FILA", "ID_CAMPOSNavigation")
                         .WithMany("DEMANDA_VALORES_CAMPOS_SUSPENSOs")
                         .HasForeignKey("ID_CAMPOS")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -1104,7 +1104,7 @@ namespace Vivo_Apps_API.Migrations
                     b.Navigation("ID_CAMPOSNavigation");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.ACESSOS_MOBILE", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.ACESSOS_MOBILE", b =>
                 {
                     b.Navigation("DemandasResponsavel");
 
@@ -1113,12 +1113,12 @@ namespace Vivo_Apps_API.Migrations
                     b.Navigation("RespostasDemandas");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_CAMPOS_FILA", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_CAMPOS_FILA", b =>
                 {
                     b.Navigation("DEMANDA_VALORES_CAMPOS_SUSPENSOs");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_CHAMADO", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_CHAMADO", b =>
                 {
                     b.Navigation("Avaliacao_Solicitante");
 
@@ -1127,19 +1127,19 @@ namespace Vivo_Apps_API.Migrations
                     b.Navigation("Historico_Prioridade");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_CHAMADO_RESPOSTA", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_CHAMADO_RESPOSTA", b =>
                 {
                     b.Navigation("ARQUIVOS");
 
                     b.Navigation("Status");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_PARQUE", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_PARQUE", b =>
                 {
                     b.Navigation("DEMANDA");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_RELACAO_CHAMADO", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_RELACAO_CHAMADO", b =>
                 {
                     b.Navigation("AcessoRelacao");
 
@@ -1152,7 +1152,7 @@ namespace Vivo_Apps_API.Migrations
                     b.Navigation("Status");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_SUB_FILA", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_SUB_FILA", b =>
                 {
                     b.Navigation("DEMANDAS");
 
@@ -1161,7 +1161,7 @@ namespace Vivo_Apps_API.Migrations
                     b.Navigation("DEMANDA_RESPONSAVEL_FILAs");
                 });
 
-            modelBuilder.Entity("Shared_Class_Vivo_Apps.Data.DEMANDA_TIPO_FILA", b =>
+            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_TIPO_FILA", b =>
                 {
                     b.Navigation("DEMANDA_SUB_FILAs");
                 });

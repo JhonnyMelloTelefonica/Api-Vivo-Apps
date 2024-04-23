@@ -1,4 +1,4 @@
-﻿using Shared_Class_Vivo_Apps.Enums;
+﻿using Shared_Static_Class.Converters;
 
 namespace Vivo_Apps_API.ModelDTO
 {

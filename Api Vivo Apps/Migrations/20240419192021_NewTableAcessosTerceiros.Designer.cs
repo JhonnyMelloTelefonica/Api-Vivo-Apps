@@ -12,8 +12,8 @@ using Shared_Static_Class.DB_Context_Vivo_MAIS;
 namespace Vivo_Apps_API.Migrations
 {
     [DbContext(typeof(DemandasContext))]
-    [Migration("20240401190521_EstruturaTabelaDemandas-Acesso-Desligamento")]
-    partial class EstruturaTabelaDemandasAcessoDesligamento
+    [Migration("20240419192021_NewTableAcessosTerceiros")]
+    partial class NewTableAcessosTerceiros
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -134,8 +134,8 @@ namespace Vivo_Apps_API.Migrations
                     b.Property<string>("Adabas")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Area")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Area")
+                        .HasColumnType("int");
 
                     b.Property<string>("Bairro")
                         .HasColumnType("nvarchar(max)");
@@ -188,11 +188,11 @@ namespace Vivo_Apps_API.Migrations
                     b.Property<string>("Email")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Estado")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Estado")
+                        .HasColumnType("int");
 
-                    b.Property<string>("Funcao")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int>("Funcao")
+                        .HasColumnType("int");
 
                     b.Property<Guid>("ID_RELACAO")
                         .HasColumnType("uniqueidentifier");
@@ -672,6 +672,9 @@ namespace Vivo_Apps_API.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("ID_CHAMADO")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Sequence")
                         .HasColumnType("int");
 
                     b.Property<int>("Tabela")
