@@ -538,9 +538,9 @@ namespace Vivo_Apps_API.Controllers
                         .Select(y => y.Vendedor).Contains(x.PDV)
                     );
             }
-            if (filter.Matricula is not null)
-            {
-                pagedData = pagedData.Where(x => x.MATRICULA.Value == filter.Matricula);
+           if (filter.Matricula is not null)
+           {
+               pagedData = pagedData.Where(x => x.MATRICULA.Value == filter.Matricula);
             }
             if (!string.IsNullOrEmpty(filter.Pdv))
             {
