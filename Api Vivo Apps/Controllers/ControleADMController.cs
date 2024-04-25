@@ -11,6 +11,9 @@ using Shared_Static_Class.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.StaticFiles;
 using static Vivo_Apps_API.Models.Converters.Converters;
+using AutoMapper;
+using Shared_Static_Class.Model_DTO;
+using AutoMapper.QueryableExtensions;
 
 
 namespace Vivo_Apps_API.Controllers
@@ -22,10 +25,25 @@ namespace Vivo_Apps_API.Controllers
         private Vivo_MaisContext CD = new Vivo_MaisContext();
 
         private readonly ILogger<ControleADMController> _logger;
+        private readonly IMapper _mapper;
 
         public ControleADMController(ILogger<ControleADMController> logger)
-        { 
+        {
             _logger = logger;
+            var config = new MapperConfiguration(cfg =>
+            {
+                cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_DTO>();
+                cfg.CreateMap<ACESSOS_MOBILE_PENDENTE, ACESSOS_MOBILE_PENDENTE_DTO>()
+                .ForMember(dest => dest.SOLICITANTE,
+                opt => opt.MapFrom(k => CD.ACESSOS_MOBILEs.Where(y => y.MATRICULA == k.LOGIN_SOLICITANTE).FirstOrDefault()))
+                .ForMember(dest => dest.ULTIMO_STATUS,
+                opt => opt.MapFrom(k => CD.HISTORICO_ACESSOS_MOBILE_PENDENTEs
+                                            .Where(y => y.ID_ACESSOS_PENDENTE == k.ID)
+                                            .OrderByDescending(y => y.ID)
+                                            .FirstOrDefault().STATUS));
+
+            });
+            _mapper = config.CreateMapper();
         }
 
         [HttpPost("UpdateSenhaUser")]
@@ -305,36 +323,14 @@ namespace Vivo_Apps_API.Controllers
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize);
 
-                IEnumerable<ACESSOS_MOBILE_PENDENTE_MODEL> Data = lista.Select(x => new ACESSOS_MOBILE_PENDENTE_MODEL
-                {
-                    ID = x.ID,
-                    EMAIL = x.EMAIL,
-                    MATRICULA = x.MATRICULA.Value,
-                    SENHA = x.SENHA,
-                    REGIONAL = x.REGIONAL,
-                    CARGO = x.CARGO,
-                    CANAL = x.CANAL,
-                    NOME = x.NOME,
-                    UF = x.UF,
-                    APROVACAO = x.APROVACAO,
-                    FIXA = x.FIXA,
-                    TIPO = x.TIPO,
-                    CPF = x.CPF,
-                    PDV = x.PDV,
-                    ULTIMO_STATUS = CD.HISTORICO_ACESSOS_MOBILE_PENDENTEs.Where(y => y.ID_ACESSOS_PENDENTE == x.ID).OrderByDescending(y => y.ID).FirstOrDefault().STATUS,
-                    SOLICITANTE = CD.ACESSOS_MOBILEs.Where(y => y.MATRICULA == x.LOGIN_SOLICITANTE).FirstOrDefault(),
-                    DT_SOLICITACAO = x.DT_SOLICITACAO.Value,
-                    LOGIN_RESPONSAVEL = x.LOGIN_RESPONSAVEL,
-                    DT_RETORNO = x.DT_RETORNO,
-                    DT_PRIMEIRO_RETORNO = x.DT_PRIMEIRO_RETORNO
-                });
+                IEnumerable<ACESSOS_MOBILE_PENDENTE_DTO> Data = lista.ProjectTo<ACESSOS_MOBILE_PENDENTE_DTO>(_mapper.ConfigurationProvider).AsEnumerable();
 
                 var totalRecords = users.Count();
                 var totalPages = ((double)totalRecords / (double)filter.PageSize);
 
-                return new JsonResult(new Response<PagedModelResponse<IEnumerable<ACESSOS_MOBILE_PENDENTE_MODEL>>>
+                return new JsonResult(new Response<PagedModelResponse<IEnumerable<ACESSOS_MOBILE_PENDENTE_DTO>>>
                 {
-                    Data = PagedResponse.CreatePagedReponse<ACESSOS_MOBILE_PENDENTE_MODEL, FilterUsuariosPendentesModel>(Data, filter, totalRecords),
+                    Data = PagedResponse.CreatePagedReponse<ACESSOS_MOBILE_PENDENTE_DTO, FilterUsuariosPendentesModel>(Data, filter, totalRecords),
                     Succeeded = true,
                     Message = "Tudo Certo!",
                     Errors = null,
@@ -375,46 +371,51 @@ namespace Vivo_Apps_API.Controllers
                     {
                         ID = x.ID,
                         ID_ACESSOS_PENDENTE = x.ID_ACESSOS_PENDENTE,
-                        MATRICULA = CD.ACESSOS_MOBILEs.Where(y => y.MATRICULA == x.MATRICULA).FirstOrDefault(),
+                        MATRICULA = CD.ACESSOS_MOBILEs.FirstOrDefault(y => y.MATRICULA == x.MATRICULA),
                         RESPOSTA = x.RESPOSTA,
                         STATUS = x.STATUS,
                         DATA = x.DATA.Value,
                     });
+                ACESSOS_MOBILE? UserAntigo = CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.ID == acesso.ID_ACESSOS_MOBILE);
+                SOLICITAR_USUARIO_MODEL? userantigomodel = null;
+                if (UserAntigo is not null)
+                {
+                    userantigomodel = new SOLICITAR_USUARIO_MODEL
+                    {
+                        ID = UserAntigo.ID,
+                        EMAIL = UserAntigo.EMAIL,
+                        MATRICULA = UserAntigo.MATRICULA.Value,
+                        SENHA = UserAntigo.SENHA,
+                        REGIONAL = UserAntigo.REGIONAL,
+                        CARGO = UserAntigo.CARGO,
+                        CANAL = UserAntigo.CANAL,
+                        PDV = UserAntigo.PDV,
+                        CPF = UserAntigo.CPF,
+                        NOME = UserAntigo.NOME,
+                        UF = UserAntigo.UF,
+                        STATUS = UserAntigo.STATUS,
+                        FIXA = UserAntigo.FIXA,
+                        TP_AFASTAMENTO = UserAntigo.TP_AFASTAMENTO,
+                        OBS = UserAntigo.OBS,
+                        UserAvatar = UserAntigo.UserAvatar,
+                        LOGIN_MOD = UserAntigo.LOGIN_MOD,
+                        DT_MOD = UserAntigo.DT_MOD,
+                        ELEGIVEL = UserAntigo.ELEGIVEL.Value,
+                        Perfil = CD.PERFIL_USUARIOs.Where(y => y.MATRICULA == UserAntigo.MATRICULA).Select(y => y.id_Perfil.Value).ToList(),
+                    };
+                }
+
 
                 var retorno = new HistoricoAcessosPendentesModel
                 {
                     ID = acesso.ID,
-                    ID_ACESSOS_MOBILE = (acesso.TIPO.ToLower() == "alteração"
-                    ? CD.ACESSOS_MOBILEs.Where(x => x.ID == acesso.ID_ACESSOS_MOBILE).Select(x => new ControleUsuariosModel
-                    {
-                        ID = x.ID,
-                        EMAIL = x.EMAIL,
-                        MATRICULA = x.MATRICULA.Value,
-                        SENHA = x.SENHA,
-                        REGIONAL = x.REGIONAL,
-                        CARGO = x.CARGO,
-                        CANAL = x.CANAL,
-                        PDV = x.PDV,
-                        CPF = x.CPF,
-                        NOME = x.NOME,
-                        UF = x.UF,
-                        STATUS = x.STATUS,
-                        FIXA = x.FIXA,
-                        TP_AFASTAMENTO = x.TP_AFASTAMENTO,
-                        OBS = x.OBS,
-                        UserAvatar = x.UserAvatar,
-                        LOGIN_MOD = x.LOGIN_MOD,
-                        DT_MOD = x.DT_MOD,
-                        ELEGIVEL = x.ELEGIVEL.Value,
-                        Perfil = CD.PERFIL_USUARIOs.Where(y => y.MATRICULA == x.MATRICULA).Select(y => y.id_Perfil.Value).ToList(),
-                    }).FirstOrDefault()
-                    : null),
+                    ID_ACESSOS_MOBILE = userantigomodel,
                     EMAIL = acesso.EMAIL,
                     MATRICULA = acesso.MATRICULA.Value,
                     SENHA = acesso.SENHA,
                     REGIONAL = acesso.REGIONAL,
-                    CARGO = (Cargos)Convert.ToInt32(acesso.CARGO),
-                    CANAL = DePara.CanalCargoEnum((Cargos)Convert.ToInt32(acesso.CARGO)),
+                    CARGO = (Cargos)acesso.CARGO,
+                    CANAL = (Canal)acesso.CANAL,
                     NOME = acesso.NOME,
                     UF = acesso.UF,
                     CPF = acesso.CPF,
@@ -423,9 +424,9 @@ namespace Vivo_Apps_API.Controllers
                     FIXA = acesso.FIXA,
                     TIPO = acesso.TIPO,
                     STATUS_USUARIO = acesso.STATUS_USUARIO,
-                    LOGIN_SOLICITANTE = CD.ACESSOs.Where(x => x.Login == acesso.LOGIN_SOLICITANTE.ToString()).FirstOrDefault(),
-                    LOGIN_RESPONSAVEL = (acesso.LOGIN_RESPONSAVEL == null ?
-                                        CD.ACESSOs.Where(x => x.Login == acesso.LOGIN_RESPONSAVEL.ToString()).FirstOrDefault() :
+                    LOGIN_SOLICITANTE = CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso.LOGIN_SOLICITANTE),
+                    LOGIN_RESPONSAVEL = (acesso.LOGIN_RESPONSAVEL.HasValue ?
+                                        CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso.LOGIN_RESPONSAVEL) :
                                         null),
                     DT_SOLICITACAO = acesso.DT_SOLICITACAO.Value,
                     DT_RETORNO = acesso.DT_RETORNO,
@@ -527,8 +528,8 @@ namespace Vivo_Apps_API.Controllers
                 pagedData = pagedData.Where(x => x.NOME.ToLower().Contains(filter.Nome.ToLower()));
             }
             if (filter.MatriculaDivisao != null && filter.MatriculaDivisao.Any())
-                //if (!string.IsNullOrEmpty(filter.MatriculaDivisao))
-              {
+            //if (!string.IsNullOrEmpty(filter.MatriculaDivisao))
+            {
                 pagedData = pagedData.Where(x =>
                     CD.JORNADA_BD_CARTEIRA_DIVISAOs
                         .Where(y => y.DIVISAO != null)
@@ -558,7 +559,7 @@ namespace Vivo_Apps_API.Controllers
             var totalRecords = pagedData.Count();
             var totalPages = ((double)totalRecords / (double)filter.PageSize);
 
-            var DataFinal = Data.Select(x => new ControleUsuariosModel
+            var DataFinal = Data.Select(x => new SOLICITAR_USUARIO_MODEL
             {
                 ID = x.ID,
                 EMAIL = x.EMAIL,
@@ -582,14 +583,14 @@ namespace Vivo_Apps_API.Controllers
                 Perfil = CD.PERFIL_USUARIOs.Where(k => k.MATRICULA == x.MATRICULA).Select(x => x.id_Perfil.Value).ToList()
             });
 
-            return new JsonResult(PagedResponse.CreatePagedReponse<ControleUsuariosModel>(DataFinal, filter, totalRecords));
+            return new JsonResult(PagedResponse.CreatePagedReponse<SOLICITAR_USUARIO_MODEL>(DataFinal, filter, totalRecords));
         }
 
         // GET LISTA DE ACESSOS PENDENTES //
 
         // SOLICITANTE //
         [HttpPost("UpdateUsuarios")]
-        public async Task<JsonResult> UpdateUsuarios([FromBody] ControleUsuariosModel usuario,
+        public async Task<JsonResult> UpdateUsuarios([FromBody] SOLICITAR_USUARIO_MODEL usuario,
             int? matricula,
             int ID_ACESSOS_MOBILE)
         {
@@ -614,7 +615,7 @@ namespace Vivo_Apps_API.Controllers
                     SENHA = usuario.SENHA,
                     REGIONAL = usuario.REGIONAL,
                     CARGO = usuario.CARGO,
-                    CANAL = (int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO)),
+                    CANAL = usuario.CANAL.Value,
                     NOME = usuario.NOME,
                     UF = usuario.UF,
                     CPF = usuario.CPF,
@@ -815,7 +816,7 @@ namespace Vivo_Apps_API.Controllers
 
         // SUPORTE //
         [HttpPost("UpdateUsuariosSuporte")]
-        public async Task<JsonResult> UpdateUsuariosSuporte([FromBody] ControleUsuariosModel usuario, int matricula)
+        public async Task<JsonResult> UpdateUsuariosSuporte([FromBody] SOLICITAR_USUARIO_MODEL usuario, int matricula)
         {
             try
             {
@@ -1070,7 +1071,7 @@ namespace Vivo_Apps_API.Controllers
         }
 
         [HttpPost("CriarUsuario")]
-        public async Task<JsonResult> CriarUsuario([FromBody] ControleUsuariosModel usuario,
+        public async Task<JsonResult> CriarUsuario([FromBody] SOLICITAR_USUARIO_MODEL usuario,
             int? matricula,
             string OBS)
         {
@@ -1196,7 +1197,7 @@ namespace Vivo_Apps_API.Controllers
                 {
                     ID = acesso.ID,
                     ID_ACESSOS_MOBILE = (acesso.TIPO.ToLower() == "alteração"
-                    ? CD.ACESSOS_MOBILEs.Where(x => x.ID == acesso.ID_ACESSOS_MOBILE).Select(x => new ControleUsuariosModel
+                    ? CD.ACESSOS_MOBILEs.Where(x => x.ID == acesso.ID_ACESSOS_MOBILE).Select(x => new SOLICITAR_USUARIO_MODEL
                     {
                         ID = x.ID,
                         EMAIL = x.EMAIL,
@@ -1234,10 +1235,10 @@ namespace Vivo_Apps_API.Controllers
                     FIXA = acesso.FIXA,
                     TIPO = acesso.TIPO,
                     STATUS_USUARIO = acesso.STATUS_USUARIO,
-                    LOGIN_SOLICITANTE = CD.ACESSOs.Where(x => x.Login == acesso.LOGIN_SOLICITANTE.ToString()).FirstOrDefault(),
+                    LOGIN_SOLICITANTE = CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso.LOGIN_SOLICITANTE),
                     LOGIN_RESPONSAVEL = (acesso.LOGIN_RESPONSAVEL == null ?
-                                        CD.ACESSOs.Where(x => x.Login == acesso.LOGIN_RESPONSAVEL.ToString()).FirstOrDefault() :
-                                        null),
+                                        CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso.LOGIN_RESPONSAVEL) 
+                                        : null),
                     DT_SOLICITACAO = acesso.DT_SOLICITACAO.Value,
                     DT_RETORNO = acesso.DT_RETORNO,
                     STATUS = acesso.STATUS,
@@ -1355,7 +1356,7 @@ namespace Vivo_Apps_API.Controllers
                 {
                     ID = acesso.ID,
                     ID_ACESSOS_MOBILE = (acesso.TIPO.ToLower() == "alteração"
-                    ? CD.ACESSOS_MOBILEs.Where(x => x.ID == acesso.ID_ACESSOS_MOBILE).Select(x => new ControleUsuariosModel
+                    ? CD.ACESSOS_MOBILEs.Where(x => x.ID == acesso.ID_ACESSOS_MOBILE).Select(x => new SOLICITAR_USUARIO_MODEL
                     {
                         ID = x.ID,
                         EMAIL = x.EMAIL,
@@ -1393,9 +1394,9 @@ namespace Vivo_Apps_API.Controllers
                     FIXA = acesso.FIXA,
                     TIPO = acesso.TIPO,
                     STATUS_USUARIO = acesso.STATUS_USUARIO,
-                    LOGIN_SOLICITANTE = CD.ACESSOs.Where(x => x.Login == acesso.LOGIN_SOLICITANTE.ToString()).FirstOrDefault(),
+                    LOGIN_SOLICITANTE = CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso.LOGIN_SOLICITANTE),
                     LOGIN_RESPONSAVEL = (acesso.LOGIN_RESPONSAVEL == null ?
-                                        CD.ACESSOs.Where(x => x.Login == acesso.LOGIN_RESPONSAVEL.ToString()).FirstOrDefault() :
+                                        CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso.LOGIN_RESPONSAVEL) :
                                         null),
                     DT_SOLICITACAO = acesso.DT_SOLICITACAO.Value,
                     DT_RETORNO = acesso.DT_RETORNO,
@@ -1505,7 +1506,7 @@ namespace Vivo_Apps_API.Controllers
                 {
                     ID = acesso.ID,
                     ID_ACESSOS_MOBILE = (acesso.TIPO.ToLower() == "alteração"
-                    ? CD.ACESSOS_MOBILEs.Where(x => x.ID == acesso.ID_ACESSOS_MOBILE).Select(x => new ControleUsuariosModel
+                    ? CD.ACESSOS_MOBILEs.Where(x => x.ID == acesso.ID_ACESSOS_MOBILE).Select(x => new SOLICITAR_USUARIO_MODEL
                     {
                         ID = x.ID,
                         EMAIL = x.EMAIL,
@@ -1543,9 +1544,9 @@ namespace Vivo_Apps_API.Controllers
                     FIXA = acesso.FIXA,
                     TIPO = acesso.TIPO,
                     STATUS_USUARIO = acesso.STATUS_USUARIO,
-                    LOGIN_SOLICITANTE = CD.ACESSOs.Where(x => x.Login == acesso.LOGIN_SOLICITANTE.ToString()).FirstOrDefault(),
+                    LOGIN_SOLICITANTE = CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso.LOGIN_SOLICITANTE),
                     LOGIN_RESPONSAVEL = (acesso.LOGIN_RESPONSAVEL == null ?
-                                        CD.ACESSOs.Where(x => x.Login == acesso.LOGIN_RESPONSAVEL.ToString()).FirstOrDefault() :
+                                        CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso.LOGIN_RESPONSAVEL) :
                                         null),
                     DT_SOLICITACAO = acesso.DT_SOLICITACAO.Value,
                     DT_RETORNO = acesso.DT_RETORNO,
@@ -1666,7 +1667,7 @@ namespace Vivo_Apps_API.Controllers
                 {
                     ID = acesso_pendente.ID,
                     ID_ACESSOS_MOBILE = (acesso_pendente.TIPO.ToLower() == "alteração"
-                    ? CD.ACESSOS_MOBILEs.Where(x => x.ID == acesso_pendente.ID_ACESSOS_MOBILE).Select(x => new ControleUsuariosModel
+                    ? CD.ACESSOS_MOBILEs.Where(x => x.ID == acesso_pendente.ID_ACESSOS_MOBILE).Select(x => new SOLICITAR_USUARIO_MODEL
                     {
                         ID = x.ID,
                         EMAIL = x.EMAIL,
@@ -1705,10 +1706,10 @@ namespace Vivo_Apps_API.Controllers
                     UserAvatar = acesso_pendente.UserAvatar,
                     TIPO = acesso_pendente.TIPO,
                     STATUS_USUARIO = acesso_pendente.STATUS_USUARIO,
-                    LOGIN_SOLICITANTE = CD.ACESSOs.Where(x => x.Login == acesso_pendente.LOGIN_SOLICITANTE.Value.ToString()).FirstOrDefault(),
+                    LOGIN_SOLICITANTE = CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso_pendente.LOGIN_SOLICITANTE),
                     LOGIN_RESPONSAVEL = (acesso_pendente.LOGIN_RESPONSAVEL == null ?
-                                        CD.ACESSOs.Where(x => x.Login == acesso_pendente.LOGIN_RESPONSAVEL.Value.ToString()).FirstOrDefault() :
-                                        null),
+                                        CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso_pendente.LOGIN_RESPONSAVEL)
+                                        : null),
                     DT_SOLICITACAO = acesso_pendente.DT_SOLICITACAO.Value,
                     DT_RETORNO = acesso_pendente.DT_RETORNO,
                     STATUS = acesso_pendente.STATUS,
@@ -1742,7 +1743,7 @@ namespace Vivo_Apps_API.Controllers
         }
 
         [HttpPost("CriarUsuarioMassivo")]
-        public async Task<JsonResult> CriarUsuarioMassivo([FromBody] List<ControleUsuariosModel> usuarios, int matricula, string OBS)
+        public async Task<JsonResult> CriarUsuarioMassivo([FromBody] List<SOLICITAR_USUARIO_MODEL> usuarios, int matricula, string OBS)
         {
             try
             {
@@ -1824,13 +1825,13 @@ namespace Vivo_Apps_API.Controllers
         }
 
         [HttpPost("UpdateUsuarioMassivo")]
-        public async Task<JsonResult> EditarUsuarioMassivo([FromBody] List<ControleUsuariosModel> usuarios, int matricula)
+        public async Task<JsonResult> EditarUsuarioMassivo([FromBody] List<SOLICITAR_USUARIO_MODEL> usuarios, int matricula)
         {
             try
             {
                 foreach (var usuario in usuarios)
                 {
-                    var User = CD.ACESSOS_MOBILEs.Where(x=>x.MATRICULA == usuario.MATRICULA).FirstOrDefault();
+                    var User = CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA == usuario.MATRICULA).FirstOrDefault();
 
                     if (User is not null)
                     {
@@ -2009,7 +2010,7 @@ namespace Vivo_Apps_API.Controllers
                     pagedData = pagedData.Where(x => x.EMAIL.ToLower().Contains(filter.email.ToLower()));
                 }
 
-                var dataAfterEntity = pagedData.Select(x => new ControleUsuariosModel
+                var dataAfterEntity = pagedData.Select(x => new SOLICITAR_USUARIO_MODEL
                 {
                     ID = x.ID,
                     EMAIL = x.EMAIL,
@@ -2107,7 +2108,7 @@ namespace Vivo_Apps_API.Controllers
         }
 
         [HttpPost("ValidateUsuarioMassivo")]
-        public async Task<JsonResult> ValidateUsuarioMassivo([FromBody] List<ControleUsuariosModel> usuarios)
+        public async Task<JsonResult> ValidateUsuarioMassivo([FromBody] List<SOLICITAR_USUARIO_MODEL> usuarios)
         {
             try
             {

@@ -32,7 +32,7 @@ namespace Vivo_Apps_API.Controllers
 
             var config = new MapperConfiguration(cfg =>
             {
-                cfg.CreateMap<ACESSOS_MOBILE_PENDENTE, ControleUsuariosModel>()
+                cfg.CreateMap<ACESSOS_MOBILE_PENDENTE, SOLICITAR_USUARIO_MODEL>()
                 .ForMember(
                     dest => dest.Perfil,
                     opt => opt.MapFrom(src => CD.PERFIL_USUARIO_PENDENTEs.Where(x => x.ID_ACESSO_PENDENTE == src.ID).Select(x => x.ID_PERFIL))
