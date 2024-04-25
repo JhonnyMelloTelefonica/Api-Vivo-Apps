@@ -14,6 +14,7 @@ using static Vivo_Apps_API.Models.Converters.Converters;
 using AutoMapper;
 using Shared_Static_Class.Model_DTO;
 using AutoMapper.QueryableExtensions;
+using KGySoft.CoreLibraries;
 
 
 namespace Vivo_Apps_API.Controllers
@@ -33,6 +34,11 @@ namespace Vivo_Apps_API.Controllers
             var config = new MapperConfiguration(cfg =>
             {
                 cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_DTO>();
+                cfg.CreateMap<HISTORICO_ACESSOS_MOBILE_PENDENTE, MENSAGEM_ACESSO_PENDENTE>()
+                .ForMember(dest => dest.MATRICULA,
+                    opt => opt.MapFrom(k => CD.ACESSOS_MOBILEs.FirstOrDefault(y => y.MATRICULA == k.MATRICULA))
+                );
+
                 cfg.CreateMap<ACESSOS_MOBILE_PENDENTE, ACESSOS_MOBILE_PENDENTE_DTO>()
                 .ForMember(dest => dest.SOLICITANTE,
                 opt => opt.MapFrom(k => CD.ACESSOS_MOBILEs.Where(y => y.MATRICULA == k.LOGIN_SOLICITANTE).FirstOrDefault()))
@@ -41,6 +47,12 @@ namespace Vivo_Apps_API.Controllers
                                             .Where(y => y.ID_ACESSOS_PENDENTE == k.ID)
                                             .OrderByDescending(y => y.ID)
                                             .FirstOrDefault().STATUS));
+                cfg.CreateMap<ACESSOS_MOBILE_PENDENTE, SOLICITAR_USUARIO_MODEL>()
+                .ForMember(dest => dest.STATUS,
+                    opt => opt.MapFrom(k => k.STATUS == "FINALIZADO" ? false : true)
+                );
+                
+
 
             });
             _mapper = config.CreateMapper();
@@ -362,82 +374,36 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var acesso = CD.ACESSOS_MOBILE_PENDENTEs.Find(IdAcesso);
+                var acesso_pendente = CD.ACESSOS_MOBILE_PENDENTEs.Find(IdAcesso);
                 var ids = CD.PERFIL_USUARIO_PENDENTEs.Where(x => x.ID_ACESSO_PENDENTE == IdAcesso);
                 var perfis = CD.PERFIL_PLATAFORMAS_VIVOs.Where(x => ids.Select(k => k.ID_PERFIL).Contains(x.ID_PERFIL));
 
-                var respostas = CD.HISTORICO_ACESSOS_MOBILE_PENDENTEs.Where(x => x.ID_ACESSOS_PENDENTE == IdAcesso)
-                    .Select(x => new RespostasAcessosPendentesModel
-                    {
-                        ID = x.ID,
-                        ID_ACESSOS_PENDENTE = x.ID_ACESSOS_PENDENTE,
-                        MATRICULA = CD.ACESSOS_MOBILEs.FirstOrDefault(y => y.MATRICULA == x.MATRICULA),
-                        RESPOSTA = x.RESPOSTA,
-                        STATUS = x.STATUS,
-                        DATA = x.DATA.Value,
-                    });
-                ACESSOS_MOBILE? UserAntigo = CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.ID == acesso.ID_ACESSOS_MOBILE);
-                SOLICITAR_USUARIO_MODEL? userantigomodel = null;
-                if (UserAntigo is not null)
-                {
-                    userantigomodel = new SOLICITAR_USUARIO_MODEL
-                    {
-                        ID = UserAntigo.ID,
-                        EMAIL = UserAntigo.EMAIL,
-                        MATRICULA = UserAntigo.MATRICULA.Value,
-                        SENHA = UserAntigo.SENHA,
-                        REGIONAL = UserAntigo.REGIONAL,
-                        CARGO = UserAntigo.CARGO,
-                        CANAL = UserAntigo.CANAL,
-                        PDV = UserAntigo.PDV,
-                        CPF = UserAntigo.CPF,
-                        NOME = UserAntigo.NOME,
-                        UF = UserAntigo.UF,
-                        STATUS = UserAntigo.STATUS,
-                        FIXA = UserAntigo.FIXA,
-                        TP_AFASTAMENTO = UserAntigo.TP_AFASTAMENTO,
-                        OBS = UserAntigo.OBS,
-                        UserAvatar = UserAntigo.UserAvatar,
-                        LOGIN_MOD = UserAntigo.LOGIN_MOD,
-                        DT_MOD = UserAntigo.DT_MOD,
-                        ELEGIVEL = UserAntigo.ELEGIVEL.Value,
-                        Perfil = CD.PERFIL_USUARIOs.Where(y => y.MATRICULA == UserAntigo.MATRICULA).Select(y => y.id_Perfil.Value).ToList(),
-                    };
-                }
+                var respostas = CD.HISTORICO_ACESSOS_MOBILE_PENDENTEs
+                        .Where(x => x.ID_ACESSOS_PENDENTE == IdAcesso).ProjectTo<MENSAGEM_ACESSO_PENDENTE>(_mapper.ConfigurationProvider)
+                        .AsEnumerable();
+
+                ACESSOS_MOBILE? UserAntigo = CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.ID == acesso_pendente.ID_ACESSOS_MOBILE);
+                var acesso = _mapper.Map<SOLICITAR_USUARIO_MODEL>(acesso_pendente);
 
 
-                var retorno = new HistoricoAcessosPendentesModel
+                var retorno = new DETALHADO_ACESSO_PENDENTE_MODEL
                 {
-                    ID = acesso.ID,
-                    ID_ACESSOS_MOBILE = userantigomodel,
-                    EMAIL = acesso.EMAIL,
-                    MATRICULA = acesso.MATRICULA.Value,
-                    SENHA = acesso.SENHA,
-                    REGIONAL = acesso.REGIONAL,
-                    CARGO = (Cargos)acesso.CARGO,
-                    CANAL = (Canal)acesso.CANAL,
-                    NOME = acesso.NOME,
-                    UF = acesso.UF,
-                    CPF = acesso.CPF,
-                    PDV = acesso.PDV,
-                    APROVACAO = acesso.APROVACAO,
-                    FIXA = acesso.FIXA,
-                    TIPO = acesso.TIPO,
-                    STATUS_USUARIO = acesso.STATUS_USUARIO,
-                    LOGIN_SOLICITANTE = CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso.LOGIN_SOLICITANTE),
-                    LOGIN_RESPONSAVEL = (acesso.LOGIN_RESPONSAVEL.HasValue ?
-                                        CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso.LOGIN_RESPONSAVEL) :
-                                        null),
-                    DT_SOLICITACAO = acesso.DT_SOLICITACAO.Value,
-                    DT_RETORNO = acesso.DT_RETORNO,
-                    STATUS = acesso.STATUS,
-                    UserAvatar = acesso.UserAvatar,
                     RESPOSTAS = respostas,
-                    PERFIS_SOLICITADOS = perfis
+                    ACESSOS_MOBILE = UserAntigo,
+                    SOLICITACAO = new(acesso, 
+                    acesso_pendente?.ID_ACESSOS_MOBILE,
+                    acesso_pendente?.APROVACAO,
+                    acesso_pendente?.TIPO,
+                    acesso_pendente?.STATUS_USUARIO,
+                    CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso_pendente.LOGIN_SOLICITANTE),
+                    (acesso_pendente.LOGIN_RESPONSAVEL.HasValue ? CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso_pendente.LOGIN_RESPONSAVEL) : null),
+                    acesso_pendente.DT_SOLICITACAO.Value,
+                    acesso_pendente?.DT_RETORNO,
+                    perfis)
                 };
 
                 return new JsonResult(
-                  new Response<HistoricoAcessosPendentesModel>
+                  new Response<DETALHADO_ACESSO_PENDENTE_MODEL>
                   {
                       Data = retorno,
                       Succeeded = true,
@@ -538,9 +504,9 @@ namespace Vivo_Apps_API.Controllers
                         .Select(y => y.Vendedor).Contains(x.PDV)
                     );
             }
-           if (filter.Matricula is not null)
-           {
-               pagedData = pagedData.Where(x => x.MATRICULA.Value == filter.Matricula);
+            if (filter.Matricula is not null)
+            {
+                pagedData = pagedData.Where(x => x.MATRICULA.Value == filter.Matricula);
             }
             if (!string.IsNullOrEmpty(filter.Pdv))
             {
@@ -1079,29 +1045,27 @@ namespace Vivo_Apps_API.Controllers
             {
                 var user = CD.ACESSOS_MOBILE_PENDENTEs.Add(new ACESSOS_MOBILE_PENDENTE
                 {
-                    ID_ACESSOS_MOBILE = null,
                     EMAIL = usuario.EMAIL,
                     MATRICULA = usuario.MATRICULA,
                     SENHA = usuario.SENHA,
                     REGIONAL = usuario.REGIONAL,
                     CARGO = usuario.CARGO,
-                    CANAL = (int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO)),
+                    CANAL = (int)DePara.CanalCargoEnum((Cargos)usuario.CARGO),
                     NOME = usuario.NOME,
                     UF = usuario.UF,
                     CPF = usuario.CPF,
                     PDV = usuario.PDV,
+                    DDD = usuario.DDD,
                     APROVACAO = false,
                     FIXA = usuario.FIXA,
                     DT_SOLICITACAO = DateTime.Now,
-                    DT_PRIMEIRO_RETORNO = null,
-                    DT_RETORNO = null,
-                    LOGIN_RESPONSAVEL = null,
                     LOGIN_SOLICITANTE = matricula,
                     STATUS_USUARIO = false,
                     UserAvatar = usuario.UserAvatar,
                     STATUS = "ABERTO",
                     TIPO = "INCLUSÃO"
                 }).Entity;
+
                 await CD.SaveChangesAsync();
 
                 CD.HISTORICO_ACESSOS_MOBILE_PENDENTEs.Add(new HISTORICO_ACESSOS_MOBILE_PENDENTE
@@ -1112,6 +1076,7 @@ namespace Vivo_Apps_API.Controllers
                     STATUS = "ABERTO",
                     DATA = DateTime.Now,
                 });
+
                 await CD.SaveChangesAsync();
 
                 if (usuario.Perfil is not null)
@@ -1126,8 +1091,6 @@ namespace Vivo_Apps_API.Controllers
                     }
                     await CD.SaveChangesAsync();
                 }
-
-
 
                 return new JsonResult(new Response<ACESSOS_MOBILE_PENDENTE>
                 {
@@ -1155,7 +1118,7 @@ namespace Vivo_Apps_API.Controllers
 
         [HttpPost("AnswerAcessoChangeStatus")]
         public async Task<JsonResult> AnswerAcessoChangeStatus(
-            [FromBody] HistoricoAcessosPendentesModel? usuario,
+            [FromBody] DETALHADO_ACESSO_PENDENTE_MODEL? usuario,
               int matricula,
               int id,
               string resposta,
@@ -1173,83 +1136,43 @@ namespace Vivo_Apps_API.Controllers
                     DATA = DateTime.Now
                 });
 
-                var acesso = CD.ACESSOS_MOBILE_PENDENTEs.Find(id);
-                acesso.STATUS = status;
-                acesso.DT_RETORNO = DateTime.Now;
+                var acesso2 = CD.ACESSOS_MOBILE_PENDENTEs.Find(id);
+                acesso2.STATUS = status;
+                acesso2.DT_RETORNO = DateTime.Now;
 
                 await CD.SaveChangesAsync();
-
-                var respostas = CD.HISTORICO_ACESSOS_MOBILE_PENDENTEs.Where(x => x.ID_ACESSOS_PENDENTE == id) //Insere mais uma linha no historico desta conversa
-                    .Select(x => new RespostasAcessosPendentesModel
-                    {
-                        ID = x.ID,
-                        ID_ACESSOS_PENDENTE = x.ID_ACESSOS_PENDENTE,
-                        MATRICULA = CD.ACESSOS_MOBILEs.Where(y => y.MATRICULA == x.MATRICULA).FirstOrDefault(),
-                        RESPOSTA = x.RESPOSTA,
-                        STATUS = x.STATUS,
-                        DATA = x.DATA.Value,
-                    });
-
+                var acesso_pendente = CD.ACESSOS_MOBILE_PENDENTEs.Find(id);
                 var ids = CD.PERFIL_USUARIO_PENDENTEs.Where(x => x.ID_ACESSO_PENDENTE == id);
                 var perfis = CD.PERFIL_PLATAFORMAS_VIVOs.Where(x => ids.Select(k => k.ID_PERFIL).Contains(x.ID_PERFIL));
 
-                var retorno = new HistoricoAcessosPendentesModel // Apenas o retorno com a atualização
+                var respostas = CD.HISTORICO_ACESSOS_MOBILE_PENDENTEs
+                        .Where(x => x.ID_ACESSOS_PENDENTE == id).ProjectTo<MENSAGEM_ACESSO_PENDENTE>(_mapper.ConfigurationProvider)
+                        .AsEnumerable();
+
+                ACESSOS_MOBILE? UserAntigo = CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.ID == acesso_pendente.ID_ACESSOS_MOBILE);
+
+                var acesso = _mapper.Map<SOLICITAR_USUARIO_MODEL>(acesso_pendente);
+
+
+                var retorno = new DETALHADO_ACESSO_PENDENTE_MODEL
                 {
-                    ID = acesso.ID,
-                    ID_ACESSOS_MOBILE = (acesso.TIPO.ToLower() == "alteração"
-                    ? CD.ACESSOS_MOBILEs.Where(x => x.ID == acesso.ID_ACESSOS_MOBILE).Select(x => new SOLICITAR_USUARIO_MODEL
-                    {
-                        ID = x.ID,
-                        EMAIL = x.EMAIL,
-                        MATRICULA = x.MATRICULA.Value,
-                        SENHA = x.SENHA,
-                        REGIONAL = x.REGIONAL,
-                        CARGO = x.CARGO,
-                        CANAL = x.CANAL,
-                        PDV = x.PDV,
-                        CPF = x.CPF,
-                        NOME = x.NOME,
-                        UF = x.UF,
-                        STATUS = x.STATUS,
-                        FIXA = x.FIXA,
-                        TP_AFASTAMENTO = x.TP_AFASTAMENTO,
-                        OBS = x.OBS,
-                        UserAvatar = x.UserAvatar,
-                        LOGIN_MOD = x.LOGIN_MOD,
-                        DT_MOD = x.DT_MOD,
-                        ELEGIVEL = x.ELEGIVEL.Value,
-                        Perfil = CD.PERFIL_USUARIOs.Where(y => y.MATRICULA == x.MATRICULA).Select(y => y.id_Perfil.Value).ToList(),
-                    }).FirstOrDefault()
-                    : null),
-                    EMAIL = acesso.EMAIL,
-                    MATRICULA = acesso.MATRICULA.Value,
-                    SENHA = acesso.SENHA,
-                    REGIONAL = acesso.REGIONAL,
-                    CARGO = (Cargos)Convert.ToInt32(usuario.CARGO),
-                    CANAL = DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO)),
-                    NOME = acesso.NOME,
-                    UF = acesso.UF,
-                    CPF = acesso.CPF,
-                    PDV = acesso.PDV,
-                    APROVACAO = acesso.APROVACAO,
-                    FIXA = acesso.FIXA,
-                    TIPO = acesso.TIPO,
-                    STATUS_USUARIO = acesso.STATUS_USUARIO,
-                    LOGIN_SOLICITANTE = CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso.LOGIN_SOLICITANTE),
-                    LOGIN_RESPONSAVEL = (acesso.LOGIN_RESPONSAVEL == null ?
-                                        CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso.LOGIN_RESPONSAVEL) 
-                                        : null),
-                    DT_SOLICITACAO = acesso.DT_SOLICITACAO.Value,
-                    DT_RETORNO = acesso.DT_RETORNO,
-                    STATUS = acesso.STATUS,
-                    UserAvatar = acesso.UserAvatar,
                     RESPOSTAS = respostas,
-                    PERFIS_SOLICITADOS = perfis
+                    ACESSOS_MOBILE = UserAntigo,
+                    SOLICITACAO = new(acesso,
+                    acesso_pendente?.ID_ACESSOS_MOBILE,
+                    acesso_pendente?.APROVACAO,
+                    acesso_pendente?.TIPO,
+                    acesso_pendente?.STATUS_USUARIO,
+                    CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso_pendente.LOGIN_SOLICITANTE),
+                    (acesso_pendente.LOGIN_RESPONSAVEL.HasValue ? CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso_pendente.LOGIN_RESPONSAVEL) : null),
+                    acesso_pendente.DT_SOLICITACAO.Value,
+                    acesso_pendente?.DT_RETORNO,
+                    perfis)
                 };
 
 
                 return new JsonResult(
-                     new Response<HistoricoAcessosPendentesModel>
+                     new Response<DETALHADO_ACESSO_PENDENTE_MODEL>
                      {
                          Data = retorno,
                          Succeeded = true,
@@ -1274,7 +1197,7 @@ namespace Vivo_Apps_API.Controllers
 
         [HttpPost("AnswerAcessoInsert")]
         public async Task<JsonResult> AnswerAcessoInsert(
-            [FromBody] HistoricoAcessosPendentesModel? usuario,
+            [FromBody] DETALHADO_ACESSO_PENDENTE_MODEL? usuario,
               int matricula,
               int id,
               string resposta,
@@ -1292,44 +1215,44 @@ namespace Vivo_Apps_API.Controllers
                     DATA = DateTime.Now
                 });
 
-                var acesso = CD.ACESSOS_MOBILE_PENDENTEs.Find(id);
-                acesso.STATUS = status;
-                acesso.DT_RETORNO = DateTime.Now;
+                var acesso2 = CD.ACESSOS_MOBILE_PENDENTEs.Find(id);
+                acesso2.STATUS = status;
+                acesso2.DT_RETORNO = DateTime.Now;
 
-                if (!acesso.DT_PRIMEIRO_RETORNO.HasValue)
+                if (!acesso2.DT_PRIMEIRO_RETORNO.HasValue)
                 // Caso a primeira resposta ainda não esteja defenida inserimos agora
                 {
-                    acesso.DT_PRIMEIRO_RETORNO = DateTime.Now;
+                    acesso2.DT_PRIMEIRO_RETORNO = DateTime.Now;
                 }
 
-                acesso.LOGIN_RESPONSAVEL = matricula;
-                acesso.APROVACAO = true;
+                acesso2.LOGIN_RESPONSAVEL = matricula;
+                acesso2.APROVACAO = true;
 
                 CD.ACESSOS_MOBILEs.Add(new ACESSOS_MOBILE
                 {
-                    EMAIL = usuario.EMAIL,
-                    MATRICULA = usuario.MATRICULA,
-                    SENHA = CryptSenha(usuario.SENHA),
-                    REGIONAL = usuario.REGIONAL,
-                    CARGO = (int)usuario.CARGO,
-                    CANAL = (int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO)),
-                    NOME = usuario.NOME,
-                    UF = usuario.UF,
-                    CPF = usuario.CPF,
-                    PDV = usuario.PDV,
+                    EMAIL = usuario.SOLICITACAO.EMAIL,
+                    MATRICULA = usuario.SOLICITACAO.MATRICULA,
+                    SENHA = CryptSenha(usuario.SOLICITACAO.SENHA),
+                    REGIONAL = usuario.SOLICITACAO.REGIONAL,
+                    CARGO = (int)usuario.SOLICITACAO.CARGO,
+                    CANAL = (int)DePara.CanalCargoEnum((Cargos)usuario.SOLICITACAO.CARGO),
+                    NOME = usuario.SOLICITACAO.NOME,
+                    UF = usuario.SOLICITACAO.UF,
+                    CPF = usuario.SOLICITACAO.CPF,
+                    PDV = usuario.SOLICITACAO.PDV,
                     STATUS = true,
-                    FIXA = usuario.FIXA,
+                    FIXA = usuario.SOLICITACAO.FIXA,
                     OBS = resposta,
-                    UserAvatar = usuario.UserAvatar,
+                    UserAvatar = usuario.SOLICITACAO.UserAvatar,
                     LOGIN_MOD = matricula,
                     DT_MOD = DateTime.Now,
                 });
 
-                foreach (var item in usuario.PERFIS_SOLICITADOS)
+                foreach (var item in usuario.SOLICITACAO.PERFIS_SOLICITADOS)
                 {
                     CD.PERFIL_USUARIOs.Add(new PERFIL_USUARIO
                     {
-                        MATRICULA = usuario.MATRICULA,
+                        MATRICULA = usuario.SOLICITACAO.MATRICULA,
                         id_Perfil = item.ID_PERFIL,
                         DT_MOD = DateTime.Now,
                         LOGIN_MOD = matricula,
@@ -1338,77 +1261,37 @@ namespace Vivo_Apps_API.Controllers
 
                 await CD.SaveChangesAsync();
 
-                var respostas = CD.HISTORICO_ACESSOS_MOBILE_PENDENTEs.Where(x => x.ID_ACESSOS_PENDENTE == id) //Insere mais uma linha no historico desta conversa
-                    .Select(x => new RespostasAcessosPendentesModel
-                    {
-                        ID = x.ID,
-                        ID_ACESSOS_PENDENTE = x.ID_ACESSOS_PENDENTE,
-                        MATRICULA = CD.ACESSOS_MOBILEs.Where(y => y.MATRICULA == x.MATRICULA).FirstOrDefault(),
-                        RESPOSTA = x.RESPOSTA,
-                        STATUS = x.STATUS,
-                        DATA = x.DATA.Value,
-                    });
-
+                var acesso_pendente = CD.ACESSOS_MOBILE_PENDENTEs.Find(id);
                 var ids = CD.PERFIL_USUARIO_PENDENTEs.Where(x => x.ID_ACESSO_PENDENTE == id);
                 var perfis = CD.PERFIL_PLATAFORMAS_VIVOs.Where(x => ids.Select(k => k.ID_PERFIL).Contains(x.ID_PERFIL));
 
-                var retorno = new HistoricoAcessosPendentesModel // Apenas o retorno com a atualização
+                var respostas = CD.HISTORICO_ACESSOS_MOBILE_PENDENTEs
+                        .Where(x => x.ID_ACESSOS_PENDENTE == id).ProjectTo<MENSAGEM_ACESSO_PENDENTE>(_mapper.ConfigurationProvider)
+                        .AsEnumerable();
+
+                ACESSOS_MOBILE? UserAntigo = CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.ID == acesso_pendente.ID_ACESSOS_MOBILE);
+                var acesso = _mapper.Map<SOLICITAR_USUARIO_MODEL>(acesso_pendente);
+
+
+                var retorno = new DETALHADO_ACESSO_PENDENTE_MODEL
                 {
-                    ID = acesso.ID,
-                    ID_ACESSOS_MOBILE = (acesso.TIPO.ToLower() == "alteração"
-                    ? CD.ACESSOS_MOBILEs.Where(x => x.ID == acesso.ID_ACESSOS_MOBILE).Select(x => new SOLICITAR_USUARIO_MODEL
-                    {
-                        ID = x.ID,
-                        EMAIL = x.EMAIL,
-                        MATRICULA = x.MATRICULA.Value,
-                        SENHA = x.SENHA,
-                        REGIONAL = x.REGIONAL,
-                        CARGO = x.CARGO,
-                        CANAL = x.CANAL,
-                        PDV = x.PDV,
-                        CPF = x.CPF,
-                        NOME = x.NOME,
-                        UF = x.UF,
-                        STATUS = x.STATUS,
-                        FIXA = x.FIXA,
-                        TP_AFASTAMENTO = x.TP_AFASTAMENTO,
-                        OBS = x.OBS,
-                        UserAvatar = x.UserAvatar,
-                        LOGIN_MOD = x.LOGIN_MOD,
-                        DT_MOD = x.DT_MOD,
-                        ELEGIVEL = x.ELEGIVEL.Value,
-                        Perfil = CD.PERFIL_USUARIOs.Where(y => y.MATRICULA == x.MATRICULA).Select(y => y.id_Perfil.Value).ToList(),
-                    }).FirstOrDefault()
-                    : null),
-                    EMAIL = acesso.EMAIL,
-                    MATRICULA = acesso.MATRICULA.Value,
-                    SENHA = acesso.SENHA,
-                    REGIONAL = acesso.REGIONAL,
-                    CARGO = (Cargos)Convert.ToInt32(usuario.CARGO),
-                    CANAL = DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO)),
-                    NOME = acesso.NOME,
-                    UF = acesso.UF,
-                    CPF = acesso.CPF,
-                    PDV = acesso.PDV,
-                    APROVACAO = acesso.APROVACAO,
-                    FIXA = acesso.FIXA,
-                    TIPO = acesso.TIPO,
-                    STATUS_USUARIO = acesso.STATUS_USUARIO,
-                    LOGIN_SOLICITANTE = CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso.LOGIN_SOLICITANTE),
-                    LOGIN_RESPONSAVEL = (acesso.LOGIN_RESPONSAVEL == null ?
-                                        CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso.LOGIN_RESPONSAVEL) :
-                                        null),
-                    DT_SOLICITACAO = acesso.DT_SOLICITACAO.Value,
-                    DT_RETORNO = acesso.DT_RETORNO,
-                    STATUS = acesso.STATUS,
-                    UserAvatar = acesso.UserAvatar,
                     RESPOSTAS = respostas,
-                    PERFIS_SOLICITADOS = perfis
+                    ACESSOS_MOBILE = UserAntigo,
+                    SOLICITACAO = new(acesso,
+                    acesso_pendente?.ID_ACESSOS_MOBILE,
+                    acesso_pendente?.APROVACAO,
+                    acesso_pendente?.TIPO,
+                    acesso_pendente?.STATUS_USUARIO,
+                    CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso_pendente.LOGIN_SOLICITANTE),
+                    (acesso_pendente.LOGIN_RESPONSAVEL.HasValue ? CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso_pendente.LOGIN_RESPONSAVEL) : null),
+                    acesso_pendente.DT_SOLICITACAO.Value,
+                    acesso_pendente?.DT_RETORNO,
+                    perfis)
                 };
 
 
                 return new JsonResult(
-                     new Response<HistoricoAcessosPendentesModel>
+                     new Response<DETALHADO_ACESSO_PENDENTE_MODEL>
                      {
                          Data = retorno,
                          Succeeded = true,
@@ -1434,7 +1317,7 @@ namespace Vivo_Apps_API.Controllers
 
         [HttpPost("AnswerAcessoSolicitante")]
         public async Task<JsonResult> AnswerAcessoSolicitante(
-            [FromBody] HistoricoAcessosPendentesModel? usuario,
+            [FromBody] DETALHADO_ACESSO_PENDENTE_MODEL? usuario,
               int matricula,
               int id,
               string resposta,
@@ -1456,19 +1339,19 @@ namespace Vivo_Apps_API.Controllers
                 acesso.STATUS = status;
                 acesso.DT_RETORNO = DateTime.Now;
 
-                acesso.EMAIL = usuario.EMAIL;
-                acesso.MATRICULA = usuario.MATRICULA;
-                acesso.SENHA = usuario.SENHA;
-                acesso.REGIONAL = usuario.REGIONAL;
-                acesso.CARGO = (int)usuario.CARGO;
-                acesso.CANAL = (int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO));
-                acesso.NOME = usuario.NOME;
-                acesso.UF = usuario.UF;
-                acesso.CPF = usuario.CPF;
-                acesso.PDV = usuario.PDV;
-                acesso.APROVACAO = usuario.APROVACAO;
-                acesso.FIXA = usuario.FIXA;
-                acesso.UserAvatar = usuario.UserAvatar;
+                acesso.EMAIL = usuario.SOLICITACAO.EMAIL;
+                acesso.MATRICULA = usuario.SOLICITACAO.MATRICULA;
+                acesso.SENHA = usuario.SOLICITACAO.SENHA;
+                acesso.REGIONAL = usuario.SOLICITACAO.REGIONAL;
+                acesso.CARGO = (int)usuario.SOLICITACAO.CARGO;
+                acesso.CANAL = (int)DePara.CanalCargoEnum((Cargos)usuario.SOLICITACAO.CARGO);
+                acesso.NOME = usuario.SOLICITACAO.NOME;
+                acesso.UF = usuario.SOLICITACAO.UF;
+                acesso.CPF = usuario.SOLICITACAO.CPF;
+                acesso.PDV = usuario.SOLICITACAO.PDV;
+                acesso.APROVACAO = usuario.SOLICITACAO.APROVACAO;
+                acesso.FIXA = usuario.SOLICITACAO.FIXA;
+                acesso.UserAvatar = usuario.SOLICITACAO.UserAvatar;
                 acesso.STATUS = status;
                 acesso.DT_RETORNO = DateTime.Now;
 
@@ -1477,7 +1360,7 @@ namespace Vivo_Apps_API.Controllers
                 CD.PERFIL_USUARIO_PENDENTEs.RemoveRange(perfilbymatricula);
                 await CD.SaveChangesAsync();
 
-                foreach (var item in usuario.PERFIS_SOLICITADOS)
+                foreach (var item in usuario.SOLICITACAO.PERFIS_SOLICITADOS)
                 {
                     CD.PERFIL_USUARIO_PENDENTEs.Add(new PERFIL_USUARIO_PENDENTE
                     {
@@ -1488,77 +1371,36 @@ namespace Vivo_Apps_API.Controllers
 
                 await CD.SaveChangesAsync();
 
-                var respostas = CD.HISTORICO_ACESSOS_MOBILE_PENDENTEs.Where(x => x.ID_ACESSOS_PENDENTE == id) //Insere mais uma linha no historico desta conversa
-                    .Select(x => new RespostasAcessosPendentesModel
-                    {
-                        ID = x.ID,
-                        ID_ACESSOS_PENDENTE = x.ID_ACESSOS_PENDENTE,
-                        MATRICULA = CD.ACESSOS_MOBILEs.Where(y => y.MATRICULA == x.MATRICULA).FirstOrDefault(),
-                        RESPOSTA = x.RESPOSTA,
-                        STATUS = x.STATUS,
-                        DATA = x.DATA.Value,
-                    });
-
+                var acesso_pendente = CD.ACESSOS_MOBILE_PENDENTEs.Find(id);
                 var ids = CD.PERFIL_USUARIO_PENDENTEs.Where(x => x.ID_ACESSO_PENDENTE == id);
                 var perfis = CD.PERFIL_PLATAFORMAS_VIVOs.Where(x => ids.Select(k => k.ID_PERFIL).Contains(x.ID_PERFIL));
 
-                var retorno = new HistoricoAcessosPendentesModel // Apenas o retorno com a atualização
+                var respostas = CD.HISTORICO_ACESSOS_MOBILE_PENDENTEs
+                        .Where(x => x.ID_ACESSOS_PENDENTE == id).ProjectTo<MENSAGEM_ACESSO_PENDENTE>(_mapper.ConfigurationProvider)
+                        .AsEnumerable();
+
+                ACESSOS_MOBILE? UserAntigo = CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.ID == acesso_pendente.ID_ACESSOS_MOBILE);
+                var acesso2 = _mapper.Map<SOLICITAR_USUARIO_MODEL>(acesso_pendente);
+
+                var retorno = new DETALHADO_ACESSO_PENDENTE_MODEL
                 {
-                    ID = acesso.ID,
-                    ID_ACESSOS_MOBILE = (acesso.TIPO.ToLower() == "alteração"
-                    ? CD.ACESSOS_MOBILEs.Where(x => x.ID == acesso.ID_ACESSOS_MOBILE).Select(x => new SOLICITAR_USUARIO_MODEL
-                    {
-                        ID = x.ID,
-                        EMAIL = x.EMAIL,
-                        MATRICULA = x.MATRICULA.Value,
-                        SENHA = x.SENHA,
-                        REGIONAL = x.REGIONAL,
-                        CARGO = x.CARGO,
-                        CANAL = x.CANAL,
-                        PDV = x.PDV,
-                        CPF = x.CPF,
-                        NOME = x.NOME,
-                        UF = x.UF,
-                        STATUS = x.STATUS,
-                        FIXA = x.FIXA,
-                        TP_AFASTAMENTO = x.TP_AFASTAMENTO,
-                        OBS = x.OBS,
-                        UserAvatar = x.UserAvatar,
-                        LOGIN_MOD = x.LOGIN_MOD,
-                        DT_MOD = x.DT_MOD,
-                        ELEGIVEL = x.ELEGIVEL.Value,
-                        Perfil = CD.PERFIL_USUARIOs.Where(y => y.MATRICULA == x.MATRICULA).Select(y => y.id_Perfil.Value).ToList(),
-                    }).FirstOrDefault()
-                    : null),
-                    EMAIL = acesso.EMAIL,
-                    MATRICULA = acesso.MATRICULA.Value,
-                    SENHA = acesso.SENHA,
-                    REGIONAL = acesso.REGIONAL,
-                    CARGO = (Cargos)Convert.ToInt32(usuario.CARGO),
-                    CANAL = DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO)),
-                    NOME = acesso.NOME,
-                    UF = acesso.UF,
-                    CPF = acesso.CPF,
-                    PDV = acesso.PDV,
-                    APROVACAO = acesso.APROVACAO,
-                    FIXA = acesso.FIXA,
-                    TIPO = acesso.TIPO,
-                    STATUS_USUARIO = acesso.STATUS_USUARIO,
-                    LOGIN_SOLICITANTE = CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso.LOGIN_SOLICITANTE),
-                    LOGIN_RESPONSAVEL = (acesso.LOGIN_RESPONSAVEL == null ?
-                                        CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso.LOGIN_RESPONSAVEL) :
-                                        null),
-                    DT_SOLICITACAO = acesso.DT_SOLICITACAO.Value,
-                    DT_RETORNO = acesso.DT_RETORNO,
-                    STATUS = acesso.STATUS,
-                    UserAvatar = acesso.UserAvatar,
                     RESPOSTAS = respostas,
-                    PERFIS_SOLICITADOS = perfis
+                    ACESSOS_MOBILE = UserAntigo,
+                    SOLICITACAO = new(acesso2,
+                    acesso_pendente?.ID_ACESSOS_MOBILE,
+                    acesso_pendente?.APROVACAO,
+                    acesso_pendente?.TIPO,
+                    acesso_pendente?.STATUS_USUARIO,
+                    CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso_pendente.LOGIN_SOLICITANTE),
+                    (acesso_pendente.LOGIN_RESPONSAVEL.HasValue ? CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso_pendente.LOGIN_RESPONSAVEL) : null),
+                    acesso_pendente.DT_SOLICITACAO.Value,
+                    acesso_pendente?.DT_RETORNO,
+                    perfis)
                 };
 
 
                 return new JsonResult(
-                     new Response<HistoricoAcessosPendentesModel>
+                     new Response<DETALHADO_ACESSO_PENDENTE_MODEL>
                      {
                          Data = retorno,
                          Succeeded = true,
@@ -1583,7 +1425,7 @@ namespace Vivo_Apps_API.Controllers
 
         [HttpPost("AnswerAcessoAlteracao")]
         public async Task<JsonResult> AnswerAcessoAlteracao(
-            [FromBody] HistoricoAcessosPendentesModel? usuario,
+            [FromBody] DETALHADO_ACESSO_PENDENTE_MODEL? usuario,
               int matricula,
               int id,
               string resposta,
@@ -1601,20 +1443,20 @@ namespace Vivo_Apps_API.Controllers
                     DATA = DateTime.Now
                 });
 
-                var acesso = CD.ACESSOS_MOBILEs.Find(usuario.ID_ACESSOS_MOBILE.ID);
-                acesso.EMAIL = usuario.EMAIL;
-                acesso.MATRICULA = usuario.MATRICULA;
-                acesso.SENHA = CryptSenha(usuario.SENHA);
-                acesso.REGIONAL = usuario.REGIONAL;
-                acesso.CARGO = (int)usuario.CARGO;
-                acesso.CANAL = (int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO));
-                acesso.NOME = usuario.NOME;
-                acesso.UF = usuario.UF;
-                acesso.CPF = usuario.CPF;
-                acesso.PDV = usuario.PDV;
-                acesso.FIXA = usuario.FIXA;
-                acesso.STATUS = usuario.STATUS_USUARIO;
-                acesso.UserAvatar = usuario.UserAvatar;
+                var acesso = CD.ACESSOS_MOBILEs.Find(usuario.ACESSOS_MOBILE.ID);
+                acesso.EMAIL = usuario.SOLICITACAO.EMAIL;
+                acesso.MATRICULA = usuario.SOLICITACAO.MATRICULA;
+                acesso.SENHA = CryptSenha(usuario.SOLICITACAO.SENHA);
+                acesso.REGIONAL = usuario.SOLICITACAO.REGIONAL;
+                acesso.CARGO = (int)usuario.SOLICITACAO.CARGO;
+                acesso.CANAL = (int)DePara.CanalCargoEnum((Cargos)usuario.SOLICITACAO.CARGO);
+                acesso.NOME = usuario.SOLICITACAO.NOME;
+                acesso.UF = usuario.SOLICITACAO.UF;
+                acesso.CPF = usuario.SOLICITACAO.CPF;
+                acesso.PDV = usuario.SOLICITACAO.PDV;
+                acesso.FIXA = usuario.SOLICITACAO.FIXA;
+                acesso.STATUS = usuario.SOLICITACAO.STATUS_USUARIO;
+                acesso.UserAvatar = usuario.SOLICITACAO.UserAvatar;
                 acesso.DT_MOD = DateTime.Now;
                 acesso.LOGIN_MOD = matricula;
                 acesso.OBS = resposta;
@@ -1624,7 +1466,7 @@ namespace Vivo_Apps_API.Controllers
                 CD.PERFIL_USUARIOs.RemoveRange(perfilbymatricula);
                 await CD.SaveChangesAsync();
 
-                foreach (var item in usuario.PERFIS_SOLICITADOS)
+                foreach (var item in usuario.SOLICITACAO.PERFIS_SOLICITADOS)
                 {
                     CD.PERFIL_USUARIOs.Add(new PERFIL_USUARIO
                     {
@@ -1643,83 +1485,40 @@ namespace Vivo_Apps_API.Controllers
                 {
                     acesso_pendente.DT_PRIMEIRO_RETORNO = DateTime.Now;
                 }
-
                 acesso_pendente.LOGIN_RESPONSAVEL = matricula;
                 acesso_pendente.APROVACAO = true;
                 await CD.SaveChangesAsync();
 
-                var respostas = CD.HISTORICO_ACESSOS_MOBILE_PENDENTEs.Where(x => x.ID_ACESSOS_PENDENTE == id) //Insere mais uma linha no historico desta conversa
-                    .Select(x => new RespostasAcessosPendentesModel
-                    {
-                        ID = x.ID,
-                        ID_ACESSOS_PENDENTE = x.ID_ACESSOS_PENDENTE,
-                        MATRICULA = CD.ACESSOS_MOBILEs.Where(y => y.MATRICULA == x.MATRICULA).FirstOrDefault(),
-                        RESPOSTA = x.RESPOSTA,
-                        STATUS = x.STATUS,
-                        DATA = x.DATA.Value,
-                    });
-
-
                 var ids = CD.PERFIL_USUARIO_PENDENTEs.Where(x => x.ID_ACESSO_PENDENTE == id);
                 var perfis = CD.PERFIL_PLATAFORMAS_VIVOs.Where(x => ids.Select(k => k.ID_PERFIL).Contains(x.ID_PERFIL));
 
-                var retorno = new HistoricoAcessosPendentesModel // Apenas o retorno com a atualização
+                var respostas = CD.HISTORICO_ACESSOS_MOBILE_PENDENTEs
+                        .Where(x => x.ID_ACESSOS_PENDENTE == id).ProjectTo<MENSAGEM_ACESSO_PENDENTE>(_mapper.ConfigurationProvider)
+                        .AsEnumerable();
+
+                ACESSOS_MOBILE? UserAntigo = CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.ID == acesso_pendente.ID_ACESSOS_MOBILE);
+                var acesso2 = _mapper.Map<SOLICITAR_USUARIO_MODEL>(acesso_pendente);
+
+
+                var retorno = new DETALHADO_ACESSO_PENDENTE_MODEL
                 {
-                    ID = acesso_pendente.ID,
-                    ID_ACESSOS_MOBILE = (acesso_pendente.TIPO.ToLower() == "alteração"
-                    ? CD.ACESSOS_MOBILEs.Where(x => x.ID == acesso_pendente.ID_ACESSOS_MOBILE).Select(x => new SOLICITAR_USUARIO_MODEL
-                    {
-                        ID = x.ID,
-                        EMAIL = x.EMAIL,
-                        MATRICULA = x.MATRICULA.Value,
-                        SENHA = x.SENHA,
-                        REGIONAL = x.REGIONAL,
-                        CARGO = x.CARGO,
-                        CANAL = x.CANAL,
-                        PDV = x.PDV,
-                        CPF = x.CPF,
-                        NOME = x.NOME,
-                        UF = x.UF,
-                        STATUS = x.STATUS,
-                        FIXA = x.FIXA,
-                        TP_AFASTAMENTO = x.TP_AFASTAMENTO,
-                        OBS = x.OBS,
-                        UserAvatar = x.UserAvatar,
-                        LOGIN_MOD = x.LOGIN_MOD,
-                        DT_MOD = x.DT_MOD,
-                        ELEGIVEL = x.ELEGIVEL.Value,
-                        Perfil = CD.PERFIL_USUARIOs.Where(y => y.MATRICULA == x.MATRICULA).Select(y => y.id_Perfil.Value).ToList(),
-                    }).FirstOrDefault()
-                    : null),
-                    EMAIL = acesso_pendente.EMAIL,
-                    MATRICULA = acesso_pendente.MATRICULA.Value,
-                    SENHA = acesso_pendente.SENHA,
-                    REGIONAL = acesso_pendente.REGIONAL,
-                    CARGO = (Cargos)Convert.ToInt32(usuario.CARGO),
-                    CANAL = DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO)),
-                    NOME = acesso_pendente.NOME,
-                    UF = acesso_pendente.UF,
-                    CPF = acesso_pendente.CPF,
-                    PDV = acesso_pendente.PDV,
-                    APROVACAO = acesso_pendente.APROVACAO,
-                    FIXA = acesso_pendente.FIXA,
-                    UserAvatar = acesso_pendente.UserAvatar,
-                    TIPO = acesso_pendente.TIPO,
-                    STATUS_USUARIO = acesso_pendente.STATUS_USUARIO,
-                    LOGIN_SOLICITANTE = CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso_pendente.LOGIN_SOLICITANTE),
-                    LOGIN_RESPONSAVEL = (acesso_pendente.LOGIN_RESPONSAVEL == null ?
-                                        CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso_pendente.LOGIN_RESPONSAVEL)
-                                        : null),
-                    DT_SOLICITACAO = acesso_pendente.DT_SOLICITACAO.Value,
-                    DT_RETORNO = acesso_pendente.DT_RETORNO,
-                    STATUS = acesso_pendente.STATUS,
                     RESPOSTAS = respostas,
-                    PERFIS_SOLICITADOS = perfis
+                    ACESSOS_MOBILE = UserAntigo,
+                    SOLICITACAO = new(acesso2,
+                    acesso_pendente?.ID_ACESSOS_MOBILE,
+                    acesso_pendente?.APROVACAO,
+                    acesso_pendente?.TIPO,
+                    acesso_pendente?.STATUS_USUARIO,
+                    CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso_pendente.LOGIN_SOLICITANTE),
+                    (acesso_pendente.LOGIN_RESPONSAVEL.HasValue ? CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso_pendente.LOGIN_RESPONSAVEL) : null),
+                    acesso_pendente.DT_SOLICITACAO.Value,
+                    acesso_pendente?.DT_RETORNO,
+                    perfis)
                 };
 
 
                 return new JsonResult(
-                     new Response<HistoricoAcessosPendentesModel>
+                     new Response<DETALHADO_ACESSO_PENDENTE_MODEL>
                      {
                          Data = retorno,
                          Succeeded = true,
