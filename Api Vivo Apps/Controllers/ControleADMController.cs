@@ -475,11 +475,11 @@ namespace Vivo_Apps_API.Controllers
             }
             if (filter.Cargo.Count() > 0)
             {
-                pagedData = pagedData.Where(x => filter.Cargo.Contains(x.CARGO.ToString()));
+                pagedData = pagedData.Where(x => filter.Cargo.Contains(x.CARGO));
             }
             if (filter.Canal.Count() > 0)
             {
-                pagedData = pagedData.Where(x => filter.Canal.Contains(x.CANAL.ToString()));
+                pagedData = pagedData.Where(x => filter.Canal.Contains(x.CANAL));
             }
             if (filter.Regional.Count() > 0)
             {
@@ -1759,11 +1759,11 @@ namespace Vivo_Apps_API.Controllers
                 }
                 if (filter.Cargo.Count() > 0)
                 {
-                    pagedData = pagedData.Where(x => filter.Cargo.Contains(x.CARGO.ToString()));
+                    pagedData = pagedData.Where(x => filter.Cargo.Contains(x.CARGO));
                 }
                 if (filter.Canal.Count() > 0)
                 {
-                    pagedData = pagedData.Where(x => filter.Canal.Contains(x.CANAL.ToString()));
+                    pagedData = pagedData.Where(x => filter.Canal.Contains(x.CANAL));
                 }
                 if (filter.Regional.Count() > 0)
                 {
