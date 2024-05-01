@@ -1201,7 +1201,6 @@ namespace Vivo_Apps_API.Controllers
             {
                 var questions = CD.JORNADA_BD_HIERARQUIAs.Where(x => x.REGIONAL == regional).Where(x => x.STATUS == true);
 
-
                 return new JsonResult(new Response<IEnumerable<JORNADA_BD_HIERARQUIum>>
                 {
                     Data = questions,
@@ -2215,9 +2214,9 @@ namespace Vivo_Apps_API.Controllers
         {
             if ((Cargos)usuario.CARGO == Cargos.Gerente_Área)
             {
-                JORNADA_BD_CARTEIRA_DIVISAO? PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
+                JORNADA_BD_HIERARQUIum? PDVDivisão = CD.JORNADA_BD_HIERARQUIAs
                 .Where(x => x.RE_GA != null)
-                .Where(x => x.RE_GA == usuario.MATRICULA.Value.ToString()).FirstOrDefault();
+                .Where(x => x.RE_GA == usuario.MATRICULA.Value).FirstOrDefault();
 
                 if (PDVDivisão is not null)
                 {
@@ -2225,7 +2224,7 @@ namespace Vivo_Apps_API.Controllers
 
                     questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
                     .Where(y => y.TP_FORMS == "Jornada Gestor")
-                    .Where(y => y.ID_CRIADOR == PDVDivisão.DIVISAO.Value)
+                    .Where(y => y.ID_CRIADOR == PDVDivisão.RE_DIVISAO.Value)
                     .Where(y => y.CARGO == CARGO)
                     .Where(y => y.FIXA == FIXA)
                     .Where(y => y.REGIONAL == REGIONAL)
@@ -2256,9 +2255,9 @@ namespace Vivo_Apps_API.Controllers
             }
             else if (((Cargos)usuario.CARGO) == Cargos.Gerente_Parceiros)
             {
-                JORNADA_BD_CARTEIRA_DIVISAO? PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
-                .Where(x => x.RE_GGP != null)
-                .Where(x => x.RE_GGP == usuario.MATRICULA.Value.ToString()).FirstOrDefault();
+                JORNADA_BD_HIERARQUIum? PDVDivisão = CD.JORNADA_BD_HIERARQUIAs
+                .Where(x => x.RE_GP != null)
+                .Where(x => x.RE_GP == usuario.MATRICULA.Value).FirstOrDefault();
 
                 if (PDVDivisão is not null)
                 {
@@ -2266,7 +2265,7 @@ namespace Vivo_Apps_API.Controllers
 
                     questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
                     .Where(y => y.TP_FORMS == "Jornada Gestor")
-                    .Where(y => y.ID_CRIADOR == PDVDivisão.DIVISAO.Value)
+                    .Where(y => y.ID_CRIADOR == PDVDivisão.RE_DIVISAO.Value)
                     .Where(y => y.CARGO == CARGO)
                     .Where(y => y.FIXA == FIXA)
                     .Where(y => y.REGIONAL == REGIONAL)
@@ -2296,9 +2295,9 @@ namespace Vivo_Apps_API.Controllers
             }
             else if ((Cargos)usuario.CARGO == Cargos.Gerente_Vendas_B2C)
             {
-                JORNADA_BD_CARTEIRA_DIVISAO? PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
+                JORNADA_BD_HIERARQUIum? PDVDivisão = CD.JORNADA_BD_HIERARQUIAs
                 .Where(x => x.RE_GV != null)
-                .Where(x => x.RE_GV == usuario.MATRICULA.Value.ToString()).FirstOrDefault();
+                .Where(x => x.RE_GV == usuario.MATRICULA.Value).FirstOrDefault();
 
                 if (PDVDivisão is not null)
                 {
@@ -2306,7 +2305,7 @@ namespace Vivo_Apps_API.Controllers
 
                     questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
                     .Where(y => y.TP_FORMS == "Jornada Gestor")
-                    .Where(y => y.ID_CRIADOR == PDVDivisão.DIVISAO.Value)
+                    .Where(y => y.ID_CRIADOR == PDVDivisão.RE_DIVISAO.Value)
                     .Where(y => y.CARGO == CARGO)
                     .Where(y => y.FIXA == FIXA)
                     .Where(y => y.REGIONAL == REGIONAL)
@@ -2336,15 +2335,15 @@ namespace Vivo_Apps_API.Controllers
             }
             else
             {
-                JORNADA_BD_CARTEIRA_DIVISAO PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
-                    .Where(x => x.Vendedor == usuario.PDV).FirstOrDefault();
+                JORNADA_BD_HIERARQUIum PDVDivisão = CD.JORNADA_BD_HIERARQUIAs
+                    .Where(x => x.ADABAS == usuario.PDV).FirstOrDefault();
 
                 if (PDVDivisão is not null)
                 {
                     var actual = DateTime.Now;
                     questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
                     .Where(y => y.TP_FORMS == "Jornada Gestor")
-                    .Where(y => y.ID_CRIADOR == PDVDivisão.DIVISAO.Value)
+                    .Where(y => y.ID_CRIADOR == PDVDivisão.RE_DIVISAO.Value)
                     .Where(y => y.CARGO == CARGO)
                     .Where(y => y.FIXA == FIXA)
                     .Where(y => y.REGIONAL == REGIONAL)
@@ -2383,8 +2382,8 @@ namespace Vivo_Apps_API.Controllers
             ACESSOS_MOBILE usuario,
             out List<JORNADA_BD_QUESTION_HISTORICO> questionsjornadaGestor)
         {
-            JORNADA_BD_CARTEIRA_DIVISAO PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
-                .Where(x => x.Vendedor == usuario.PDV).FirstOrDefault();
+            JORNADA_BD_HIERARQUIum PDVDivisão = CD.JORNADA_BD_HIERARQUIAs
+                .Where(x => x.ADABAS == usuario.PDV).FirstOrDefault();
 
             if (PDVDivisão is not null)
             {
@@ -2394,7 +2393,7 @@ namespace Vivo_Apps_API.Controllers
 
                     questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
                     .Where(y => y.TP_FORMS == "Jornada Gestor")
-                    .Where(y => y.ID_CRIADOR == int.Parse(PDVDivisão.RE_GA))
+                    .Where(y => y.ID_CRIADOR == PDVDivisão.RE_GA.Value)
                     .Where(y => y.CARGO == CARGO)
                     .Where(y => y.FIXA == FIXA)
                     .Where(y => y.REGIONAL == REGIONAL)
@@ -2441,18 +2440,18 @@ namespace Vivo_Apps_API.Controllers
             ACESSOS_MOBILE usuario,
             out List<JORNADA_BD_QUESTION_HISTORICO> questionsjornadaGestor)
         {
-            JORNADA_BD_CARTEIRA_DIVISAO PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
-                .Where(x => x.Vendedor == usuario.PDV).FirstOrDefault();
+            JORNADA_BD_HIERARQUIum PDVDivisão = CD.JORNADA_BD_HIERARQUIAs
+                .Where(x => x.ADABAS == usuario.PDV).FirstOrDefault();
 
             if (PDVDivisão is not null)
             {
-                if (PDVDivisão.RE_GGP is not null)
+                if (PDVDivisão.RE_GP is not null)
                 {
                     var actual = DateTime.Now;
 
                     questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
                     .Where(y => y.TP_FORMS == "Jornada Gestor")
-                    .Where(y => y.ID_CRIADOR == int.Parse(PDVDivisão.RE_GGP))
+                    .Where(y => y.ID_CRIADOR == PDVDivisão.RE_GP.Value)
                     .Where(y => y.CARGO == CARGO)
                     .Where(y => y.FIXA == FIXA)
                     .Where(y => y.REGIONAL == REGIONAL)
@@ -2493,8 +2492,8 @@ namespace Vivo_Apps_API.Controllers
             ACESSOS_MOBILE usuario,
             out List<JORNADA_BD_QUESTION_HISTORICO> questionsjornadaGestor)
         {
-            JORNADA_BD_CARTEIRA_DIVISAO PDVDivisão = CD.JORNADA_BD_CARTEIRA_DIVISAOs
-                .Where(x => x.Vendedor == usuario.PDV).FirstOrDefault();
+            JORNADA_BD_HIERARQUIum PDVDivisão = CD.JORNADA_BD_HIERARQUIAs
+                .Where(x => x.ADABAS == usuario.PDV).FirstOrDefault();
 
             if (PDVDivisão is not null)
             {
@@ -2504,7 +2503,7 @@ namespace Vivo_Apps_API.Controllers
 
                     questionsjornadaGestor = CD.JORNADA_BD_QUESTION_HISTORICOs
                     .Where(y => y.TP_FORMS == "Jornada Gestor")
-                    .Where(y => y.ID_CRIADOR == int.Parse(PDVDivisão.RE_GV))
+                    .Where(y => y.ID_CRIADOR == PDVDivisão.RE_GV.Value)
                     .Where(y => y.CARGO == CARGO)
                     .Where(y => y.FIXA == FIXA)
                     .Where(y => y.REGIONAL == REGIONAL)

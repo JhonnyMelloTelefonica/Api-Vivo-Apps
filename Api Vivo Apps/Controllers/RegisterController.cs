@@ -13,6 +13,7 @@ using Shared_Static_Class.DB_Context_Vivo_MAIS;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Shared_Static_Class.Models;
+using Shared_Static_Class.Converters;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -56,8 +57,9 @@ namespace Vivo_Apps_API.Controllers
 
                 if (UltimaSolicitacao is not null)
                 {
-                    var solicitacaoAndamento = (!string.Equals(UltimaSolicitacao.STATUS, "REPROVADO")
-                                && !string.Equals(UltimaSolicitacao.STATUS, "FINALIZADO"));
+                    var solicitacaoAndamento = (!string.Equals(UltimaSolicitacao.STATUS, STATUS_ACESSOS_PENDENTES.APROVADO.Value)
+                                                && !string.Equals(UltimaSolicitacao.STATUS, STATUS_ACESSOS_PENDENTES.REPROVADO.Value)
+                                                && !string.Equals(UltimaSolicitacao.STATUS, STATUS_ACESSOS_PENDENTES.CANCELADO.Value));
                     // verifico se possui os Status não é finalizado nem reprovado, caso não seja nenhum dos 2 siginifica que ainda está em andamento
 
                     if (solicitacaoAndamento)
