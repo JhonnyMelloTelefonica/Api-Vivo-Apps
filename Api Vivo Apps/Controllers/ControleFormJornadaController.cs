@@ -375,6 +375,7 @@ namespace Vivo_Apps_API.Controllers
                 });
             }
         }
+
         [HttpGet("GetTemasCriarFormularioDetalhado")]
         [ProducesResponseType(typeof(Response<IEnumerable<TEMA_SUB_TEMA_QTD>>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
@@ -471,6 +472,7 @@ namespace Vivo_Apps_API.Controllers
                 });
             }
         }
+
         [HttpGet("GetQuestionsBySubTema")]
         [ProducesResponseType(typeof(Response<IEnumerable<JORNADA_QUESTION_DTO>>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
@@ -1617,6 +1619,39 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
+        [HttpGet("ValidateProvaDisponivel")]
+        [ProducesResponseType(typeof(Response<bool>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public async Task<JsonResult> ValidateProvaDisponivel(int ID_PROVA, int matricula)
+        {
+            try
+            {
+                var check = CD.JORNADA_BD_ANSWER_AVALIACAOs.Any(x => x.ID_PROVA == ID_PROVA && x.RE_AVALIADO == matricula);
+
+                return new JsonResult(new Response<bool>
+                {
+                    Data = check,
+                    Succeeded = true,
+                    Message = "A Prova foi finalizada com sucesso!",
+                    Errors = null,
+                });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    }
+                });
+            }
+        }
+
         [HttpGet("GetDetalhadoProvaByID")]
         [ProducesResponseType(typeof(Response<DETALHADO_PROVA_CRIADA_DTO>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
@@ -1736,15 +1771,18 @@ namespace Vivo_Apps_API.Controllers
 
                 CD.SaveChanges();
 
+                if (!Dt_fim.HasValue)
+                {
+                    Dt_fim = null;
+                }
+                else
+                {
+                    Dt_fim = Dt_fim.Value.AddDays(1).AddSeconds(-1);
+                }
+
                 foreach (var item in Questions) // Adiciona as perguntas selecionadas a lista que será inserida no banco
                 {
                     var canal = DePara.CanalCargoEnum(Cargo);
-
-                    if (!Dt_fim.HasValue)
-                    {
-                        Dt_fim = null;
-                    }
-
                     CD.JORNADA_BD_QUESTION_HISTORICOs.Add(new JORNADA_BD_QUESTION_HISTORICO
                     {
                         CANAL = (int)canal,
@@ -1755,8 +1793,8 @@ namespace Vivo_Apps_API.Controllers
                         ID_PROVA = entityrelacao.ID_PROVA,
                         CADERNO = proximocaderno,
                         TP_FORMS = Tipo_prova,
-                        DT_INICIO_AVALIACAO = Dt_inicio,
-                        DT_FINALIZACAO = Dt_fim ?? null,
+                        DT_INICIO_AVALIACAO = Dt_inicio.Value.Date,
+                        DT_FINALIZACAO = Dt_fim,
                         FIXA = Fixa,
                         REGIONAL = regional,
                         ELEGIVEL = Elegiveis
@@ -1806,15 +1844,14 @@ namespace Vivo_Apps_API.Controllers
                 DT_MOD = DateTime.Now
             }).Entity;
             CD.SaveChanges();
+            DateTime? Dt_fim = DateTime.TryParse(DT_FINAL, out DateTime result) ? result : null;
+            if (Dt_fim.HasValue)
+                Dt_fim = Dt_fim.Value.AddDays(1).AddSeconds(-1);
 
             foreach (var item in Formulario) // Adiciona as perguntas selecionadas a lista que será inserida no banco
             {
                 var canal = DePara.CanalCargoEnum((Cargos)CARGO);
 
-                if (string.IsNullOrEmpty(DT_FINAL))
-                {
-                    DT_FINAL = null;
-                }
 
                 CD.JORNADA_BD_QUESTION_HISTORICOs.Add(new JORNADA_BD_QUESTION_HISTORICO
                 {
@@ -1826,8 +1863,8 @@ namespace Vivo_Apps_API.Controllers
                     ID_PROVA = entityrelacao.ID_PROVA,
                     CADERNO = proximocaderno,
                     TP_FORMS = TIPO_PROVA,
-                    DT_INICIO_AVALIACAO = Convert.ToDateTime(DT_INIT),
-                    DT_FINALIZACAO = !string.IsNullOrEmpty(DT_FINAL) ? Convert.ToDateTime(DT_FINAL) : null,
+                    DT_INICIO_AVALIACAO = Convert.ToDateTime(DT_INIT).Date,
+                    DT_FINALIZACAO = Dt_fim,
                     FIXA = FIXA,
                     REGIONAL = REGIONAL,
                     ELEGIVEL = false
