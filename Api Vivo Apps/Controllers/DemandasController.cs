@@ -70,7 +70,7 @@ namespace Vivo_Apps_API.Controllers
                                 .Where(x => x.ID_SUB_FILA == src.ID_SUB_FILA)
                                 .Select(x => x.MATRICULA_RESPONSAVEL)
                                 .Distinct()
-                                .Contains(y.MATRICULA.Value)))
+                                .Contains(y.MATRICULA)))
                     );
                 cfg.CreateMap<DEMANDA_CAMPOS_FILA, DEMANDA_CAMPOS_FILA_DTO>();
 
@@ -836,7 +836,7 @@ namespace Vivo_Apps_API.Controllers
                 datafilters.AnalistaSuporte = Demanda_BD.ACESSOS_MOBILE.Where(x =>
                     Demanda_BD.DEMANDA_RESPONSAVEL_FILA
                             .Select(x => x.MATRICULA_RESPONSAVEL)
-                            .Distinct().Contains(x.MATRICULA.Value)
+                            .Distinct().Contains(x.MATRICULA)
                 ).ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider);
 
                 return new JsonResult(new Response<FilterFilaDemandasModel>
@@ -872,7 +872,7 @@ namespace Vivo_Apps_API.Controllers
                     .ProjectTo<DEMANDA_TIPO_FILA_DTO>(_mapper.ConfigurationProvider).AsEnumerable();
 
                 var analistassuporte = Demanda_BD.ACESSOS_MOBILE.Where(k => k.REGIONAL == regional).Where(k =>
-                            Demanda_BD.DEMANDA_RESPONSAVEL_FILA.Select(x => x.MATRICULA_RESPONSAVEL).Distinct().Contains(k.MATRICULA.Value)
+                            Demanda_BD.DEMANDA_RESPONSAVEL_FILA.Select(x => x.MATRICULA_RESPONSAVEL).Distinct().Contains(k.MATRICULA)
                         ).IgnoreAutoIncludes().ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider).AsEnumerable();
 
                 var options = new JsonSerializerOptions

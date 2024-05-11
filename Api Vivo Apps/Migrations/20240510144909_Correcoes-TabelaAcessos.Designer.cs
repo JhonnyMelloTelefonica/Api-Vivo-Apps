@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shared_Static_Class.DB_Context_Vivo_MAIS;
 
@@ -11,9 +12,11 @@ using Shared_Static_Class.DB_Context_Vivo_MAIS;
 namespace Vivo_Apps_API.Migrations
 {
     [DbContext(typeof(DemandasContext))]
-    partial class DemandasContextModelSnapshot : ModelSnapshot
+    [Migration("20240510144909_Correcoes-TabelaAcessos")]
+    partial class CorrecoesTabelaAcessos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -61,7 +64,8 @@ namespace Vivo_Apps_API.Migrations
                     b.Property<int?>("LOGIN_MOD")
                         .HasColumnType("int");
 
-                    b.Property<int>("MATRICULA")
+                    b.Property<int?>("MATRICULA")
+                        .IsRequired()
                         .HasColumnType("int");
 
                     b.Property<string>("NOME")
@@ -169,7 +173,12 @@ namespace Vivo_Apps_API.Migrations
                         .IsRequired()
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("DataContratoFim")
+                        .IsRequired()
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("DataContratoInicio")
+                        .IsRequired()
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("DataExtracao")
@@ -207,7 +216,6 @@ namespace Vivo_Apps_API.Migrations
                         .HasDefaultValue(0);
 
                     b.Property<Guid>("ID_RELACAO")
-                        .IsUnicode(false)
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Login")
@@ -215,12 +223,14 @@ namespace Vivo_Apps_API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("MATRICULA_SOLICITANTE")
-                        .IsUnicode(false)
                         .HasColumnType("int");
 
                     b.Property<string>("Matricula")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("MobileToken")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Nome")
                         .IsRequired()

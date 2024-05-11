@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shared_Static_Class.DB_Context_Vivo_MAIS;
 
@@ -11,9 +12,11 @@ using Shared_Static_Class.DB_Context_Vivo_MAIS;
 namespace Vivo_Apps_API.Migrations
 {
     [DbContext(typeof(DemandasContext))]
-    partial class DemandasContextModelSnapshot : ModelSnapshot
+    [Migration("20240510174430_DropMobileToke-AcessosTerceiros")]
+    partial class DropMobileTokeAcessosTerceiros
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -61,7 +64,8 @@ namespace Vivo_Apps_API.Migrations
                     b.Property<int?>("LOGIN_MOD")
                         .HasColumnType("int");
 
-                    b.Property<int>("MATRICULA")
+                    b.Property<int?>("MATRICULA")
+                        .IsRequired()
                         .HasColumnType("int");
 
                     b.Property<string>("NOME")
@@ -207,7 +211,6 @@ namespace Vivo_Apps_API.Migrations
                         .HasDefaultValue(0);
 
                     b.Property<Guid>("ID_RELACAO")
-                        .IsUnicode(false)
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Login")
@@ -215,7 +218,6 @@ namespace Vivo_Apps_API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("MATRICULA_SOLICITANTE")
-                        .IsUnicode(false)
                         .HasColumnType("int");
 
                     b.Property<string>("Matricula")
@@ -311,8 +313,6 @@ namespace Vivo_Apps_API.Migrations
 
                     b.HasIndex("ID_RELACAO")
                         .IsUnique();
-
-                    b.HasIndex("MATRICULA_SOLICITANTE");
 
                     b.ToTable("DEMANDA_ACESSOS", "Demandas");
                 });
@@ -925,15 +925,7 @@ namespace Vivo_Apps_API.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Shared_Static_Class.Data.ACESSOS_MOBILE", "Solicitante")
-                        .WithMany()
-                        .HasForeignKey("MATRICULA_SOLICITANTE")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Relacao");
-
-                    b.Navigation("Solicitante");
                 });
 
             modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_ARQUIVOS_RESPOSTA", b =>

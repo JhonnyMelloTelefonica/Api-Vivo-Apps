@@ -66,7 +66,7 @@ namespace Vivo_Apps_API.Hubs
                                 .Where(x => x.ID_SUB_FILA == src.ID_SUB_FILA)
                                 .Select(x => x.MATRICULA_RESPONSAVEL)
                                 .Distinct()
-                                .Contains(y.MATRICULA.Value)))
+                                .Contains(y.MATRICULA)))
                     );
                 cfg.CreateMap<DEMANDA_CAMPOS_FILA, DEMANDA_CAMPOS_FILA_DTO>();
 

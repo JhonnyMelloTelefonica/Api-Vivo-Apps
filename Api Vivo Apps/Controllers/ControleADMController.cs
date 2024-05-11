@@ -274,7 +274,7 @@ namespace Vivo_Apps_API.Controllers
                                 y.NOME.ToLower()
                                     .Contains(filter.Value.NomeSolicitante.ToLower()))
                                     .Select(y => y.MATRICULA)
-                                    .Contains(x.LOGIN_SOLICITANTE))
+                                    .Contains(x.LOGIN_SOLICITANTE.Value))
                         .Select(y => y.LOGIN_SOLICITANTE).Distinct();
 
                         users = users.Where(x => matriculasSolicitantes.Contains(x.LOGIN_SOLICITANTE)
@@ -508,7 +508,7 @@ namespace Vivo_Apps_API.Controllers
             }
             if (filter.Matricula is not null)
             {
-                pagedData = pagedData.Where(x => x.MATRICULA.Value == filter.Matricula);
+                pagedData = pagedData.Where(x => x.MATRICULA == filter.Matricula);
             }
             if (!string.IsNullOrEmpty(filter.Pdv))
             {
@@ -838,7 +838,7 @@ namespace Vivo_Apps_API.Controllers
                     ACESSOS_MOBILE user = CD.ACESSOS_MOBILEs.Find(usuario.ID);
 
                     if (user.EMAIL != usuario.EMAIL && CD.ACESSOS_MOBILEs.Any(x => x.EMAIL.Contains(usuario.EMAIL))
-                        || user.MATRICULA != usuario.MATRICULA && CD.ACESSOS_MOBILEs.Any(x => x.MATRICULA.Value == usuario.MATRICULA))
+                        || user.MATRICULA != usuario.MATRICULA && CD.ACESSOS_MOBILEs.Any(x => x.MATRICULA == usuario.MATRICULA))
                     {
                         return new JsonResult(new Response<string>
                         {
@@ -1803,7 +1803,7 @@ namespace Vivo_Apps_API.Controllers
                 }
                 if (filter.Matricula is not null)
                 {
-                    pagedData = pagedData.Where(x => x.MATRICULA.Value == filter.Matricula);
+                    pagedData = pagedData.Where(x => x.MATRICULA == filter.Matricula);
                 }
                 if (!string.IsNullOrEmpty(filter.Pdv))
                 {
@@ -1818,7 +1818,7 @@ namespace Vivo_Apps_API.Controllers
                 {
                     ID = x.ID,
                     EMAIL = x.EMAIL,
-                    MATRICULA = x.MATRICULA.Value,
+                    MATRICULA = x.MATRICULA,
                     SENHA = x.SENHA,
                     REGIONAL = x.REGIONAL,
                     CARGO = x.CARGO,
@@ -1954,9 +1954,9 @@ namespace Vivo_Apps_API.Controllers
                         Errors = new string[] { "matrícula existente!" },
                     });
                 }
-                else if (CD.ACESSOS_MOBILEs.Select(x => x.MATRICULA).Any(x => usuarios.Select(y => y.MATRICULA).ToList().Contains(x.Value)))
+                else if (CD.ACESSOS_MOBILEs.Select(x => x.MATRICULA).Any(x => usuarios.Select(y => y.MATRICULA).ToList().Contains(x)))
                 {
-                    IEnumerable<string> list = CD.ACESSOS_MOBILEs.Select(x => x.MATRICULA).Where(x => usuarios.Select(y => y.MATRICULA).ToList().Contains(x.Value)).Select(x => x + "\n");
+                    IEnumerable<string> list = CD.ACESSOS_MOBILEs.Select(x => x.MATRICULA).Where(x => usuarios.Select(y => y.MATRICULA).ToList().Contains(x)).Select(x => x + "\n");
 
                     return new JsonResult(new Response<IEnumerable<string>>
                     {

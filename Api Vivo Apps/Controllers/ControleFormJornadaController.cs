@@ -121,7 +121,7 @@ namespace Vivo_Apps_API.Controllers
                                 {
                                     ID = x.ID,
                                     EMAIL = x.EMAIL,
-                                    MATRICULA = x.MATRICULA.Value,
+                                    MATRICULA = x.MATRICULA,
                                     PDV = x.PDV,
                                     NOME = x.NOME,
                                     UserAvatar = x.UserAvatar,
@@ -2253,7 +2253,7 @@ namespace Vivo_Apps_API.Controllers
             {
                 JORNADA_BD_HIERARQUIum? PDVDivisão = CD.JORNADA_BD_HIERARQUIAs
                 .Where(x => x.RE_GA != null)
-                .Where(x => x.RE_GA == usuario.MATRICULA.Value).FirstOrDefault();
+                .Where(x => x.RE_GA == usuario.MATRICULA).FirstOrDefault();
 
                 if (PDVDivisão is not null)
                 {
@@ -2294,7 +2294,7 @@ namespace Vivo_Apps_API.Controllers
             {
                 JORNADA_BD_HIERARQUIum? PDVDivisão = CD.JORNADA_BD_HIERARQUIAs
                 .Where(x => x.RE_GP != null)
-                .Where(x => x.RE_GP == usuario.MATRICULA.Value).FirstOrDefault();
+                .Where(x => x.RE_GP == usuario.MATRICULA).FirstOrDefault();
 
                 if (PDVDivisão is not null)
                 {
@@ -2334,7 +2334,7 @@ namespace Vivo_Apps_API.Controllers
             {
                 JORNADA_BD_HIERARQUIum? PDVDivisão = CD.JORNADA_BD_HIERARQUIAs
                 .Where(x => x.RE_GV != null)
-                .Where(x => x.RE_GV == usuario.MATRICULA.Value).FirstOrDefault();
+                .Where(x => x.RE_GV == usuario.MATRICULA).FirstOrDefault();
 
                 if (PDVDivisão is not null)
                 {

@@ -114,7 +114,7 @@ namespace Vivo_Apps_API.Controllers
                 {
                     ID = y.ID,
                     EMAIL = y.EMAIL,
-                    MATRICULA = y.MATRICULA.Value,
+                    MATRICULA = y.MATRICULA,
                     SENHA = y.SENHA,
                     REGIONAL = y.REGIONAL,
                     CARGO = (Cargos)y.CARGO,
