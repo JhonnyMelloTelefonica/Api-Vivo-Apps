@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shared_Static_Class.DB_Context_Vivo_MAIS;
 
@@ -11,9 +12,11 @@ using Shared_Static_Class.DB_Context_Vivo_MAIS;
 namespace Vivo_Apps_API.Migrations
 {
     [DbContext(typeof(DemandasContext))]
-    partial class DemandasContextModelSnapshot : ModelSnapshot
+    [Migration("20240512205550_AddColumnDateAcessoTerceiros")]
+    partial class AddColumnDateAcessoTerceiros
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -165,9 +168,6 @@ namespace Vivo_Apps_API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("DATA_ABERTURA")
-                        .HasColumnType("datetime2");
-
                     b.Property<DateTime?>("DataCadastro")
                         .IsRequired()
                         .HasColumnType("datetime2");
@@ -209,6 +209,9 @@ namespace Vivo_Apps_API.Migrations
                         .HasColumnType("int")
                         .HasDefaultValue(0);
 
+                    b.Property<DateTime>("HoraAbertura")
+                        .HasColumnType("datetime2");
+
                     b.Property<Guid>("ID_RELACAO")
                         .IsUnicode(false)
                         .HasColumnType("uniqueidentifier");
@@ -218,6 +221,7 @@ namespace Vivo_Apps_API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("MATRICULA_SOLICITANTE")
+                        .IsUnicode(false)
                         .HasColumnType("int");
 
                     b.Property<string>("Matricula")
@@ -260,7 +264,7 @@ namespace Vivo_Apps_API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("REGIONAL")
+                    b.Property<string>("Regional")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -499,6 +503,11 @@ namespace Vivo_Apps_API.Migrations
                         .IsUnicode(false)
                         .HasColumnType("int");
 
+                    b.Property<string>("PRIORIDADE")
+                        .HasMaxLength(550)
+                        .IsUnicode(false)
+                        .HasColumnType("varchar(550)");
+
                     b.Property<string>("REGIONAL")
                         .HasMaxLength(10)
                         .IsUnicode(false)
@@ -702,20 +711,8 @@ namespace Vivo_Apps_API.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<DateTime>("DATA_ABERTURA")
-                        .HasColumnType("datetime2");
-
                     b.Property<int>("ID_CHAMADO")
                         .HasColumnType("int");
-
-                    b.Property<int>("MATRICULA_SOLICITANTE")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("PRIORIDADE")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("PRIORIDADE_SEGMENTO")
-                        .HasColumnType("bit");
 
                     b.Property<int>("Sequence")
                         .HasColumnType("int");
@@ -724,8 +721,6 @@ namespace Vivo_Apps_API.Migrations
                         .HasColumnType("int");
 
                     b.HasKey("ID");
-
-                    b.HasIndex("MATRICULA_SOLICITANTE");
 
                     b.ToTable("DEMANDA_RELACAO_CHAMADO", "Demandas");
                 });
@@ -1091,18 +1086,6 @@ namespace Vivo_Apps_API.Migrations
                     b.Navigation("Responsavel");
                 });
 
-            modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_RELACAO_CHAMADO", b =>
-                {
-                    b.HasOne("Shared_Static_Class.Data.ACESSOS_MOBILE", "Solicitante")
-                        .WithMany("DemandasTotais")
-                        .HasForeignKey("MATRICULA_SOLICITANTE")
-                        .HasPrincipalKey("MATRICULA")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Solicitante");
-                });
-
             modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_RESPONSAVEL_FILA", b =>
                 {
                     b.HasOne("Shared_Static_Class.Data.DEMANDA_SUB_FILA", "ID_SUB_FILANavigation")
@@ -1172,8 +1155,6 @@ namespace Vivo_Apps_API.Migrations
                     b.Navigation("DemandasResponsavel");
 
                     b.Navigation("DemandasSolicitadas");
-
-                    b.Navigation("DemandasTotais");
 
                     b.Navigation("RespostasDemandas");
                 });

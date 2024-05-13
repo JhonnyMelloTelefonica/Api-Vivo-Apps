@@ -35,7 +35,7 @@ namespace Vivo_Apps_API.Hubs
         public IHubContext<SuporteDemandaHub> _context;
         private readonly IMapper _mapper;
         public static IDictionary<string, ACESSOS_MOBILE_DTO> CurrentUsers = new Dictionary<string, ACESSOS_MOBILE_DTO>();
-        public static IEnumerable<PAINEL_DEMANDAS_CHAMADO_DTO> data = new List<PAINEL_DEMANDAS_CHAMADO_DTO>();
+        public static IEnumerable<DEMANDA_DTO> data = new List<DEMANDA_DTO>();
 
         public SuporteDemandaHub(IHubContext<SuporteDemandaHub> context, IDbContextFactory<DemandasContext> dbContextFactory)
         {
@@ -44,6 +44,7 @@ namespace Vivo_Apps_API.Hubs
             _context = context;
             var config = new MapperConfiguration(cfg =>
             {
+                cfg.CreateMap<DEMANDA_RELACAO_CHAMADO, DEMANDA_DTO>();
                 cfg.CreateMap<DEMANDA_CHAMADO, PAINEL_DEMANDAS_CHAMADO_DTO>();
 
                 cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_DTO>()
@@ -105,26 +106,24 @@ namespace Vivo_Apps_API.Hubs
         {
             try
             {
-                var dataBeforeFilter = Demanda_BD.DEMANDA_CHAMADO
-                    .Where(x => x.DATA_ABERTURA >= DateTime.Now.AddYears(-1) && x.DATA_ABERTURA <= DateTime.Now)
+                var dataBeforeFilter = Demanda_BD.DEMANDA_RELACAO_CHAMADO
+                    .Where(x => x.Respostas.First().DATA_RESPOSTA >= DateTime.Now.AddYears(-1)
+                        && x.Respostas.First().DATA_RESPOSTA <= DateTime.Now)
                     .IgnoreAutoIncludes()
                     .AsNoTracking();
 
+
                 var saida = dataBeforeFilter
-                    .Include(x => x.Campos)
-                    .Include(x => x.Relacao.Status)
-                    .Include(x => x.Fila)
-                    .Include(x => x.Responsavel)
-                    .Include(x => x.Solicitante)
-                    .ProjectTo<PAINEL_DEMANDAS_CHAMADO_DTO>(_mapper.ConfigurationProvider)
-                    .AsAsyncEnumerable();
-
-                //List<PAINEL_DEMANDAS_CHAMADO_DTO> result = new();
-
-                //foreach (var item in saida)
-                //{
-                //    result.Add(_mapper.Map<PAINEL_DEMANDAS_CHAMADO_DTO>(item));
-                //}
+                    .Include(x => x.ChamadoRelacao.Campos)
+                    .Include(x => x.ChamadoRelacao.Relacao.Status)
+                    .Include(x => x.ChamadoRelacao.Fila)
+                    .Include(x => x.ChamadoRelacao.Responsavel)
+                    .Include(x => x.ChamadoRelacao.Solicitante)
+                .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider)
+                .AsAsyncEnumerable();
+                //var saida = dataBeforeFilter
+                //    .ProjectTo<PAINEL_DEMANDAS_CHAMADO_DTO>(_mapper.ConfigurationProvider)
+                //    .AsAsyncEnumerable();
 
                 data = saida.ToBlockingEnumerable();
             }
@@ -155,35 +154,35 @@ namespace Vivo_Apps_API.Hubs
             await _context.Clients.Group(data.ID.ToString()).SendAsync("Update-Demanda", data);
         }
 
-        public async Task SetPriority(int matricula, IEnumerable<int> ids)
-        {
-            foreach (var item in data.Where(x => ids.Contains(x.ID)))
-            {
-                if (item.PRIORIDADE == "BAIXA")
-                    item.PRIORIDADE = "ALTA";
-                else if (item.PRIORIDADE == "ALTA")
-                    item.PRIORIDADE = "BAIXA";
-            }
+        //public async Task SetPriority(int matricula, IEnumerable<int> ids)
+        //{
+        //    foreach (var item in data.Where(x => ids.Contains(x.ID)))
+        //    {
+        //        if (item.PRIORIDADE == "BAIXA")
+        //            item.PRIORIDADE = "ALTA";
+        //        else if (item.PRIORIDADE == "ALTA")
+        //            item.PRIORIDADE = "BAIXA";
+        //    }
 
-            foreach (var item in Demanda_BD.DEMANDA_CHAMADO.Where(x => ids.Contains(x.ID)))
-            {
-                if (item.PRIORIDADE == "BAIXA")
-                    item.PRIORIDADE = "ALTA";
-                else if (item.PRIORIDADE == "ALTA")
-                    item.PRIORIDADE = "BAIXA";
+        //    foreach (var item in Demanda_BD.DEMANDA_CHAMADO.Where(x => ids.Contains(x.ID)))
+        //    {
+        //        if (item.PRIORIDADE == "BAIXA")
+        //            item.PRIORIDADE = "ALTA";
+        //        else if (item.PRIORIDADE == "ALTA")
+        //            item.PRIORIDADE = "BAIXA";
 
-                item.Historico_Prioridade.Add(new DEMANDA_HISTORICO_PRIORIDADE
-                {
-                    MAT_RESPONSAVEL = matricula,
-                    PRIORIDADE = item.PRIORIDADE,
-                    DATA = DateTime.Now
-                });
-            }
+        //        item.Historico_Prioridade.Add(new DEMANDA_HISTORICO_PRIORIDADE
+        //        {
+        //            MAT_RESPONSAVEL = matricula,
+        //            PRIORIDADE = item.PRIORIDADE,
+        //            DATA = DateTime.Now
+        //        });
+        //    }
 
-            Demanda_BD.SaveChanges();
+        //    Demanda_BD.SaveChanges();
 
-            await _context.Clients.All.SendAsync("TableDemandas", data);
-        }
+        //    await _context.Clients.All.SendAsync("TableDemandas", data);
+        //}
 
         public Task NewNotification(string senderName, string title, string message, string link, string regional)
         {

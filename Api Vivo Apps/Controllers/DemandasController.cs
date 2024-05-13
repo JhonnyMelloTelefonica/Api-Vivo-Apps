@@ -60,6 +60,7 @@ namespace Vivo_Apps_API.Controllers
             _logger = logger;
             var config = new MapperConfiguration(cfg =>
             {
+                cfg.CreateMap<DEMANDA_RELACAO_CHAMADO, DEMANDA_DTO>();
                 cfg.CreateMap<DEMANDA_TIPO_FILA, DEMANDA_TIPO_FILA_DTO>();
                 cfg.CreateMap<DEMANDA_SUB_FILA, PAINEL_DEMANDA_SUB_FILA_DTO>();
                 cfg.CreateMap<DEMANDA_SUB_FILA, DEMANDA_SUB_FILA_DTO>()
@@ -1162,6 +1163,9 @@ namespace Vivo_Apps_API.Controllers
                 {
                     Sequence = Demanda_BD.DEMANDA_RELACAO_CHAMADO.Count() + 1,
                     Tabela = DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao,
+                    DATA_ABERTURA = DateTime.Now,
+                    PRIORIDADE = false,
+                    PRIORIDADE_SEGMENTO = false,                    
                     ChamadoRelacao = new DEMANDA_CHAMADO
                     {
                         ID_FILA_CHAMADO = data.FILA_DTO.ID_SUB_FILA,
@@ -1169,7 +1173,6 @@ namespace Vivo_Apps_API.Controllers
                         MATRICULA_SOLICITANTE = int.Parse(data.MAT_SOLICITANTE),
                         DATA_ABERTURA = DateTime.Now,
                         DATA_FECHAMENTO = null,
-                        PRIORIDADE = "BAIXA",
                         REGIONAL = data.REGIONAL,
                         CLIENTE_ALTO_VALOR = null,
                         Campos = data.CAMPOS.Select(campo => new DEMANDA_CAMPOS_CHAMADO
@@ -1734,7 +1737,7 @@ namespace Vivo_Apps_API.Controllers
                     linqFiltered = linqFiltered.Where(x => x.DATA_ABERTURA >= Data.Item2.ElementAt(0) && x.DATA_ABERTURA <= Data.Item2.ElementAt(1));
 
                 if (Prioridade.HasValue)
-                    linqFiltered = linqFiltered.Where(x => Prioridade == true ? x.PRIORIDADE == "ALTA" : x.PRIORIDADE == "BAIXA");
+                    linqFiltered = linqFiltered.Where(x => Prioridade == true ? x.Relacao.PRIORIDADE : !x.Relacao.PRIORIDADE);
 
                 if (Data.Item4 is not null)
                     linqFiltered = linqFiltered.Where(x => x.Fila.ID_TIPO_FILA == Data.Item4.ID_TIPO_FILA);
@@ -1794,7 +1797,7 @@ namespace Vivo_Apps_API.Controllers
                         .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS == "DEVOLVIDO AO ANALISTA")
                         .Count();
                     DemandaPrioridade = linqFiltered
-                        .Where(x => x.PRIORIDADE == "ALTA")
+                        .Where(x => x.Relacao.PRIORIDADE)
                         .Count();
                 }
 
@@ -1837,6 +1840,45 @@ namespace Vivo_Apps_API.Controllers
                     },
                     Message = "Erro ao encontrar buscar informações"
                 });
+            }
+        }
+
+
+        [HttpGet("TestGetDemandas")]
+        [ProducesResponseType(typeof(Response<DEMANDAS_CHAMADO_DTO>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public async Task<JsonResult> TestGetDemandas()
+        {
+            try
+            {
+
+                var dataBeforeFilter = Demanda_BD.DEMANDA_RELACAO_CHAMADO
+    .Where(x => x.Respostas.First().DATA_RESPOSTA >= DateTime.Now.AddYears(-1)
+        && x.Respostas.First().DATA_RESPOSTA <= DateTime.Now)
+    .IgnoreAutoIncludes()
+    .AsNoTracking();
+
+
+                var saida = dataBeforeFilter
+                    .Include(x => x.ChamadoRelacao.Campos)
+                    .Include(x => x.ChamadoRelacao.Relacao.Status)
+                    .Include(x => x.ChamadoRelacao.Fila)
+                    .Include(x => x.ChamadoRelacao.Responsavel)
+                    .Include(x => x.ChamadoRelacao.Solicitante)
+                .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider)
+                .AsAsyncEnumerable();
+                //var demandas = Demanda_BD.DEMANDA_RELACAO_CHAMADO.ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider).ToList();
+
+                var options = new JsonSerializerOptions
+                {
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                };
+
+                return new JsonResult(Ok(saida), options);
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(BadRequest(ex));
             }
         }
 

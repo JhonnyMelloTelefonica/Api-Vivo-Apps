@@ -56,6 +56,9 @@ namespace Vivo_Apps_API.Controllers
                 {
                     Sequence = DB.DEMANDA_RELACAO_CHAMADO.Count() + 1,
                     Tabela = DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.AcessoRelacao,
+                    DATA_ABERTURA = DateTime.Now,
+                    PRIORIDADE = false,
+                    PRIORIDADE_SEGMENTO = false,
                     AcessoRelacao = body,
                     ID_CHAMADO = body.ID
                 };
@@ -91,7 +94,7 @@ namespace Vivo_Apps_API.Controllers
                 {
                     Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
                     Succeeded = true,
-                    Message = $"Solicitação de acessos criada, N° {body.ID}",
+                    Message = $"Solicitação de acessos criada, N° {demanda.Sequence}",
                 });
             }
             catch (Exception ex)
