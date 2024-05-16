@@ -33,6 +33,10 @@ using DocumentFormat.OpenXml.Vml.Spreadsheet;
 using System.Runtime.Intrinsics.X86;
 using StackExchange.Redis;
 using System.Data.Entity;
+using CoreHtmlToImage;
+using Microsoft.AspNetCore.StaticFiles;
+using Microsoft.AspNetCore.Components.Web;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -70,7 +74,7 @@ namespace Vivo_Apps_API.Controllers
                 DataTable dataTable = new DataTable();
                 string oracleConnectionString =
                     "Data Source=10.240.44.198:1521/VICPR;User Id=VPV_RGNL_NE;Password=NE_IC_2022";
-                
+
 
                 //string sqlServerConnectionString = "Data Source=10.124.100.153;Initial Catalog=Vivo_MAIS;TrustServerCertificate=True;User ID=RegionalNE;Password=RegionalNEvivo2019";
                 string oraclequery = @$"SELECT DISTINCT 
@@ -218,5 +222,42 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
+        [HttpPost("StringHtmlToImage")]
+        public async Task<IActionResult> StringHtmlToImage([FromBody] birthModel htmlpage)
+        {
+            try
+            {
+                var folderPath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "FilesTemplates", $"Birth{htmlpage.Usuário}.jpg");
+                var usericon = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "FilesTemplates", "usericon.png");
+                var ballons = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "FilesTemplates", "ballons.png");
+                var converter = new HtmlConverter();
+                var base64Encoded = System.IO.File.ReadAllText(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "FilesTemplates", "birthtemplate.html"));
+
+                base64Encoded = base64Encoded.Replace("@usericonpath", usericon);
+                base64Encoded = base64Encoded.Replace("@ballonspath", ballons);
+
+                var bytes = converter.FromHtmlString(base64Encoded,350);
+                System.IO.File.WriteAllBytes(folderPath, bytes);
+                var provider = new FileExtensionContentTypeProvider();
+                if (!provider.TryGetContentType(folderPath, out var contentType))
+                {
+                    contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                }
+
+                return Ok(File(bytes, contentType, folderPath));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
+        public class birthModel()
+        {
+            public string Nome { get; set; }
+            public string DataNascimento { get; set; }
+            public string Usuário { get; set; }
+            public string E_mail { get; set; }
+            public string Status { get; set; }
+        }
     }
 }

@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shared_Static_Class.DB_Context_Vivo_MAIS;
 
@@ -11,9 +12,11 @@ using Shared_Static_Class.DB_Context_Vivo_MAIS;
 namespace Vivo_Apps_API.Migrations
 {
     [DbContext(typeof(DemandasContext))]
-    partial class DemandasContextModelSnapshot : ModelSnapshot
+    [Migration("20240513173334_AjustesFKHistoricoChamados")]
+    partial class AjustesFKHistoricoChamados
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -158,9 +161,16 @@ namespace Vivo_Apps_API.Migrations
                         .HasColumnType("nvarchar(max)")
                         .HasDefaultValue("NULL");
 
+                    b.Property<string>("AceiteSenha")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Adabas")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Area")
+                        .HasColumnType("int");
 
                     b.Property<string>("Bairro")
                         .IsRequired()
@@ -238,6 +248,10 @@ namespace Vivo_Apps_API.Migrations
                         .IsUnicode(false)
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("Login")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<int>("MATRICULA_SOLICITANTE")
                         .HasColumnType("int");
 
@@ -253,7 +267,15 @@ namespace Vivo_Apps_API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("NomeMae")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Numero")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Obs")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -266,6 +288,10 @@ namespace Vivo_Apps_API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PIS")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Perfil")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -284,6 +310,10 @@ namespace Vivo_Apps_API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("Senha")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("Sexo")
                         .IsRequired()
                         .ValueGeneratedOnAdd()
@@ -298,11 +328,19 @@ namespace Vivo_Apps_API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("SubArea")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<string>("SubGrupo")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Telefone")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("TipoAcesso")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 

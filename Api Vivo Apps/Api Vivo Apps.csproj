@@ -15,12 +15,26 @@
 		<!-- Include the folder and its content in the publish output -->
 		<Content Include="FilesTemplates\**" CopyToPublishDirectory="PreserveNewest" />
 	</ItemGroup>
+	<ItemGroup>
+	  <None Remove="FilesTemplates\Layout-Externo-Novo.xlsx" />
+	</ItemGroup>
 
-
+	<ItemGroup>
+		<COMReference Include="Microsoft.Office.Interop.Excel">
+			<EmbedInteropTypes>true</EmbedInteropTypes>
+			<Guid>00020813-0000-0000-c000-000000000046</Guid>
+			<Isolated>false</Isolated>
+			<Lcid>0</Lcid>
+			<WrapperTool>primary</WrapperTool>
+			<VersionMajor>1</VersionMajor>
+			<VersionMinor>9</VersionMinor>
+		</COMReference>
+	</ItemGroup>
 	<ItemGroup>
 		<PackageReference Include="AutoMapper" Version="13.0.1" />
 		<PackageReference Include="Blazored.TextEditor" Version="1.1.0" />
 		<PackageReference Include="Blazorise.Bootstrap" Version="1.5.1" />
+		<PackageReference Include="CoreHtmlToImage" Version="1.0.6" />
 		<PackageReference Include="DocumentFormat.OpenXml" Version="3.0.0" />
 		<PackageReference Include="EfCore.SchemaCompare" Version="8.0.1" />
 		<PackageReference Include="EPPlus" Version="7.0.6" />
@@ -58,6 +72,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<Content Update="FilesTemplates\Layout-Externo-Novo.xlsx">
+		  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>
+		</Content>
 		<Content Update="FilesTemplates\usericon.png">
 			<ExcludeFromSingleFile>true</ExcludeFromSingleFile>
 			<CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
@@ -70,8 +87,8 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\Shared_Razor_Components\Shared_Razor_Components.csproj" />
-	  <ProjectReference Include="..\..\Shared_Static_Class\Shared_Static_Class.csproj" />
+		<ProjectReference Include="..\..\Shared_Razor_Components\Shared_Razor_Components.csproj" />
+		<ProjectReference Include="..\..\Shared_Static_Class\Shared_Static_Class.csproj" />
 	</ItemGroup>
 	<Import Project="..\..\Shared_Class_Vivo_Apps\Shared_Class_Vivo_Apps\Shared_Class_Vivo_Apps.projitems" Label="Shared" />
 </Project>

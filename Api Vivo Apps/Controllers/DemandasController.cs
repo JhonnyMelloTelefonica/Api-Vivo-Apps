@@ -999,11 +999,13 @@ namespace Vivo_Apps_API.Controllers
                 {
                     RESPOSTA = data.resposta,
                     ID_CHAMADO = data.IdChamado,
+                    ID_RELACAO_CHAMADO = data.ID_RELACAO_CHAMADO,
                     MATRICULA_RESPONSAVEL = data.MATRICULA,
                     DATA_RESPOSTA = data.Data,
                     Status = new DEMANDA_STATUS_CHAMADO
                     {
                         ID_CHAMADO = data.IdChamado,
+                        ID_RELACAO_CHAMADO = data.ID_RELACAO_CHAMADO,
                         STATUS = data.Status,
                         DATA = data.Data,
                         MAT_QUEM_REDIRECIONOU = data.MATRICULA,
@@ -1050,7 +1052,7 @@ namespace Vivo_Apps_API.Controllers
                 _hubContext.SendTableDemandas();
 
                 var demanda = await GetDemandaByID(data.IdChamado);
-                var options = new JsonSerializerOptions
+                var options = new JsonSerializerOptions 
                 {
                     ReferenceHandler = ReferenceHandler.IgnoreCycles
                 };
@@ -1091,6 +1093,7 @@ namespace Vivo_Apps_API.Controllers
                     RESPOSTA = data.resposta,
                     ID_CHAMADO = data.IdChamado,
                     MATRICULA_RESPONSAVEL = data.MATRICULA,
+                    ID_RELACAO_CHAMADO = data.ID_RELACAO_CHAMADO,
                     DATA_RESPOSTA = data.Data,
                     Status = null,
                     ARQUIVOS = data.Arquivos.Any() ? data.Arquivos.Select(x => new DEMANDA_ARQUIVOS_RESPOSTA
@@ -1166,6 +1169,7 @@ namespace Vivo_Apps_API.Controllers
                     DATA_ABERTURA = DateTime.Now,
                     PRIORIDADE = false,
                     PRIORIDADE_SEGMENTO = false,                    
+                    MATRICULA_SOLICITANTE = int.Parse(data.MAT_SOLICITANTE),
                     ChamadoRelacao = new DEMANDA_CHAMADO
                     {
                         ID_FILA_CHAMADO = data.FILA_DTO.ID_SUB_FILA,
@@ -1293,7 +1297,8 @@ namespace Vivo_Apps_API.Controllers
                     Data = new
                     {
                         responsavel = retorno,
-                        demanda = demandaCompleta
+                        demanda = demandaCompleta,
+                        relacao = demanda
                     },
                     Succeeded = true,
                     Message = $"Tudo certo!",
@@ -1669,11 +1674,12 @@ namespace Vivo_Apps_API.Controllers
         [HttpGet("GetDemandaById")]
         [ProducesResponseType(typeof(Response<DEMANDAS_CHAMADO_DTO>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public async Task<JsonResult> GetDemandaById(int IdDemanda)
+        public async Task<JsonResult> GetDemandaById(Guid IdDemanda)
         {
             try
             {
-                var demanda = await GetDemandaByID(IdDemanda);
+                var id = Demanda_BD.DEMANDA_RELACAO_CHAMADO.Find(IdDemanda);
+                var demanda = await GetDemandaByID(id.ID_CHAMADO);
                 var options = new JsonSerializerOptions
                 {
                     ReferenceHandler = ReferenceHandler.IgnoreCycles

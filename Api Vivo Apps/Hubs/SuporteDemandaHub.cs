@@ -154,35 +154,35 @@ namespace Vivo_Apps_API.Hubs
             await _context.Clients.Group(data.ID.ToString()).SendAsync("Update-Demanda", data);
         }
 
-        //public async Task SetPriority(int matricula, IEnumerable<int> ids)
-        //{
-        //    foreach (var item in data.Where(x => ids.Contains(x.ID)))
-        //    {
-        //        if (item.PRIORIDADE == "BAIXA")
-        //            item.PRIORIDADE = "ALTA";
-        //        else if (item.PRIORIDADE == "ALTA")
-        //            item.PRIORIDADE = "BAIXA";
-        //    }
+        public async Task SetPriority(int matricula, IEnumerable<Guid> ids)
+        {
+            foreach (var item in data.Where(x => ids.Contains(x.ID)))
+            {
+                if (!item.PRIORIDADE)
+                    item.PRIORIDADE = true;
+                else if (item.PRIORIDADE)
+                    item.PRIORIDADE = false;
+            }
 
-        //    foreach (var item in Demanda_BD.DEMANDA_CHAMADO.Where(x => ids.Contains(x.ID)))
-        //    {
-        //        if (item.PRIORIDADE == "BAIXA")
-        //            item.PRIORIDADE = "ALTA";
-        //        else if (item.PRIORIDADE == "ALTA")
-        //            item.PRIORIDADE = "BAIXA";
+            foreach (var item in Demanda_BD.DEMANDA_RELACAO_CHAMADO.Where(x => ids.Contains(x.ID)))
+            {
+                if (!item.PRIORIDADE)
+                    item.PRIORIDADE = true;
+                else if (item.PRIORIDADE)
+                    item.PRIORIDADE = false;
 
-        //        item.Historico_Prioridade.Add(new DEMANDA_HISTORICO_PRIORIDADE
-        //        {
-        //            MAT_RESPONSAVEL = matricula,
-        //            PRIORIDADE = item.PRIORIDADE,
-        //            DATA = DateTime.Now
-        //        });
-        //    }
+                item.Historico_Prioridade.Add(new CHAMADO_HISTORICO_PRIORIDADE
+                {
+                    MAT_RESPONSAVEL = matricula,
+                    PRIORIDADE = item.PRIORIDADE,
+                    DATA = DateTime.Now
+                });
+            }
 
-        //    Demanda_BD.SaveChanges();
+            Demanda_BD.SaveChanges();
 
-        //    await _context.Clients.All.SendAsync("TableDemandas", data);
-        //}
+            await _context.Clients.All.SendAsync("TableDemandas", data);
+        }
 
         public Task NewNotification(string senderName, string title, string message, string link, string regional)
         {
