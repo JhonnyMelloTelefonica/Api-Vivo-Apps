@@ -25,6 +25,7 @@ using Shared_Class_Vivo_Apps.ModelDTO;
 using Microsoft.Extensions.Caching.Distributed;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using Blazorise;
+using KGySoft.CoreLibraries;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -54,16 +55,28 @@ namespace Vivo_Apps_API.Controllers
                 cfg.CreateMap<JORNADA_BD_QUESTION_HISTORICO, PROVA_REALIZADA_DTO>()
                 .ForMember(
                     dest => dest.ID_QUESTION,
-                    opt => opt.MapFrom(src => CD.JORNADA_BD_QUESTIONs.Where(x => x.ID_QUESTION == src.ID_QUESTION.Value).FirstOrDefault()))
+                    opt => opt.MapFrom(src => CD.JORNADA_BD_QUESTIONs.FirstOrDefault(x => x.ID_QUESTION == (src.ID_QUESTION ?? 0) )))
                 .ForMember(
                     dest => dest.CANAL,
-                    opt => opt.MapFrom(src => ((Canal)src.CANAL)))
+                    opt => opt.MapFrom(src => src.CANAL.HasValue ? (Canal)src.CANAL.Value : Canal.ADM))
                 .ForMember(
                     dest => dest.CARGO,
-                    opt => opt.MapFrom(src => ((Cargos)src.CARGO)))
+                    opt => opt.MapFrom(src => src.CARGO.HasValue ? (Cargos)src.CARGO.Value : Cargos.ADM))
                 .ForMember(
                     dest => dest.ID_CRIADOR,
-                    opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs.Where(x => x.MATRICULA == src.ID_CRIADOR).FirstOrDefault()));
+                    opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs.First(x => x.MATRICULA == src.ID_CRIADOR))
+                    //)
+                    //.ForMember(
+                    //    dest => dest.Qtd_Respostas,
+                    //    opt => opt.MapFrom(src => CD.JORNADA_BD_ANSWER_AVALIACAOs.Where(y => y.ID_PROVA == src.ID_PROVA).Count()))
+                    //.ForMember(
+                    //    dest => dest.Qtd_Perguntas,
+                    //    opt => opt.MapFrom(src => CD.JORNADA_BD_QUESTION_HISTORICOs.Where(y => y.ID_PROVA == src.ID_PROVA).Count()))
+                    //.ForMember(
+                    //    dest => dest.Sum_nota,
+                    //    opt => opt.MapFrom(src => CD.JORNADA_BD_ANSWER_AVALIACAOs.Where(y => y.ID_PROVA == src.ID_PROVA).Select(x => x.NOTA).Sum())
+                    );
+
 
                 cfg.CreateMap<JORNADA_BD_QUESTION_HISTORICO, DETALHADO_PROVA_CRIADA_DTO>()
                 .ForMember(
@@ -1468,7 +1481,7 @@ namespace Vivo_Apps_API.Controllers
             {
                 var DataProvas = CD.JORNADA_BD_QUESTION_HISTORICOs
                     .Where(x => x.ID_CRIADOR == filter.Value.Matricula_Criador
-                    && x.REGIONAL == filter.Value.REGIONAL && x.ID_PROVA != null);
+                    && x.REGIONAL == filter.Value.REGIONAL && x.ID_PROVA != 0);
                 // Filtra por Matricula de quem está fazendo a requisição
 
 
@@ -1523,35 +1536,31 @@ namespace Vivo_Apps_API.Controllers
                 //    }
                 //}
 
+                //var teste = DataProvas
+                //    .GroupBy(x => x.ID_PROVA)
+                //    .Select(x => x.FirstOrDefault())
+                //    .ToList().Select(x=> _mapper.Map<PROVA_REALIZADA_DTO>(x));
+                    //.ProjectTo<PROVA_REALIZADA_DTO>(_mapper.ConfigurationProvider)
+
                 var Provas = DataProvas
-                    .ProjectTo<PROVA_REALIZADA_DTO>(_mapper.ConfigurationProvider)
                     .GroupBy(x => x.ID_PROVA)
-                    .Select(x => new PROVA_REALIZADA_DTO()
+                    .Select(x => x.FirstOrDefault())
+                    .ToList().Select(x => _mapper.Map<PROVA_REALIZADA_DTO>(x))
+                    .Select(x =>
                     {
-                        ID_PROVA = x.Select(y => y.ID_PROVA).FirstOrDefault(),
-                        ID_CRIADOR = x.Select(y => y.ID_CRIADOR).FirstOrDefault(),
-                        TP_FORMS = x.Select(y => y.TP_FORMS).FirstOrDefault(),
-                        CARGO = x.Select(y => y.CARGO).FirstOrDefault(),
-                        ELEGIVEL = x.Select(y => y.ELEGIVEL).FirstOrDefault(),
-                        CANAL = x.Select(y => y.CANAL).FirstOrDefault(),
-                        FIXA = x.Select(y => y.FIXA).FirstOrDefault(),
-                        CADERNO = x.Select(y => y.CADERNO).FirstOrDefault(),
-                        DT_CRIACAO = x.Select(y => y.DT_CRIACAO).FirstOrDefault(),
-                        DT_INICIO_AVALIACAO = x.Select(y => y.DT_INICIO_AVALIACAO).FirstOrDefault(),
-                        DT_FINALIZACAO = x.Select(y => y.DT_FINALIZACAO).FirstOrDefault(),
-                        Temas = new(),
-                        SubTemas = new(),
-                        Qtd_Respostas = CD.JORNADA_BD_ANSWER_AVALIACAOs.Where(y => y.ID_PROVA == x.Select(k => k.ID_PROVA).FirstOrDefault()).Count(),
-                        Qtd_Perguntas = x.Count(),
-                        Sum_nota = CD.JORNADA_BD_ANSWER_AVALIACAOs
-                                    .Where(y => y.ID_PROVA == x.Select(k => k.ID_PROVA).FirstOrDefault())
-                                    .Select(x => x.NOTA).Sum()
-                    }).AsQueryable();
+                        x.Qtd_Respostas = CD.JORNADA_BD_ANSWER_AVALIACAOs.Where(y => y.ID_PROVA == x.ID_PROVA).Count();
+                        x.Qtd_Perguntas = CD.JORNADA_BD_QUESTION_HISTORICOs.Where(y => y.ID_PROVA == x.ID_PROVA).Count();
+                        x.Sum_nota = CD.JORNADA_BD_ANSWER_AVALIACAOs.Where(y => y.ID_PROVA == x.ID_PROVA).Select(k => k.NOTA).Sum();
+                        return x;
+                    });
 
+//                Qtd_Respostas, CD.JORNADA_BD_ANSWER_AVALIACAOs.Where(y => y.ID_PROVA == src.ID_PROVA).Count(),
+//Qtd_Perguntas, CD.JORNADA_BD_QUESTION_HISTORICOs.Where(y => y.ID_PROVA == src.ID_PROVA).Count(),
+//Sum_nota, CD.JORNADA_BD_ANSWER_AVALIACAOs.Where(y => y.ID_PROVA == src.ID_PROVA).Select(x => x.NOTA).Sum(),
 
-                var Data = Provas.OrderByDescending(x => x.ID_PROVA)
+                var Data = Provas
                     .Skip((filter.PageNumber - 1) * filter.PageSize)
-                    .Take(filter.PageSize).ToList();
+                    .Take(filter.PageSize).AsEnumerable();
 
 
                 var totalRecords = Provas.Count();

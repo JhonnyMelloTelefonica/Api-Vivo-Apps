@@ -110,17 +110,26 @@ namespace Vivo_Apps_API.Controllers
                     dest => dest.Respostas,
                     opt => opt.MapFrom(src => src.Relacao.Respostas)
                     );
+
                 cfg.CreateMap<DEMANDA_CHAMADO, DEMANDAS_CHAMADO_DTO>()
                 .ForMember(
                     dest => dest.Respostas,
                     opt => opt.MapFrom(src => src.Relacao.Respostas)
                     );
+
+                cfg.CreateMap<DEMANDA_ACESSOS, ACESSO_TERCEIROS_DTO>()
+                .ForMember(
+                    dest => dest.Respostas,
+                    opt => opt.MapFrom(src => src.Relacao.Respostas)
+                    );
+
                 cfg.CreateMap<DEMANDA_CHAMADO_RESPOSTA, DEMANDA_CHAMADO_RESPOSTA_DTO>();
                 cfg.CreateMap<DEMANDA_ARQUIVOS_RESPOSTA, DEMANDA_ARQUIVOS_RESPOSTA_DTO>()
                 .ForMember(
                     dest => dest.ARQUIVO,
                     opt => opt.MapFrom(src => ConvertFile(src.ARQUIVO))
                     );
+
             });
             _mapper = config.CreateMapper();
         }
@@ -1032,10 +1041,12 @@ namespace Vivo_Apps_API.Controllers
                 //});
 
                 var chamado = Demanda_BD.DEMANDA_CHAMADO.Find(data.IdChamado);
+                var chamado_relacao = Demanda_BD.DEMANDA_RELACAO_CHAMADO.Find(data.ID_RELACAO_CHAMADO);
 
                 if (data.MATRICULA_REDIRECIONADO.HasValue)
                 {
                     chamado.MATRICULA_RESPONSAVEL = data.MATRICULA_REDIRECIONADO;
+                    chamado_relacao.MATRICULA_RESPONSAVEL = data.MATRICULA_REDIRECIONADO;
                 }
 
                 if ("CONCLUÍDO" == data.Status)
@@ -1052,7 +1063,7 @@ namespace Vivo_Apps_API.Controllers
                 _hubContext.SendTableDemandas();
 
                 var demanda = await GetDemandaByID(data.IdChamado);
-                var options = new JsonSerializerOptions 
+                var options = new JsonSerializerOptions
                 {
                     ReferenceHandler = ReferenceHandler.IgnoreCycles
                 };
@@ -1168,8 +1179,9 @@ namespace Vivo_Apps_API.Controllers
                     Tabela = DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao,
                     DATA_ABERTURA = DateTime.Now,
                     PRIORIDADE = false,
-                    PRIORIDADE_SEGMENTO = false,                    
+                    PRIORIDADE_SEGMENTO = false,
                     MATRICULA_SOLICITANTE = int.Parse(data.MAT_SOLICITANTE),
+                    MATRICULA_RESPONSAVEL = responsavel,
                     ChamadoRelacao = new DEMANDA_CHAMADO
                     {
                         ID_FILA_CHAMADO = data.FILA_DTO.ID_SUB_FILA,
@@ -1710,6 +1722,46 @@ namespace Vivo_Apps_API.Controllers
                 });
             }
         }
+        [HttpGet("GetAcessoById")]
+        [ProducesResponseType(typeof(Response<ACESSO_TERCEIROS_DTO>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public async Task<JsonResult> GetAcessoById(Guid IdAcesso)
+        {
+            try
+            {
+                var id = Demanda_BD.DEMANDA_RELACAO_CHAMADO.Find(IdAcesso);
+                var demanda = await GetAcessoByID(id.ID_CHAMADO);
+
+                var options = new JsonSerializerOptions
+                {
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                };
+
+                return new JsonResult(
+                  new Response<ACESSO_TERCEIROS_DTO>
+                  {
+                      Data = demanda,
+                      Succeeded = true,
+                      Message = "Tudo Certo"
+                  }, options);
+
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Erro ao encontrar buscar informações",
+                    Succeeded = false,
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace,
+                        ex.Source
+                    },
+                    Message = "Erro ao encontrar buscar informações"
+                });
+            }
+        }
 
         [HttpPost("GetDataDash")]
         [ProducesResponseType(typeof(Response<DEMANDAS_CHAMADO_DTO>), 200)]
@@ -1910,6 +1962,24 @@ namespace Vivo_Apps_API.Controllers
                             .ThenInclude(x => x.ARQUIVOS)
                     .ProjectTo<DEMANDAS_CHAMADO_DTO>(_mapper.ConfigurationProvider)
                     .First(x => x.ID == IdDemanda);
+
+        private async Task<ACESSO_TERCEIROS_DTO> GetAcessoByID(int IdAcesso)
+            => Demanda_BD.DEMANDA_ACESSOS
+                    .Include(x => x.Responsavel)
+                    .Include(x => x.Solicitante)
+                    .Include(x => x.Relacao)
+                        .ThenInclude(x => x.Respostas)
+                            .ThenInclude(x => x.Responsavel)
+                                .ThenInclude(x => x.ResponsavelDemandasTotais)
+                    .Include(x => x.Relacao)
+                        .ThenInclude(x => x.Respostas)
+                            .ThenInclude(x => x.Status)
+                    .Include(x => x.Relacao)
+                        .ThenInclude(x => x.Respostas)
+                            .ThenInclude(x => x.ARQUIVOS)
+                    .IgnoreAutoIncludes()
+                    .ProjectTo<ACESSO_TERCEIROS_DTO>(_mapper.ConfigurationProvider)
+                    .First(x => x.ID == IdAcesso);
 
         public static byte[] ConvertFile(byte[] Unconvertedfiles)
         {

@@ -121,18 +121,24 @@ namespace Vivo_Apps_API.Hubs
                 var dataBeforeFilter = Demanda_BD.DEMANDA_RELACAO_CHAMADO
                     .Where(x => x.Respostas.First().DATA_RESPOSTA >= DateTime.Now.AddYears(-1)
                         && x.Respostas.First().DATA_RESPOSTA <= DateTime.Now)
-                    .IgnoreAutoIncludes()
                     .AsNoTracking();
 
                 var saida = dataBeforeFilter
-                    .IgnoreAutoIncludes()
+                    //.Include(x=> x.ChamadoRelacao)
+                    //    .ThenInclude(x=> x.Solicitante)
+                    //.Include(x => x.ChamadoRelacao)
+                    //.ThenInclude(x => x.Responsavel)
+                    //.Include(x => x.ChamadoRelacao)
+                    //    .ThenInclude(x => x.Fila)
+                    .Include(x => x.Responsavel)
+                    .Include(x => x.Solicitante)
                     .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider);
 
                 //var saida = dataBeforeFilter
                 //    .ProjectTo<PAINEL_DEMANDAS_CHAMADO_DTO>(_mapper.ConfigurationProvider)
                 //    .AsAsyncEnumerable();
 
-                data = saida.AsEnumerable();
+                data = saida.ToList();
                 return Task.CompletedTask;
             }
             catch (Exception ex)
@@ -256,7 +262,7 @@ namespace Vivo_Apps_API.Hubs
 
             Demanda_BD.SaveChanges();
 
-            await _context.Clients.All.SendAsync("TableDemandas", data);
+            await SendTableDemandas();
         }
 
         public Task NewNotification(string senderName, string title, string message, string link, string regional)

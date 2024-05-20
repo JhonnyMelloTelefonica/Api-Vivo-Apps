@@ -261,7 +261,7 @@ namespace Vivo_Apps_API.Controllers
                 // BUSCA PELO LOGIN DO SOLICITANTE
                 if (!filter.Value.IsSuporte.Value)
                 {
-                    users = users.Where(x => filter.Value.LOGIN_SOLICITANTE.Contains(x.LOGIN_SOLICITANTE));
+                    users = users.Where(x => filter.Value.LOGIN_SOLICITANTE.Contains(x.LOGIN_SOLICITANTE.Value));
                 }
 
                 if (filter.Value.NomeSolicitante is not null)
