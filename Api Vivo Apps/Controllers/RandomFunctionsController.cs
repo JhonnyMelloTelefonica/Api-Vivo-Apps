@@ -233,18 +233,23 @@ namespace Vivo_Apps_API.Controllers
                 var converter = new HtmlConverter();
                 var base64Encoded = System.IO.File.ReadAllText(System.IO.Path.Combine(Directory.GetCurrentDirectory(), "FilesTemplates", "birthtemplate.html"));
 
-                base64Encoded = base64Encoded.Replace("@usericonpath", usericon);
+                base64Encoded = base64Encoded.Replace("@usericonpath", "data:image/png;base64," + Convert.ToBase64String(htmlpage.Image));
                 base64Encoded = base64Encoded.Replace("@ballonspath", ballons);
 
-                var bytes = converter.FromHtmlString(base64Encoded,350);
+                var bytes = converter.FromHtmlString(base64Encoded,340);
                 System.IO.File.WriteAllBytes(folderPath, bytes);
                 var provider = new FileExtensionContentTypeProvider();
                 if (!provider.TryGetContentType(folderPath, out var contentType))
                 {
                     contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
                 }
+                var html = new
+                {
+                    content_type = "image/jpg",
+                    content = System.IO.File.ReadAllBytes(folderPath)
+                };
 
-                return Ok(File(bytes, contentType, folderPath));
+                return Ok(new { file = File(bytes, contentType, folderPath), html = html});
             }
             catch (Exception ex)
             {
@@ -258,6 +263,7 @@ namespace Vivo_Apps_API.Controllers
             public string Usuário { get; set; }
             public string E_mail { get; set; }
             public string Status { get; set; }
+            public byte[] Image { get; set; }
         }
     }
 }

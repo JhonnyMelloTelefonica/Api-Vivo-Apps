@@ -16,15 +16,21 @@ using System.Text.Json;
 using TableDependency.SqlClient.Base.Messages;
 using Vivo_Apps_API.Controllers;
 using Shared_Static_Class.Model_DTO;
+using DocumentFormat.OpenXml.Office2010.PowerPoint;
+using StackExchange.Redis;
+using System.Drawing;
 
 namespace Vivo_Apps_API.Hubs
 {
     public interface ISuporteDemandaHub
     {
-        Task GetTable(string? regional);
+        Task GetTable(string? connectionId = null);
         Task NewNotification(string senderName, string title, string message, string link, string regional);
         Task NewNotificationByUser(int matricula, DEMANDA_CHAMADO content);
-        Task SendTableDemandas();
+        Task SendTableDemandas(int? matricula = null);
+        /** Este metódo indica para o HUB que as demandas precisam ser atualizadas 
+         * Caso seja passado o paramêtro de alguma matrícula, o HUB apenas notifica a matrícula em questão se ela estiver conectada 
+        **/
         Task UpdateDemanda(DEMANDAS_CHAMADO_DTO data);
     }
 
@@ -36,7 +42,6 @@ namespace Vivo_Apps_API.Hubs
         private readonly IMapper _mapper;
         public static IDictionary<string, ACESSOS_MOBILE_DTO> CurrentUsers = new Dictionary<string, ACESSOS_MOBILE_DTO>();
         public static IEnumerable<DEMANDA_DTO> data = new List<DEMANDA_DTO>();
-
         public SuporteDemandaHub(IHubContext<SuporteDemandaHub> context, IDbContextFactory<DemandasContext> dbContextFactory)
         {
             DbFactory = dbContextFactory;
@@ -55,6 +60,10 @@ namespace Vivo_Apps_API.Hubs
                 .ForMember(
                     dest => dest.CANAL,
                     opt => opt.MapFrom(src => (Canal)src.CANAL)
+                    )
+                .ForMember(
+                    dest => dest.Perfis,
+                    opt => opt.MapFrom(src => Demanda_BD.PERFIL_USUARIO.Where(x => x.MATRICULA == src.MATRICULA))
                     );
 
                 cfg.CreateMap<DEMANDA_TIPO_FILA, DEMANDA_TIPO_FILA_DTO>();
@@ -102,50 +111,116 @@ namespace Vivo_Apps_API.Hubs
             _mapper = config.CreateMapper();
         }
 
-        protected async void GetAllAsync()
+
+        protected Task GetAllAsync(int? matricula = null)
         {
             try
             {
+                /** Sempre utilizamos apenas as demandas/sol. acessos do último ano **/
+
                 var dataBeforeFilter = Demanda_BD.DEMANDA_RELACAO_CHAMADO
                     .Where(x => x.Respostas.First().DATA_RESPOSTA >= DateTime.Now.AddYears(-1)
                         && x.Respostas.First().DATA_RESPOSTA <= DateTime.Now)
                     .IgnoreAutoIncludes()
                     .AsNoTracking();
 
-
                 var saida = dataBeforeFilter
-                    .Include(x => x.ChamadoRelacao.Campos)
-                    .Include(x => x.ChamadoRelacao.Relacao.Status)
-                    .Include(x => x.ChamadoRelacao.Fila)
-                    .Include(x => x.ChamadoRelacao.Responsavel)
-                    .Include(x => x.ChamadoRelacao.Solicitante)
-                .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider)
-                .AsAsyncEnumerable();
+                    .IgnoreAutoIncludes()
+                    .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider);
+
                 //var saida = dataBeforeFilter
                 //    .ProjectTo<PAINEL_DEMANDAS_CHAMADO_DTO>(_mapper.ConfigurationProvider)
                 //    .AsAsyncEnumerable();
 
-                data = saida.ToBlockingEnumerable();
+                data = saida.AsEnumerable();
+                return Task.CompletedTask;
             }
             catch (Exception ex)
             {
+                return Task.CompletedTask;
             }
         }
 
-        public async Task SendTableDemandas()
+        public async Task SendTableDemandas(int? matricula = null)
         {
-            GetAllAsync();
-            await GetTable(null);
-        }
-        public async Task GetTable(string? regional)
-        {
-            if (string.IsNullOrEmpty(regional))
+            GetAllAsync(matricula);
+
+            if (matricula != null)
             {
-                await _context.Clients.All.SendAsync("TableDemandas", data);
+                var ids = CurrentUsers.Where(x => x.Value.MATRICULA == matricula);
+
+                foreach (var item in ids)
+                {
+                    await GetTable(item.Key);
+                }
             }
             else
             {
-                await _context.Clients.Group(regional).SendAsync("TableDemandas", data);
+                foreach (var item in CurrentUsers)
+                {
+                    await GetTable(item.Key);
+                }
+            }
+        }
+        /** Neste método é onde enviamos para cada usuário online os novos valores da tabela  **/
+        public async Task GetTable(string? connectionId = null)
+        {
+            if (connectionId != null)
+            {
+                CurrentUsers.TryGetValue(connectionId, out var user);
+                if (user != null)
+                {
+                    switch (user.role)
+                    {
+                        /** Consulta para usuários básicos **/
+                        case Controle_Demanda_role.BASICO:
+                            var first20 = data.OrderByDescending(x => x.PRIORIDADE)
+                            .ThenByDescending(x => x.PRIORIDADE_SEGMENTO)
+                            .ThenBy(x => x.Sequence).Take(20);
+
+                            var dataresp = data.Where(x => x.MATRICULA_SOLICITANTE == user.MATRICULA);
+
+                            var datatotalbasico = dataresp.UnionBy(first20, x => x.ID);
+
+                            await _context.Clients.Client(connectionId)
+                                .SendAsync("TableDemandas", datatotalbasico);
+                            break;
+
+                        /** Consulta para analistas do suporte que não tratam solicitação de acessos terceiro **/
+                        case Controle_Demanda_role.ANALISTA:
+
+                            await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}")
+                                .SendAsync("TableDemandas",
+                                data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
+                                && x.ChamadoRelacao.Responsavel.MATRICULA == user.MATRICULA));
+                            break;
+
+                        /** Consulta para analistas do suporte que tratam solicitação de acessos terceiro **/
+                        case Controle_Demanda_role.ANALISTA_ACESSO:
+                            var datademanda = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
+                                && x.ChamadoRelacao.Responsavel.MATRICULA == user.MATRICULA);
+                            var dataacesso = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
+                                && x.ChamadoRelacao.Responsavel.MATRICULA == user.MATRICULA);
+
+                            var datatotalanalistaacesso = datademanda.UnionBy(dataacesso, x => x.ID);
+
+                            await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}").SendAsync("TableDemandas", datatotalanalistaacesso);
+                            break;
+
+                        /** Consulta para gerente do suporte **/
+                        case Controle_Demanda_role.GERENTE:
+                            var rgdatademanda = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
+                                    && x.ChamadoRelacao.REGIONAL == user.REGIONAL);
+
+                            var rgdataacesso = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
+                                && x.ChamadoRelacao.REGIONAL == user.REGIONAL);
+
+                            var rgdatatotal = rgdatademanda.UnionBy(rgdataacesso, x => x.ID);
+
+                            await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}").SendAsync("TableDemandas", rgdatatotal);
+                            break;
+                    }
+                }
             }
         }
 
@@ -225,30 +300,34 @@ namespace Vivo_Apps_API.Hubs
 
                     var user = _mapper.Map<ACESSOS_MOBILE_DTO>(saida);
 
+
+                    var demandaid = Context?.GetHttpContext()?.GetRouteValue("demandaid") as string;
+
+                    if (demandaid != string.Empty && demandaid != null)
+                    {
+                        await Groups.AddToGroupAsync(Context?.ConnectionId, $"{demandaid}");
+                    }
+                    else
+                    {
+
+                        var regional = Context?.GetHttpContext()?.GetRouteValue("regional") as string;
+                        var rolestring = Context?.GetHttpContext()?.GetRouteValue("role") as string;
+                        if (rolestring != string.Empty && regional != string.Empty)
+                        {
+                            var role = (Controle_Demanda_role)int.Parse(rolestring);
+                            user.role = role;
+                            if (user.role != Controle_Demanda_role.BASICO)
+                            {
+                                await Groups.AddToGroupAsync(Context?.ConnectionId, $"{regional}-{rolestring}");
+                            }
+                        }
+                    }
+
                     CurrentUsers.Add(Context?.ConnectionId, user);
                 }
-
-                var demandaid = Context?.GetHttpContext()?.GetRouteValue("demandaid") as string;
-
-                if (demandaid != string.Empty && demandaid != null)
-                {
-                    await Groups.AddToGroupAsync(Context?.ConnectionId, $"{demandaid}");
-                }
-                else
-                {
-                    var regional = Context?.GetHttpContext()?.GetRouteValue("regional") as string;
-
-                    if (regional != string.Empty)
-                    {
-                        await Groups.AddToGroupAsync(Context?.ConnectionId, $"{regional}");
-                    }
-                }
-
-
-
                 if (!data.Any())
                 {
-                    GetAllAsync();
+                    await GetAllAsync(null);
                 }
 
                 await _context.Clients.All.SendAsync("CurrentUsers", CurrentUsers);

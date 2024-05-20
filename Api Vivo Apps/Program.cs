@@ -115,7 +115,8 @@ app.UseEndpoints(endpoints =>
     app.MapHub<VivoXHub>("/vivoxhub/{PDV}/{idBoleta}");
     app.MapHub<VivoXHub>("/vivoxhub/{PDV}");
     app.MapHub<SuporteDemandaHub>("/Suportehub/{matricula}/{regional}");
-    app.MapHub<SuporteDemandaHub>("/Suportehub/{matricula}/{regional}/{demandaid}");
+    app.MapHub<SuporteDemandaHub>("/Suportehub/{matricula}/{regional}/{role}");
+    app.MapHub<SuporteDemandaHub>("/Suportehub/{matricula}/{regional}/{role}/{demandaid}");
     app.MapHub<SuporteDemandaHub>("/Suportehub");
 });
 
