@@ -253,13 +253,15 @@ namespace Vivo_Apps_API.Controllers
                 // FILTRA PELA REGIONAL DO USUÁRIO
                 if (!filter.Value.IsMaster)
                 {
-                    users = users.Where(x => x.REGIONAL == filter.Value.REGIONAL);
+
+                    users = users.Where(x => filter.Value.REGIONAL.Contains(x.REGIONAL));
+
                 }
 
                 // BUSCA PELO LOGIN DO SOLICITANTE
                 if (!filter.Value.IsSuporte.Value)
                 {
-                    users = users.Where(x => x.LOGIN_SOLICITANTE == filter.Value.LOGIN_SOLICITANTE);
+                    users = users.Where(x => filter.Value.LOGIN_SOLICITANTE.Contains(x.LOGIN_SOLICITANTE));
                 }
 
                 if (filter.Value.NomeSolicitante is not null)
