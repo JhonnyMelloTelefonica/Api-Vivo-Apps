@@ -54,9 +54,6 @@ namespace Vivo_Apps_API.Controllers
 
                 cfg.CreateMap<JORNADA_BD_QUESTION_HISTORICO, PROVA_REALIZADA_DTO>()
                 .ForMember(
-                    dest => dest.ID_QUESTION,
-                    opt => opt.MapFrom(src => CD.JORNADA_BD_QUESTIONs.FirstOrDefault(x => x.ID_QUESTION == (src.ID_QUESTION ?? 0) )))
-                .ForMember(
                     dest => dest.CANAL,
                     opt => opt.MapFrom(src => src.CANAL.HasValue ? (Canal)src.CANAL.Value : Canal.ADM))
                 .ForMember(
@@ -1540,27 +1537,24 @@ namespace Vivo_Apps_API.Controllers
                 //    .GroupBy(x => x.ID_PROVA)
                 //    .Select(x => x.FirstOrDefault())
                 //    .ToList().Select(x=> _mapper.Map<PROVA_REALIZADA_DTO>(x));
-                    //.ProjectTo<PROVA_REALIZADA_DTO>(_mapper.ConfigurationProvider)
+                //.ProjectTo<PROVA_REALIZADA_DTO>(_mapper.ConfigurationProvider)
 
                 var Provas = DataProvas
-                    .GroupBy(x => x.ID_PROVA)
-                    .Select(x => x.FirstOrDefault())
-                    .ToList().Select(x => _mapper.Map<PROVA_REALIZADA_DTO>(x))
+                    .GroupBy(x => x.ID_PROVA).AsEnumerable()
                     .Select(x =>
                     {
-                        x.Qtd_Respostas = CD.JORNADA_BD_ANSWER_AVALIACAOs.Where(y => y.ID_PROVA == x.ID_PROVA).Count();
-                        x.Qtd_Perguntas = CD.JORNADA_BD_QUESTION_HISTORICOs.Where(y => y.ID_PROVA == x.ID_PROVA).Count();
-                        x.Sum_nota = CD.JORNADA_BD_ANSWER_AVALIACAOs.Where(y => y.ID_PROVA == x.ID_PROVA).Select(k => k.NOTA).Sum();
-                        return x;
+                        var saida = _mapper.Map<PROVA_REALIZADA_DTO>(x.First());
+                        saida.Qtd_Perguntas = x.Count();
+                        return saida;
                     });
 
-//                Qtd_Respostas, CD.JORNADA_BD_ANSWER_AVALIACAOs.Where(y => y.ID_PROVA == src.ID_PROVA).Count(),
-//Qtd_Perguntas, CD.JORNADA_BD_QUESTION_HISTORICOs.Where(y => y.ID_PROVA == src.ID_PROVA).Count(),
-//Sum_nota, CD.JORNADA_BD_ANSWER_AVALIACAOs.Where(y => y.ID_PROVA == src.ID_PROVA).Select(x => x.NOTA).Sum(),
+                //Qtd_Respostas, CD.JORNADA_BD_ANSWER_AVALIACAOs.Where(y => y.ID_PROVA == src.ID_PROVA).Count(),
+                //Qtd_Perguntas, CD.JORNADA_BD_QUESTION_HISTORICOs.Where(y => y.ID_PROVA == src.ID_PROVA).Count(),
+                //Sum_nota, CD.JORNADA_BD_ANSWER_AVALIACAOs.Where(y => y.ID_PROVA == src.ID_PROVA).Select(x => x.NOTA).Sum(),
 
-                var Data = Provas
+                var Data = Provas.OrderByDescending(x => x.ID_PROVA)
                     .Skip((filter.PageNumber - 1) * filter.PageSize)
-                    .Take(filter.PageSize).AsEnumerable();
+                    .Take(filter.PageSize);
 
 
                 var totalRecords = Provas.Count();

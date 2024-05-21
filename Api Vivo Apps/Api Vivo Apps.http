@@ -45,3 +45,12 @@ GET {{Api_Vivo_Apps_HostAddress}}/api/randomfunctions/Update_Cliente_alto_Valor?
 GET {{Api_Vivo_Apps_HostAddress}}/api/raking/GetActualRanking
 
 ###
+
+POST {{Api_Vivo_Apps_HostAddress}}/api/controleformjornada/GetPainelProvasRealizadas
+Content-Type: application/json
+
+{
+  "PageNumber":1,"PageSize":10,"Value":{"Matricula_Criador":3511507,"TP_FORMS":[],"PeriodoCriacao":["2024-04-21T00:00:00-03:00","2024-05-21T00:00:00-03:00"],"PeriodoInicio":["2024-04-21T00:00:00-03:00","2024-05-21T00:00:00-03:00"],"PeriodoFinalizacao":["2024-04-21T00:00:00-03:00","2024-05-21T00:00:00-03:00"],"FIXA":null,"REGIONAL":"NE","ELEGIVEL":null}
+}
+
+###
