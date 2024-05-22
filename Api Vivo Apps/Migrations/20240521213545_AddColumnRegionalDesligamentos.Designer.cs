@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shared_Static_Class.DB_Context_Vivo_MAIS;
 
@@ -11,9 +12,11 @@ using Shared_Static_Class.DB_Context_Vivo_MAIS;
 namespace Vivo_Apps_API.Migrations
 {
     [DbContext(typeof(DemandasContext))]
-    partial class DemandasContextModelSnapshot : ModelSnapshot
+    [Migration("20240521213545_AddColumnRegionalDesligamentos")]
+    partial class AddColumnRegionalDesligamentos
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

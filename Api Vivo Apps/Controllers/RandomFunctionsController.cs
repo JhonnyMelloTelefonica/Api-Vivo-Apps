@@ -236,7 +236,7 @@ namespace Vivo_Apps_API.Controllers
                 base64Encoded = base64Encoded.Replace("@usericonpath", "data:image/png;base64," + Convert.ToBase64String(htmlpage.Image));
                 base64Encoded = base64Encoded.Replace("@ballonspath", ballons);
 
-                var bytes = converter.FromHtmlString(base64Encoded,340);
+                var bytes = converter.FromHtmlString(base64Encoded,360);
                 System.IO.File.WriteAllBytes(folderPath, bytes);
                 var provider = new FileExtensionContentTypeProvider();
                 if (!provider.TryGetContentType(folderPath, out var contentType))

@@ -130,8 +130,8 @@ namespace Vivo_Apps_API.Hubs
                     //.ThenInclude(x => x.Responsavel)
                     //.Include(x => x.ChamadoRelacao)
                     //    .ThenInclude(x => x.Fila)
-                    .Include(x => x.Responsavel)
-                    .Include(x => x.Solicitante)
+                    //.Include(x => x.Responsavel)
+                    //.Include(x => x.Solicitante)
                     .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider);
 
                 //var saida = dataBeforeFilter
@@ -218,8 +218,9 @@ namespace Vivo_Apps_API.Hubs
                             var rgdatademanda = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
                                     && x.ChamadoRelacao.REGIONAL == user.REGIONAL);
 
-                            var rgdataacesso = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
-                                && x.ChamadoRelacao.REGIONAL == user.REGIONAL);
+                            var rgdataacesso = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.AcessoRelacao
+                                //&& x.AcessoRelacao.REGIONAL == user.REGIONAL
+                                );
 
                             var rgdatatotal = rgdatademanda.UnionBy(rgdataacesso, x => x.ID);
 
