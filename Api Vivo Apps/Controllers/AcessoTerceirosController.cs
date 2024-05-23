@@ -91,7 +91,7 @@ namespace Vivo_Apps_API.Controllers
 
                 demanda.Respostas.Add(new DEMANDA_CHAMADO_RESPOSTA
                 {
-                    ID_RELACAO_CHAMADO = demanda.ID,
+                    ID_RELACAO = demanda.ID_RELACAO,
                     ID_CHAMADO = demanda.ID_CHAMADO,
                     RESPOSTA = MENSAGEM,
                     MATRICULA_RESPONSAVEL = body.MATRICULA_SOLICITANTE,

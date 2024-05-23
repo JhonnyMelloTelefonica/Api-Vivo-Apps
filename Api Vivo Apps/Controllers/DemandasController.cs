@@ -123,6 +123,16 @@ namespace Vivo_Apps_API.Controllers
                     opt => opt.MapFrom(src => src.Relacao.Respostas)
                     );
 
+                cfg.CreateMap<DEMANDA_DESLIGAMENTOS, DESLIGAMENTO_DTO>()
+                .ForMember(
+                    dest => dest.Respostas,
+                    opt => opt.MapFrom(src => src.Relacao.Respostas)
+                    )
+                .ForMember(
+                    dest => dest.Responsavel,
+                    opt => opt.MapFrom(src => src.Relacao.Responsavel)
+                    );
+
                 cfg.CreateMap<DEMANDA_CHAMADO_RESPOSTA, DEMANDA_CHAMADO_RESPOSTA_DTO>();
                 cfg.CreateMap<DEMANDA_ARQUIVOS_RESPOSTA, DEMANDA_ARQUIVOS_RESPOSTA_DTO>()
                 .ForMember(
@@ -1008,13 +1018,13 @@ namespace Vivo_Apps_API.Controllers
                 {
                     RESPOSTA = data.resposta,
                     ID_CHAMADO = data.IdChamado,
-                    ID_RELACAO_CHAMADO = data.ID_RELACAO_CHAMADO,
+                    ID_RELACAO = data.ID_RELACAO,
                     MATRICULA_RESPONSAVEL = data.MATRICULA,
                     DATA_RESPOSTA = data.Data,
                     Status = new DEMANDA_STATUS_CHAMADO
                     {
                         ID_CHAMADO = data.IdChamado,
-                        ID_RELACAO_CHAMADO = data.ID_RELACAO_CHAMADO,
+                        ID_RELACAO = data.ID_RELACAO,
                         STATUS = data.Status,
                         DATA = data.Data,
                         MAT_QUEM_REDIRECIONOU = data.MATRICULA,
@@ -1041,7 +1051,7 @@ namespace Vivo_Apps_API.Controllers
                 //});
 
                 var chamado = Demanda_BD.DEMANDA_CHAMADO.Find(data.IdChamado);
-                var chamado_relacao = Demanda_BD.DEMANDA_RELACAO_CHAMADO.Find(data.ID_RELACAO_CHAMADO);
+                var chamado_relacao = Demanda_BD.DEMANDA_RELACAO_CHAMADO.Find(data.ID_RELACAO);
 
                 if (data.MATRICULA_REDIRECIONADO.HasValue)
                 {
@@ -1104,7 +1114,7 @@ namespace Vivo_Apps_API.Controllers
                     RESPOSTA = data.resposta,
                     ID_CHAMADO = data.IdChamado,
                     MATRICULA_RESPONSAVEL = data.MATRICULA,
-                    ID_RELACAO_CHAMADO = data.ID_RELACAO_CHAMADO,
+                    ID_RELACAO = data.ID_RELACAO,
                     DATA_RESPOSTA = data.Data,
                     Status = null,
                     ARQUIVOS = data.Arquivos.Any() ? data.Arquivos.Select(x => new DEMANDA_ARQUIVOS_RESPOSTA
@@ -1237,7 +1247,7 @@ namespace Vivo_Apps_API.Controllers
                 demanda.ID_CHAMADO = demanda.ChamadoRelacao.ID;
                 demanda.Respostas.Add(new DEMANDA_CHAMADO_RESPOSTA
                 {
-                    ID_RELACAO_CHAMADO = demanda.ID,
+                    ID_RELACAO = demanda.ID_RELACAO,
                     ID_CHAMADO = demanda.ChamadoRelacao.ID,
                     RESPOSTA = data.PROBLEMA,
                     MATRICULA_RESPONSAVEL = int.Parse(data.MAT_SOLICITANTE),
@@ -1722,6 +1732,55 @@ namespace Vivo_Apps_API.Controllers
                 });
             }
         }
+
+        [HttpGet("GetDesligamentoById")]
+        [ProducesResponseType(typeof(Response<DESLIGAMENTO_DTO>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public JsonResult GetDesligamentoById(Guid idDesligamento)
+        {
+            try
+            {
+                var id = Demanda_BD.DEMANDA_RELACAO_CHAMADO
+                    .Include(x=> x.Responsavel)
+                    .Include(x => x.DesligamentoRelacao)
+                        .ThenInclude(x=> x.Solicitante)
+                    .Include(x=> x.Respostas)
+                    .Include(x=> x.DesligamentoRelacao)
+                    .IgnoreAutoIncludes()
+                    .First(x=> x.ID_RELACAO == idDesligamento);
+                var demanda = _mapper.Map<DESLIGAMENTO_DTO>(id.DesligamentoRelacao);
+
+                var options = new JsonSerializerOptions
+                {
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                };
+
+                return new JsonResult(
+                  new Response<DESLIGAMENTO_DTO>
+                  {
+                      Data = demanda,
+                      Succeeded = true,
+                      Message = "Tudo Certo"
+                  }, options);
+
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Erro ao encontrar buscar informações",
+                    Succeeded = false,
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace,
+                        ex.Source
+                    },
+                    Message = "Erro ao encontrar buscar informações"
+                });
+            }
+        }
+
         [HttpGet("GetAcessoById")]
         [ProducesResponseType(typeof(Response<ACESSO_TERCEIROS_DTO>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
@@ -1980,6 +2039,24 @@ namespace Vivo_Apps_API.Controllers
                     .IgnoreAutoIncludes()
                     .ProjectTo<ACESSO_TERCEIROS_DTO>(_mapper.ConfigurationProvider)
                     .First(x => x.ID == IdAcesso);
+
+        private DESLIGAMENTO_DTO GetDesligamentoByID(int idDesligamento)
+            => Demanda_BD.DEMANDA_DESLIGAMENTOS
+                    .Include(x => x.Responsavel)
+                    .Include(x => x.Solicitante)
+                    .Include(x => x.Relacao)
+                        .ThenInclude(x => x.Respostas)
+                    //        .ThenInclude(x => x.Responsavel)
+                    //            .ThenInclude(x => x.ResponsavelDemandasTotais)
+                    //.Include(x => x.Relacao)
+                    //    .ThenInclude(x => x.Respostas)
+                    //        .ThenInclude(x => x.Status)
+                    //.Include(x => x.Relacao)
+                    //    .ThenInclude(x => x.Respostas)
+                    //        .ThenInclude(x => x.ARQUIVOS)
+                    .IgnoreAutoIncludes()
+                    .ProjectTo<DESLIGAMENTO_DTO>(_mapper.ConfigurationProvider)
+                    .First(x => x.ID == idDesligamento);
 
         public static byte[] ConvertFile(byte[] Unconvertedfiles)
         {

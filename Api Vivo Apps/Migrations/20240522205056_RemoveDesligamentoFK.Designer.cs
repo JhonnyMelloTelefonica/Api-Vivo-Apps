@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shared_Static_Class.DB_Context_Vivo_MAIS;
 
@@ -11,9 +12,11 @@ using Shared_Static_Class.DB_Context_Vivo_MAIS;
 namespace Vivo_Apps_API.Migrations
 {
     [DbContext(typeof(DemandasContext))]
-    partial class DemandasContextModelSnapshot : ModelSnapshot
+    [Migration("20240522205056_RemoveDesligamentoFK")]
+    partial class RemoveDesligamentoFK
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -597,9 +600,6 @@ namespace Vivo_Apps_API.Migrations
 
                     b.HasKey("ID");
 
-                    b.HasIndex("ID_RELACAO")
-                        .IsUnique();
-
                     b.HasIndex("MATRICULA_RESPONSAVEL");
 
                     b.HasIndex("MATRICULA_SOLICITANTE");
@@ -1070,12 +1070,6 @@ namespace Vivo_Apps_API.Migrations
 
             modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_DESLIGAMENTOS", b =>
                 {
-                    b.HasOne("Shared_Static_Class.Data.DEMANDA_RELACAO_CHAMADO", "Relacao")
-                        .WithOne("DesligamentoRelacao")
-                        .HasForeignKey("Shared_Static_Class.Data.DEMANDA_DESLIGAMENTOS", "ID_RELACAO")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Shared_Static_Class.Data.ACESSOS_MOBILE", "Responsavel")
                         .WithMany()
                         .HasForeignKey("MATRICULA_RESPONSAVEL");
@@ -1085,8 +1079,6 @@ namespace Vivo_Apps_API.Migrations
                         .HasForeignKey("MATRICULA_SOLICITANTE")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
-
-                    b.Navigation("Relacao");
 
                     b.Navigation("Responsavel");
 
@@ -1218,8 +1210,6 @@ namespace Vivo_Apps_API.Migrations
                     b.Navigation("AcessoRelacao");
 
                     b.Navigation("ChamadoRelacao");
-
-                    b.Navigation("DesligamentoRelacao");
 
                     b.Navigation("Historico_Prioridade");
 

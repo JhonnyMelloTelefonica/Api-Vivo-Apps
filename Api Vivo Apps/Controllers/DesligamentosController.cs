@@ -32,6 +32,7 @@ using Range = Microsoft.Office.Interop.Excel.Range;
 using Worksheet = Microsoft.Office.Interop.Excel.Worksheet;
 using DocumentFormat.OpenXml.ExtendedProperties;
 using Microsoft.AspNetCore.StaticFiles;
+using AutoMapper;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -40,24 +41,18 @@ namespace Vivo_Apps_API.Controllers
     public class DesligamentosController : ControllerBase
     {
         private readonly ILogger<DesligamentosController> _logger;
-        private readonly IDistributedCache _cache;
         private readonly ISuporteDemandaHub _hubContext;
-        private readonly string _sharedFilesPath = @"..\Shared_Razor_Components\wwwroot\";
-
-        public string? CachedTimeUTC { get; set; }
-        public string? ASP_Environment { get; set; }
-
         private IDbContextFactory<DemandasContext> DbFactory;
         private DemandasContext DB;
         private Vivo_MaisContext CD;
+        private IMapper _mapper;
 
         public DesligamentosController(ILogger<DesligamentosController> logger,
-            IDistributedCache cache, IDbContextFactory<DemandasContext> dbContextFactory,
+            IDbContextFactory<DemandasContext> dbContextFactory,
             ISuporteDemandaHub hubContext, Vivo_MaisContext cD)
         {
             CD = cD;
             _logger = logger;
-            _cache = cache;
             _logger = logger;
             _hubContext = hubContext;
             DbFactory = dbContextFactory;
@@ -91,7 +86,7 @@ namespace Vivo_Apps_API.Controllers
 
                 demanda.Respostas.Add(new DEMANDA_CHAMADO_RESPOSTA
                 {
-                    ID_RELACAO_CHAMADO = demanda.ID,
+                    ID_RELACAO = demanda.ID_RELACAO,
                     ID_CHAMADO = demanda.ID_CHAMADO,
                     RESPOSTA = MENSAGEM,
                     MATRICULA_RESPONSAVEL = body.MATRICULA_SOLICITANTE,

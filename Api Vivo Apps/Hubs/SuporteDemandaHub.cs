@@ -180,13 +180,14 @@ namespace Vivo_Apps_API.Hubs
                     {
                         /** Consulta para usuários básicos **/
                         case Controle_Demanda_role.BASICO:
+
                             var first20 = data.OrderByDescending(x => x.PRIORIDADE)
                             .ThenByDescending(x => x.PRIORIDADE_SEGMENTO)
                             .ThenBy(x => x.Sequence).Take(20);
 
                             var dataresp = data.Where(x => x.MATRICULA_SOLICITANTE == user.MATRICULA);
 
-                            var datatotalbasico = dataresp.UnionBy(first20, x => x.ID);
+                            var datatotalbasico = dataresp.UnionBy(first20, x => x.ID_RELACAO);
 
                             await _context.Clients.Client(connectionId)
                                 .SendAsync("TableDemandas", datatotalbasico);
@@ -199,32 +200,21 @@ namespace Vivo_Apps_API.Hubs
                                 .SendAsync("TableDemandas",
                                 data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
                                 && x.ChamadoRelacao.Responsavel.MATRICULA == user.MATRICULA));
+
                             break;
 
                         /** Consulta para analistas do suporte que tratam solicitação de acessos terceiro **/
                         case Controle_Demanda_role.ANALISTA_ACESSO:
-                            var datademanda = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
-                                && x.ChamadoRelacao.Responsavel.MATRICULA == user.MATRICULA);
-                            var dataacesso = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
-                                && x.ChamadoRelacao.Responsavel.MATRICULA == user.MATRICULA);
 
-                            var datatotalanalistaacesso = datademanda.UnionBy(dataacesso, x => x.ID);
+                            var datatotalanalistaacesso = data.Where(x => x.MATRICULA_RESPONSAVEL == user.MATRICULA);
 
                             await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}").SendAsync("TableDemandas", datatotalanalistaacesso);
                             break;
 
                         /** Consulta para gerente do suporte **/
                         case Controle_Demanda_role.GERENTE:
-                            var rgdatademanda = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
-                                    && x.ChamadoRelacao.REGIONAL == user.REGIONAL);
 
-                            var rgdataacesso = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.AcessoRelacao
-                                //&& x.AcessoRelacao.REGIONAL == user.REGIONAL
-                                );
-
-                            var rgdatatotal = rgdatademanda.UnionBy(rgdataacesso, x => x.ID);
-
-                            await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}").SendAsync("TableDemandas", rgdatatotal);
+                            await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}").SendAsync("TableDemandas", data);
                             break;
                     }
                 }
@@ -238,7 +228,7 @@ namespace Vivo_Apps_API.Hubs
 
         public async Task SetPriority(int matricula, IEnumerable<Guid> ids)
         {
-            foreach (var item in data.Where(x => ids.Contains(x.ID)))
+            foreach (var item in data.Where(x => ids.Contains(x.ID_RELACAO)))
             {
                 if (!item.PRIORIDADE)
                     item.PRIORIDADE = true;
@@ -246,7 +236,7 @@ namespace Vivo_Apps_API.Hubs
                     item.PRIORIDADE = false;
             }
 
-            foreach (var item in Demanda_BD.DEMANDA_RELACAO_CHAMADO.Where(x => ids.Contains(x.ID)))
+            foreach (var item in Demanda_BD.DEMANDA_RELACAO_CHAMADO.Where(x => ids.Contains(x.ID_RELACAO)))
             {
                 if (!item.PRIORIDADE)
                     item.PRIORIDADE = true;
@@ -338,6 +328,8 @@ namespace Vivo_Apps_API.Hubs
                 }
 
                 await _context.Clients.All.SendAsync("CurrentUsers", CurrentUsers);
+                await base.OnConnectedAsync();
+                await GetTable(Context.ConnectionId);
             }
             catch (Exception ex)
             {
