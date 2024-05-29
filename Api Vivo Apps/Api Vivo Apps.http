@@ -1,4 +1,5 @@
-﻿@Api Vivo Apps_HostAddress = http://localhost:31510
+﻿@ApiVivoApps_http = http://localhost:5159
+
 @Api_Vivo_Apps_HostAddress = http://localhost:31510
 
 GET {{Api_Vivo_Apps_HostAddress}}/api/demandas/GetFilas
@@ -52,5 +53,13 @@ Content-Type: application/json
 {
   "PageNumber":1,"PageSize":10,"Value":{"Matricula_Criador":3511507,"TP_FORMS":[],"PeriodoCriacao":["2024-04-21T00:00:00-03:00","2024-05-21T00:00:00-03:00"],"PeriodoInicio":["2024-04-21T00:00:00-03:00","2024-05-21T00:00:00-03:00"],"PeriodoFinalizacao":["2024-04-21T00:00:00-03:00","2024-05-21T00:00:00-03:00"],"FIXA":null,"REGIONAL":"NE","ELEGIVEL":null}
 }
+
+###
+@IsSuporte=false
+@IsAcessoLogico=true
+@SubFila=0
+@regional=NE
+@matricula=151191
+GET {{ApiVivoApps_http}}/api/Demandas/AnalistaSuporte/Get/IsSuporte={{IsSuporte}}/IsAcessoLogico={{IsAcessoLogico}}/SubFila={{SubFila}}/regional={{regional}}/matricula={{matricula}} HTTP/2
 
 ###

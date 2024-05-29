@@ -154,7 +154,6 @@ namespace Vivo_Apps_API.Hubs
             if (matricula != null)
             {
                 var ids = CurrentUsers.Where(x => x.Value.MATRICULA == matricula);
-
                 foreach (var item in ids)
                 {
                     await GetTable(item.Key);
@@ -200,14 +199,12 @@ namespace Vivo_Apps_API.Hubs
                                 .SendAsync("TableDemandas",
                                 data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
                                 && x.ChamadoRelacao.Responsavel.MATRICULA == user.MATRICULA));
-
                             break;
 
                         /** Consulta para analistas do suporte que tratam solicitação de acessos terceiro **/
                         case Controle_Demanda_role.ANALISTA_ACESSO:
 
                             var datatotalanalistaacesso = data.Where(x => x.MATRICULA_RESPONSAVEL == user.MATRICULA);
-
                             await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}").SendAsync("TableDemandas", datatotalanalistaacesso);
                             break;
 

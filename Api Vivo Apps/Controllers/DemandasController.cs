@@ -31,6 +31,12 @@ using DocumentFormat.OpenXml.Drawing;
 using System.Net.Http;
 using System.Text;
 using Blazorise;
+using static Shared_Static_Class.Data.DEMANDA_RELACAO_CHAMADO;
+using BootstrapBlazor.Components;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
+using Microsoft.AspNetCore.OutputCaching;
+using Microsoft.Build.Framework;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -41,6 +47,7 @@ namespace Vivo_Apps_API.Controllers
         private readonly ILogger<DemandasController> _logger;
         private readonly IMapper _mapper;
         private readonly ISuporteDemandaHub _hubContext;
+        private readonly IOutputCacheStore _cache;
         private static Vivo_MaisContext CD;
         private static HttpClient _httpclient;
         private IDbContextFactory<DemandasContext> DbFactory;
@@ -50,8 +57,10 @@ namespace Vivo_Apps_API.Controllers
             , ISuporteDemandaHub hubContext
             , Vivo_MaisContext bd_context
             , IDbContextFactory<DemandasContext> dbContextFactory
-            , HttpClient httpclient)
+            , HttpClient httpclient
+            , IOutputCacheStore cache)
         {
+            _cache = cache;
             _httpclient = httpclient;
             DbFactory = dbContextFactory;
             Demanda_BD = DbFactory.CreateDbContext();
@@ -129,8 +138,8 @@ namespace Vivo_Apps_API.Controllers
                     opt => opt.MapFrom(src => src.Relacao.Respostas)
                     )
                 .ForMember(
-                    dest => dest.Responsavel,
-                    opt => opt.MapFrom(src => src.Relacao.Responsavel)
+                    dest => dest.Solicitante,
+                    opt => opt.MapFrom(src => src.Relacao.Solicitante)
                     );
 
                 cfg.CreateMap<DEMANDA_CHAMADO_RESPOSTA, DEMANDA_CHAMADO_RESPOSTA_DTO>();
@@ -138,6 +147,16 @@ namespace Vivo_Apps_API.Controllers
                 .ForMember(
                     dest => dest.ARQUIVO,
                     opt => opt.MapFrom(src => ConvertFile(src.ARQUIVO))
+                    );
+
+                cfg.CreateMap<DEMANDA_STATUS_CHAMADO, DEMANDA_STATUS_CHAMADO_DTO>()
+                .ForMember(
+                    dest => dest.Quem_redirecionou,
+                    opt => opt.MapFrom(src => Demanda_BD.ACESSOS_MOBILE.First(x => x.MATRICULA == src.MAT_QUEM_REDIRECIONOU))
+                    )
+                .ForMember(
+                    dest => dest.Para_Quem_redirecionou,
+                    opt => opt.MapFrom(src => Demanda_BD.ACESSOS_MOBILE.First(x => x.MATRICULA == src.MAT_DESTINATARIO))
                     );
 
             });
@@ -1008,9 +1027,9 @@ namespace Vivo_Apps_API.Controllers
         }
 
         [HttpPost("InsertRespostaChangeStatus")]
-        [ProducesResponseType(typeof(Response<DEMANDAS_CHAMADO_DTO>), 200)]
+        [ProducesResponseType(typeof(Response<object>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public async Task<JsonResult> InsertRespostaChangeStatus([FromBody] RespostaDemandaModel data)
+        public async Task<JsonResult> InsertRespostaChangeStatus([FromBody] RespostaDemandaModel data, Tabela_Demanda tabela)
         {
             try
             {
@@ -1039,6 +1058,7 @@ namespace Vivo_Apps_API.Controllers
                 });
 
                 //Demanda_BD.SaveChanges();
+                Demanda_BD.SaveChanges();
 
                 //Demanda_BD.DEMANDA_STATUS_CHAMADO.Add(new DEMANDA_STATUS_CHAMADO
                 //{
@@ -1050,35 +1070,50 @@ namespace Vivo_Apps_API.Controllers
                 //    ID_RESPOSTA = retorno.ID
                 //});
 
-                var chamado = Demanda_BD.DEMANDA_CHAMADO.Find(data.IdChamado);
                 var chamado_relacao = Demanda_BD.DEMANDA_RELACAO_CHAMADO.Find(data.ID_RELACAO);
+                object demanda = null;
 
-                if (data.MATRICULA_REDIRECIONADO.HasValue)
+                switch (tabela)
                 {
-                    chamado.MATRICULA_RESPONSAVEL = data.MATRICULA_REDIRECIONADO;
-                    chamado_relacao.MATRICULA_RESPONSAVEL = data.MATRICULA_REDIRECIONADO;
-                }
+                    case Tabela_Demanda.ChamadoRelacao:
+                        var chamado = Demanda_BD.DEMANDA_CHAMADO.Find(data.IdChamado);
 
-                if ("CONCLUÍDO" == data.Status)
-                {
-                    chamado.DATA_FECHAMENTO = DateTime.Now;
-                }
-                else if (data.Status == "REABERTO")
-                {
-                    chamado.DATA_FECHAMENTO = null;
-                }
+                        if (data.MATRICULA_REDIRECIONADO.HasValue)
+                        {
+                            chamado.MATRICULA_RESPONSAVEL = data.MATRICULA_REDIRECIONADO;
+                            chamado_relacao.MATRICULA_RESPONSAVEL = data.MATRICULA_REDIRECIONADO;
+                        }
 
-                Demanda_BD.SaveChanges();
+                        if (data.Status == STATUS_ACESSOS_PENDENTES.APROVADO.Value)
+                        {
+                            chamado.DATA_FECHAMENTO = DateTime.Now;
+                        }
+                        else if (data.Status == STATUS_ACESSOS_PENDENTES.REABRIR.Value)
+                        {
+                            chamado.DATA_FECHAMENTO = null;
+                        }
+                        demanda = GetDemandaByID(data.IdChamado);
+                        Task.Run(() => _hubContext.UpdateDemanda(demanda as DEMANDAS_CHAMADO_DTO));
+                        break;
+                    case Tabela_Demanda.AcessoRelacao:
+                        demanda = GetAcessoByID(data.IdChamado);
+                        break;
+                    case Tabela_Demanda.DesligamentoRelacao:
+                        demanda = GetDesligamentoByID(data.IdChamado);
+                        break;
+                    default:
+                        demanda = null;
+                        break;
+                }
 
                 _hubContext.SendTableDemandas();
 
-                var demanda = await GetDemandaByID(data.IdChamado);
                 var options = new JsonSerializerOptions
                 {
                     ReferenceHandler = ReferenceHandler.IgnoreCycles
                 };
 
-                return new JsonResult(new Response<DEMANDAS_CHAMADO_DTO>
+                return new JsonResult(new Response<object>
                 {
                     Data = demanda,
                     Succeeded = true,
@@ -1103,9 +1138,9 @@ namespace Vivo_Apps_API.Controllers
         }
 
         [HttpPost("InsertResposta")]
-        [ProducesResponseType(typeof(Response<DEMANDAS_CHAMADO_DTO>), 200)]
+        [ProducesResponseType(typeof(Response<object>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public async Task<JsonResult> InsertResposta([FromBody] RespostaDemandaModel data)
+        public async Task<JsonResult> InsertResposta([FromBody] RespostaDemandaModel data, Tabela_Demanda tabela)
         {
             try
             {
@@ -1127,10 +1162,25 @@ namespace Vivo_Apps_API.Controllers
 
                 Demanda_BD.SaveChanges();
                 _hubContext.SendTableDemandas();
-                var demanda = await GetDemandaByID(data.IdChamado);
-                _hubContext.UpdateDemanda(demanda);
+                object demanda;
+                switch (tabela)
+                {
+                    case Tabela_Demanda.ChamadoRelacao:
+                        demanda = GetDemandaByID(data.IdChamado);
+                        Task.Run(() => _hubContext.UpdateDemanda(demanda as DEMANDAS_CHAMADO_DTO));
+                        break;
+                    case Tabela_Demanda.AcessoRelacao:
+                        demanda = GetAcessoByID(data.IdChamado);
+                        break;
+                    case Tabela_Demanda.DesligamentoRelacao:
+                        demanda = GetDesligamentoByID(data.IdChamado);
+                        break;
+                    default:
+                        demanda = null;
+                        break;
+                }
 
-                return new JsonResult(new Response<DEMANDAS_CHAMADO_DTO>
+                return new JsonResult(new Response<object>
                 {
                     Data = demanda,
                     Succeeded = true,
@@ -1152,7 +1202,7 @@ namespace Vivo_Apps_API.Controllers
                     {
                         ex.Message,
                         ex.StackTrace
-                    },
+    },
                     Message = "Erro ao Executar ação"
                 });
             }
@@ -1286,7 +1336,7 @@ namespace Vivo_Apps_API.Controllers
                 await _hubContext.NewNotificationByUser(responsavel, demanda.ChamadoRelacao);
                 await _hubContext.NewNotificationByUser(int.Parse(data.MAT_SOLICITANTE), demanda.ChamadoRelacao);
 
-                var demandaCompleta = await GetDemandaByID(demanda.ChamadoRelacao.ID);
+                var demandaCompleta = GetDemandaByID(demanda.ChamadoRelacao.ID);
 
                 var arquivosDemanda = demandaCompleta.Respostas.Where(x => x.ARQUIVOS is not null)
                     .SelectMany(x => x.ARQUIVOS)
@@ -1501,6 +1551,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpGet("GetOperadoresSuporte")]
         [ProducesResponseType(typeof(Response<IEnumerable<DEMANDA_BD_OPERADORES_DTO>>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
+        [OutputCache(PolicyName = "CachePost", Duration = int.MaxValue)]
         public JsonResult GetOperadoresSuporte(string regional)
         {
             try
@@ -1537,6 +1588,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpGet("GetAllEnableOperadores")]
         [ProducesResponseType(typeof(Response<IEnumerable<ACESSOS_MOBILE_DTO>>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
+        [OutputCache(PolicyName = "CachePost", Duration = int.MaxValue)]
         public JsonResult GetAllEnableOperadores(string regional)
         {
             try
@@ -1578,7 +1630,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpPost("AtivarOperadorSuporte")]
         [ProducesResponseType(typeof(Response<string>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult AtivarOperadorSuporte(int id)
+        public async Task<JsonResult> AtivarOperadorSuporte(int id)
         {
             try
             {
@@ -1586,7 +1638,7 @@ namespace Vivo_Apps_API.Controllers
                 user.STATUS = true;
 
                 var saida = CD.SaveChanges();
-
+                await _cache.EvictByTagAsync("analistas-suporte", default);
                 return new JsonResult(new Response<string>
                 {
                     Data = "Tudo certo!",
@@ -1614,7 +1666,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpPost("DesativarOperadorSuporte")]
         [ProducesResponseType(typeof(Response<string>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult DesativarOperadorSuporte(int id)
+        public async Task<JsonResult> DesativarOperadorSuporte(int id)
         {
             try
             {
@@ -1622,6 +1674,7 @@ namespace Vivo_Apps_API.Controllers
                 user.STATUS = false;
 
                 var saida = CD.SaveChanges();
+                await _cache.EvictByTagAsync("analistas-suporte", default);
 
                 return new JsonResult(new Response<string>
                 {
@@ -1650,7 +1703,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpPost("AddOperadoresSuporte")]
         [ProducesResponseType(typeof(Response<string>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult AddOperadoresSuporte([FromBody] List<DEMANDA_BD_OPERADORES_DTO> newoperador)
+        public async Task<JsonResult> AddOperadoresSuporte([FromBody] List<DEMANDA_BD_OPERADORES_DTO> newoperador)
         {
             try
             {
@@ -1665,6 +1718,9 @@ namespace Vivo_Apps_API.Controllers
                         })
                     );
                 var saida = CD.SaveChanges();
+
+                await _cache.EvictByTagAsync("analistas-suporte", default);
+
                 if (saida > 0)
                 {
                     return GetOperadoresSuporte(newoperador.First().REGIONAL);
@@ -1701,7 +1757,7 @@ namespace Vivo_Apps_API.Controllers
             try
             {
                 var id = Demanda_BD.DEMANDA_RELACAO_CHAMADO.Find(IdDemanda);
-                var demanda = await GetDemandaByID(id.ID_CHAMADO);
+                var demanda = GetDemandaByID(id.ID_CHAMADO);
                 var options = new JsonSerializerOptions
                 {
                     ReferenceHandler = ReferenceHandler.IgnoreCycles
@@ -1740,15 +1796,8 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var id = Demanda_BD.DEMANDA_RELACAO_CHAMADO
-                    .Include(x=> x.Responsavel)
-                    .Include(x => x.DesligamentoRelacao)
-                        .ThenInclude(x=> x.Solicitante)
-                    .Include(x=> x.Respostas)
-                    .Include(x=> x.DesligamentoRelacao)
-                    .IgnoreAutoIncludes()
-                    .First(x=> x.ID_RELACAO == idDesligamento);
-                var demanda = _mapper.Map<DESLIGAMENTO_DTO>(id.DesligamentoRelacao);
+                var id = Demanda_BD.DEMANDA_RELACAO_CHAMADO.Find(idDesligamento);
+                var demanda = GetDesligamentoByID(id.ID_CHAMADO);
 
                 var options = new JsonSerializerOptions
                 {
@@ -1775,7 +1824,7 @@ namespace Vivo_Apps_API.Controllers
                         ex.Message,
                         ex.StackTrace,
                         ex.Source
-                    },
+    },
                     Message = "Erro ao encontrar buscar informações"
                 });
             }
@@ -1789,7 +1838,7 @@ namespace Vivo_Apps_API.Controllers
             try
             {
                 var id = Demanda_BD.DEMANDA_RELACAO_CHAMADO.Find(IdAcesso);
-                var demanda = await GetAcessoByID(id.ID_CHAMADO);
+                var demanda = GetAcessoByID(id.ID_CHAMADO);
 
                 var options = new JsonSerializerOptions
                 {
@@ -1960,30 +2009,53 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
-
-        [HttpGet("TestGetDemandas")]
-        [ProducesResponseType(typeof(Response<DEMANDAS_CHAMADO_DTO>), 200)]
-        [ProducesResponseType(typeof(Response<string>), 500)]
-        public async Task<JsonResult> TestGetDemandas()
+        [HttpGet("AnalistaSuporte/Get/IsSuporte={IsSuporte}/IsAcessoLogico={IsAcessoLogico}/SubFila={SubFila}/regional={regional}/matricula={matricula}")]
+        [ResponseCache(VaryByHeader = "User-Agent",Duration = 60, NoStore = false, Location = ResponseCacheLocation.Any)]
+        [OutputCache(Duration = 60, NoStore = false, VaryByHeaderNames = new string[] { "User-Agent" })]
+        public async Task<Results<Ok<IEnumerable<ACESSOS_MOBILE_DTO>>, BadRequest<Exception>>> GetAnalistaSuporte(bool IsSuporte, bool IsAcessoLogico, int SubFila, string regional, int matricula)
         {
             try
             {
+                IQueryable<ACESSOS_MOBILE> query = null;
+                if (IsSuporte)
+                // Caso sim filtra por todos os analistas da regional
+                {
+                    var matanalistas = CD.DEMANDA_BD_OPERADOREs
+                        .Where(x => x.REGIONAL == regional)
+                        .Select(x => x.MATRICULA).ToArray()
+                        .Distinct();
 
-                var dataBeforeFilter = Demanda_BD.DEMANDA_RELACAO_CHAMADO
-    .Where(x => x.Respostas.First().DATA_RESPOSTA >= DateTime.Now.AddYears(-1)
-        && x.Respostas.First().DATA_RESPOSTA <= DateTime.Now)
-    .IgnoreAutoIncludes()
-    .AsNoTracking();
+                    query = CD.ACESSOS_MOBILEs
+                        .Where(x => matanalistas.Contains(x.MATRICULA));
+
+                    if (SubFila != 0)
+                    // Caso sim filtra pela fila 
+                    {
+                        var filter_by_filas = CD.DEMANDA_RESPONSAVEL_FILAs
+                            .Where(x => x.ID_SUB_FILA == SubFila);
+
+                        query = query.Where(x => filter_by_filas.Select(x => x.MATRICULA_RESPONSAVEL).Contains(x.MATRICULA));
+                    }
+                }
+                else
+                {
+                    if (IsAcessoLogico)
+                    {
+                        query = CD.ACESSOS_MOBILEs
+                            .Where(x => x.REGIONAL == regional)
+                            .Where(x => CD.PERFIL_USUARIOs
+                                            .Where(y => y.id_Perfil == 15)
+                                            .Select(y => y.MATRICULA)
+                                            .Contains(x.MATRICULA))
+                            .Distinct();
 
 
-                var saida = dataBeforeFilter
-                    .Include(x => x.ChamadoRelacao.Campos)
-                    .Include(x => x.ChamadoRelacao.Relacao.Status)
-                    .Include(x => x.ChamadoRelacao.Fila)
-                    .Include(x => x.ChamadoRelacao.Responsavel)
-                    .Include(x => x.ChamadoRelacao.Solicitante)
-                .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider)
-                .AsAsyncEnumerable();
+                    }
+                }
+
+                var saida = query
+                .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
+                .AsEnumerable();
                 //var demandas = Demanda_BD.DEMANDA_RELACAO_CHAMADO.ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider).ToList();
 
                 var options = new JsonSerializerOptions
@@ -1991,16 +2063,16 @@ namespace Vivo_Apps_API.Controllers
                     ReferenceHandler = ReferenceHandler.IgnoreCycles
                 };
 
-                return new JsonResult(Ok(saida), options);
+                return TypedResults.Ok(saida);
             }
             catch (Exception ex)
             {
-                return new JsonResult(BadRequest(ex));
+                return TypedResults.BadRequest(ex);
             }
         }
 
         //------------------------------------------------------------------------------------
-        private async Task<DEMANDAS_CHAMADO_DTO> GetDemandaByID(int IdDemanda)
+        private DEMANDAS_CHAMADO_DTO GetDemandaByID(int IdDemanda)
             => Demanda_BD.DEMANDA_CHAMADO
                     .IgnoreAutoIncludes()
                     .Include(x => x.Responsavel)
@@ -2013,6 +2085,14 @@ namespace Vivo_Apps_API.Controllers
                         .ThenInclude(x => x.Respostas)
                             .ThenInclude(x => x.Responsavel)
                                 .ThenInclude(x => x.DemandasResponsavel)
+                                .Include(x => x.Relacao)
+                        .ThenInclude(x => x.Respostas)
+                            .ThenInclude(x => x.Status)
+                                .ThenInclude(x => x.Quem_redirecionou)
+                    .Include(x => x.Relacao)
+                        .ThenInclude(x => x.Respostas)
+                            .ThenInclude(x => x.Status)
+                                .ThenInclude(x => x.Para_Quem_redirecionou)
                     .Include(x => x.Relacao)
                         .ThenInclude(x => x.Respostas)
                             .ThenInclude(x => x.Status)
@@ -2022,7 +2102,7 @@ namespace Vivo_Apps_API.Controllers
                     .ProjectTo<DEMANDAS_CHAMADO_DTO>(_mapper.ConfigurationProvider)
                     .First(x => x.ID == IdDemanda);
 
-        private async Task<ACESSO_TERCEIROS_DTO> GetAcessoByID(int IdAcesso)
+        private ACESSO_TERCEIROS_DTO GetAcessoByID(int IdAcesso)
             => Demanda_BD.DEMANDA_ACESSOS
                     .Include(x => x.Responsavel)
                     .Include(x => x.Solicitante)
@@ -2035,28 +2115,39 @@ namespace Vivo_Apps_API.Controllers
                             .ThenInclude(x => x.Status)
                     .Include(x => x.Relacao)
                         .ThenInclude(x => x.Respostas)
+                            .ThenInclude(x => x.Status)
+                                .ThenInclude(x => x.Quem_redirecionou)
+                    .Include(x => x.Relacao)
+                        .ThenInclude(x => x.Respostas)
+                            .ThenInclude(x => x.Status)
+                                .ThenInclude(x => x.Para_Quem_redirecionou)
+                    .Include(x => x.Relacao)
+                        .ThenInclude(x => x.Respostas)
                             .ThenInclude(x => x.ARQUIVOS)
                     .IgnoreAutoIncludes()
                     .ProjectTo<ACESSO_TERCEIROS_DTO>(_mapper.ConfigurationProvider)
                     .First(x => x.ID == IdAcesso);
-
-        private DESLIGAMENTO_DTO GetDesligamentoByID(int idDesligamento)
+        private DESLIGAMENTO_DTO GetDesligamentoByID(int IdDesligamento)
             => Demanda_BD.DEMANDA_DESLIGAMENTOS
                     .Include(x => x.Responsavel)
                     .Include(x => x.Solicitante)
                     .Include(x => x.Relacao)
                         .ThenInclude(x => x.Respostas)
-                    //        .ThenInclude(x => x.Responsavel)
-                    //            .ThenInclude(x => x.ResponsavelDemandasTotais)
-                    //.Include(x => x.Relacao)
-                    //    .ThenInclude(x => x.Respostas)
-                    //        .ThenInclude(x => x.Status)
-                    //.Include(x => x.Relacao)
-                    //    .ThenInclude(x => x.Respostas)
-                    //        .ThenInclude(x => x.ARQUIVOS)
+                            .ThenInclude(x => x.Status)
+                                .ThenInclude(x => x.Quem_redirecionou)
+                    .Include(x => x.Relacao)
+                        .ThenInclude(x => x.Respostas)
+                            .ThenInclude(x => x.Status)
+                                .ThenInclude(x => x.Para_Quem_redirecionou)
+                    .Include(x => x.Relacao)
+                        .ThenInclude(x => x.Responsavel)
+                    .Include(x => x.Relacao)
+                        .ThenInclude(x => x.Solicitante)
+                    .Include(x => x.Relacao)
+                        .ThenInclude(x => x.Respostas)
                     .IgnoreAutoIncludes()
                     .ProjectTo<DESLIGAMENTO_DTO>(_mapper.ConfigurationProvider)
-                    .First(x => x.ID == idDesligamento);
+                    .First(x => x.ID == IdDesligamento);
 
         public static byte[] ConvertFile(byte[] Unconvertedfiles)
         {

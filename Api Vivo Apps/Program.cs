@@ -17,6 +17,12 @@ using DocumentFormat.OpenXml.InkML;
 using System.Text.Json.Serialization;
 using Newtonsoft.Json.Converters;
 using System.Runtime.Serialization;
+using Microsoft.AspNetCore.Mvc;
+using Shared_Static_Class.Converters;
+using Shared_Static_Class.Data;
+using AutoMapper.QueryableExtensions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,12 +34,19 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
+
 builder.Services.AddSwaggerGen(c =>
 {
-    c.SwaggerDoc("v1", new OpenApiInfo { Title = "Vivo Apps API", Version = "v1", 
-        Contact = new OpenApiContact { 
-            Email = "ne_automacao.br@telefonica.com", Name = "Automação NE", Url = new Uri("mailto:ne_automacao.br@telefonica.com") 
-        } 
+    c.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "Vivo Apps API",
+        Version = "v1",
+        Contact = new OpenApiContact
+        {
+            Email = "ne_automacao.br@telefonica.com",
+            Name = "Automação NE",
+            Url = new Uri("mailto:ne_automacao.br@telefonica.com")
+        }
     });
 
     // Customize operationId to be equal to the route name
@@ -74,8 +87,18 @@ builder.Services.AddDbContextFactory<DemandasContext>(opt =>
     opt.EnableSensitiveDataLogging();
     opt.EnableDetailedErrors();
 }, ServiceLifetime.Singleton);
- 
+
 builder.Services.AddSingleton<ISuporteDemandaHub, SuporteDemandaHub>();
+
+builder.Services.AddOutputCache(options =>
+{
+    options.AddPolicy("CacheForTenSeconds", builder =>
+    {
+        builder.Cache();
+        builder.Expire(TimeSpan.FromSeconds(10));
+        builder.Tag("another-tag");
+    });
+});
 
 var app = builder.Build();
 
@@ -102,12 +125,12 @@ if (app.Environment.IsDevelopment())
 // Configure the HTTP request pipeline.
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
 app.UseHttpLogging();
 
 app.UseRouting();
 app.UseFileServer();
 app.UseRouting();
+app.UseOutputCache();
 
 app.UseEndpoints(endpoints =>
 {
@@ -122,7 +145,92 @@ app.UseEndpoints(endpoints =>
 
 //app.Services.GetRequiredService<TableDependencyService>();
 
+app.MapGet("/AnalistaSuporte/Get/IsSuporte={IsSuporte}/IsAcessoLogico={IsAcessoLogico}/SubFila={SubFila}/regional={regional}/matricula={matricula}"
+    , async Task<Results<Ok<IEnumerable<ACESSOS_MOBILE_DTO>>, BadRequest<Exception>>> ([FromRoute] bool IsSuporte,
+     [FromRoute] bool IsAcessoLogico,
+     [FromRoute] int SubFila,
+     [FromRoute] string regional,
+     [FromRoute] int matricula,
+     [FromServices] Vivo_MaisContext CD) =>
+{
+    IMapper _mapper;
+    var config = new MapperConfiguration(cfg =>
+    {
+        cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_DTO>()
+        .ForMember(
+            dest => dest.CARGO,
+            opt => opt.MapFrom(src => (Cargos)src.CARGO)
+            )
+        .ForMember(
+            dest => dest.CANAL,
+            opt => opt.MapFrom(src => (Canal)src.CANAL)
+            )
+        .ForMember(
+            dest => dest.DemandasResponsavel,
+            opt => opt.MapFrom(src => src.DemandasResponsavel.AsEnumerable())
+            );
+    });
+    _mapper = config.CreateMapper();
+
+    try
+    {
+        IQueryable<ACESSOS_MOBILE> query = null;
+        if (IsSuporte)
+        // Caso sim filtra por todos os analistas da regional
+        {
+            var matanalistas = CD.DEMANDA_BD_OPERADOREs
+                .Where(x => x.REGIONAL == regional)
+                .Select(x => x.MATRICULA).ToArray()
+                .Distinct();
+
+            query = CD.ACESSOS_MOBILEs
+                .Where(x => matanalistas.Contains(x.MATRICULA));
+
+            if (SubFila != 0)
+            // Caso sim filtra pela fila 
+            {
+                var filter_by_filas = CD.DEMANDA_RESPONSAVEL_FILAs
+                    .Where(x => x.ID_SUB_FILA == SubFila);
+
+                query = query.Where(x => filter_by_filas.Select(x => x.MATRICULA_RESPONSAVEL).Contains(x.MATRICULA));
+            }
+        }
+        else
+        {
+            if (IsAcessoLogico)
+            {
+                query = CD.ACESSOS_MOBILEs
+                    .Where(x => x.REGIONAL == regional)
+                    .Where(x => CD.PERFIL_USUARIOs
+                                    .Where(y => y.id_Perfil == 15)
+                                    .Select(y => y.MATRICULA)
+                                    .Contains(x.MATRICULA))
+                    .Distinct();
+
+
+            }
+        }
+
+        var saida = query
+        .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
+        .AsEnumerable();
+        //var demandas = Demanda_BD.DEMANDA_RELACAO_CHAMADO.ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider).ToList();
+
+        var options = new JsonSerializerOptions
+        {
+            ReferenceHandler = ReferenceHandler.IgnoreCycles
+        };
+
+        return TypedResults.Ok(saida);
+    }
+    catch (Exception ex)
+    {
+        return TypedResults.BadRequest(ex);
+    }
+}).CacheOutput(x => x.Expire(TimeSpan.FromMinutes(1))).WithTags("analistas-suporte");
+
 app.Run();
+
 
 public class CustomDocumentFilter : IDocumentFilter
 {
@@ -138,9 +246,6 @@ public class CustomDocumentFilter : IDocumentFilter
         }
     }
 }
-
-
-// Custom DateTime converter
 public class Iso8601DateTimeConverter : JsonConverter<DateTime>
 {
     public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)

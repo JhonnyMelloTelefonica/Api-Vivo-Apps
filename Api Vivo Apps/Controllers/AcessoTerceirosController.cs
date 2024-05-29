@@ -1,37 +1,29 @@
-﻿using DocumentFormat.OpenXml.Drawing;
-using DocumentFormat.OpenXml.Presentation;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using AutoMapper;
 using Microsoft.Office.Interop.Excel;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Caching.Distributed;
-using Microsoft.Extensions.Logging;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
-using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
-using Pipelines.Sockets.Unofficial.Arenas;
 using Shared_Static_Class.Converters;
 using Shared_Static_Class.Data;
 using Shared_Static_Class.DB_Context_Vivo_MAIS;
 using Shared_Static_Class.Models;
-using System;
-using System.Data.Entity;
-using System.Drawing;
-using System.Runtime.ConstrainedExecution;
-using System.Text;
 using Vivo_Apps_API.Hubs;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 using BootstrapBlazor.Components;
-using DocumentFormat.OpenXml.Spreadsheet;
-using Microsoft.JSInterop;
-using Mono.TextTemplating;
 using Path = System.IO.Path;
-using File = System.IO.File;
-using DataTable = System.Data.DataTable;
 using System.Data;
-using System.Linq;
 using Range = Microsoft.Office.Interop.Excel.Range;
 using Worksheet = Microsoft.Office.Interop.Excel.Worksheet;
-using DocumentFormat.OpenXml.ExtendedProperties;
 using Microsoft.AspNetCore.StaticFiles;
+using Shared_Static_Class.Model_DTO;
+using Newtonsoft.Json;
+using Vivo_Apps_API.Models;
+using Microsoft.AspNetCore.SignalR;
+using AutoMapper.QueryableExtensions;
+using static Shared_Static_Class.Data.DEMANDA_RELACAO_CHAMADO;
+using DocumentFormat.OpenXml.Wordprocessing;
+using System.Text.Json.Serialization;
+using System.Text.Json;
+
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -43,9 +35,7 @@ namespace Vivo_Apps_API.Controllers
         private readonly IDistributedCache _cache;
         private readonly ISuporteDemandaHub _hubContext;
         private readonly string _sharedFilesPath = @"..\Shared_Razor_Components\wwwroot\";
-
-        public string? CachedTimeUTC { get; set; }
-        public string? ASP_Environment { get; set; }
+        private readonly IMapper _mapper;
 
         private IDbContextFactory<DemandasContext> DbFactory;
         private DemandasContext DB;
@@ -63,6 +53,116 @@ namespace Vivo_Apps_API.Controllers
             DbFactory = dbContextFactory;
             DB = DbFactory.CreateDbContext();
             CD = cD;
+
+            var config = new MapperConfiguration(cfg =>
+            {
+                cfg.CreateMap<DEMANDA_RELACAO_CHAMADO, DEMANDA_DTO>();
+
+                cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_DTO>()
+                .ForMember(
+                    dest => dest.CARGO,
+                    opt => opt.MapFrom(src => (Cargos)src.CARGO)
+                    )
+                .ForMember(
+                    dest => dest.CANAL,
+                    opt => opt.MapFrom(src => (Canal)src.CANAL)
+                    )
+                .ForMember(
+                    dest => dest.DemandasResponsavel,
+                    opt => opt.MapFrom(src => src.DemandasResponsavel.AsEnumerable())
+                    );
+
+                cfg.CreateMap<DEMANDA_CHAMADO_RESPOSTA, DEMANDA_CHAMADO_RESPOSTA_DTO>();
+                cfg.CreateMap<DEMANDA_ARQUIVOS_RESPOSTA, DEMANDA_ARQUIVOS_RESPOSTA_DTO>();
+                cfg.CreateMap<DEMANDA_STATUS_CHAMADO, DEMANDA_STATUS_CHAMADO_DTO>();
+                cfg.CreateMap<DEMANDA_ACESSOS, ACESSO_TERCEIROS_DTO>()
+                .ForMember(
+                    dest => dest.Respostas,
+                    opt => opt.MapFrom(src => src.Relacao.Respostas)
+                    );
+
+            });
+            _mapper = config.CreateMapper();
+        }
+
+        [HttpPost("InformarMatricula")]
+        public async Task<IActionResult> InformarMatricula(Guid id, int newmatricula, int matricula_resp, string mensagem)
+        {
+            try
+            {
+                //body.Solicitante = DB.ACESSOS_MOBILE.First(x => x.MATRICULA == body.MATRICULA_SOLICITANTE);
+                var demanda_relacao = DB.DEMANDA_RELACAO_CHAMADO.Find(id);
+                var demanda = DB.DEMANDA_ACESSOS.First(x => x.ID_RELACAO == id);
+                demanda.Matricula = newmatricula.ToString();
+
+                var resposta = new DEMANDA_CHAMADO_RESPOSTA
+                {
+                    ID_RELACAO = id,
+                    ID_CHAMADO = demanda.ID,
+                    RESPOSTA = mensagem,
+                    MATRICULA_RESPONSAVEL = matricula_resp,
+                    DATA_RESPOSTA = DateTime.Now,
+                    ARQUIVOS = null
+                };
+
+                demanda_relacao.Respostas.Add(resposta);
+                await DB.SaveChangesAsync();
+
+                demanda_relacao.Status.Add(new DEMANDA_STATUS_CHAMADO
+                {
+                    ID_CHAMADO = demanda.ID,
+                    STATUS = STATUS_ACESSOS_PENDENTES.APROVADO.Value,
+                    ID_RESPOSTA = resposta.ID,
+                    DATA = DateTime.Now
+                });
+
+                await DB.SaveChangesAsync();
+                //await _hubContext.SendTableDemandas();
+
+                await _hubContext.SendTableDemandas(demanda.MATRICULA_RESPONSAVEL);
+
+                var demanda_acesso = DB.DEMANDA_ACESSOS
+                   .Include(x => x.Responsavel)
+                   .Include(x => x.Solicitante)
+                   .Include(x => x.Relacao)
+                       .ThenInclude(x => x.Respostas)
+                           .ThenInclude(x => x.Responsavel)
+                               .ThenInclude(x => x.ResponsavelDemandasTotais)
+                   .Include(x => x.Relacao)
+                       .ThenInclude(x => x.Respostas)
+                           .ThenInclude(x => x.Status)
+                   .Include(x => x.Relacao)
+                       .ThenInclude(x => x.Respostas)
+                           .ThenInclude(x => x.ARQUIVOS)
+                   .IgnoreAutoIncludes()
+                   .ProjectTo<ACESSO_TERCEIROS_DTO>(_mapper.ConfigurationProvider)
+                   .First(x => x.ID == demanda.ID);
+
+                return new JsonResult(new Response<ACESSO_TERCEIROS_DTO>
+                {
+                    Data = demanda_acesso,
+                    Succeeded = true,
+                    Message = $"Matrícula do usuário alterada com sucesso, enviamos um e-mail informando o solicitante da alteração",
+                }, new JsonSerializerOptions
+                {
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Algum erro ocorreu ao tentar criar um novo elemento");
+                return StatusCode(500, new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    },
+                });
+            }
         }
 
         [HttpPost("create")]
@@ -212,7 +312,7 @@ namespace Vivo_Apps_API.Controllers
                     xlWorkSheet.Cells[i, 32] = "";
                     xlWorkSheet.Cells[i, 33] = "80000064    SERVIÇOS - VENDAS";
                     xlWorkSheet.Cells[i, 34] = "TBRA";
-                    xlWorkSheet.Cells[i, 35] = item.Estado.Value.GetDisplayName(true,"T-");
+                    xlWorkSheet.Cells[i, 35] = item.Estado.Value.GetDisplayName(true, "T-");
                     xlWorkSheet.Cells[i, 36] = item.Cidade.ToUpper();
                     xlWorkSheet.Cells[i, 37] = item.Estado.Value.GetDisplayName();
                     xlWorkSheet.Cells[i, 38] = "";
