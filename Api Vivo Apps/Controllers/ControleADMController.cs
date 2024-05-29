@@ -793,7 +793,7 @@ namespace Vivo_Apps_API.Controllers
 
                 await CD.SaveChangesAsync();
 
-                var perfis = CD.PERFIL_USUARIOs.Where(x => x.MATRICULA == usuario.MATRICULA ).Select(x=> x.id_Perfil);
+                var perfis = CD.PERFIL_USUARIOs.Where(x => x.MATRICULA == usuario.MATRICULA).Select(x => x.id_Perfil);
 
                 foreach (var item in perfis)
                 {
@@ -912,6 +912,7 @@ namespace Vivo_Apps_API.Controllers
                 });
             }
         }
+
         [HttpPost("BloquearUsuarioSuporte")]
         public async Task<JsonResult> BloquearUsuarioSuporte(string TP_AFASTAMENTO, string OBS, int id, int? matricula)
         {
@@ -923,6 +924,59 @@ namespace Vivo_Apps_API.Controllers
                 user.OBS = OBS;
                 user.LOGIN_MOD = matricula;
                 user.DT_MOD = DateTime.Now;
+
+                var newsolicitacao = new ACESSOS_MOBILE_PENDENTE
+                {
+                    EMAIL = user.EMAIL,
+                    MATRICULA = user.MATRICULA,
+                    SENHA = user.SENHA,
+                    REGIONAL = user.REGIONAL,
+                    CARGO = user.CARGO,
+                    CANAL = user.CANAL,
+                    NOME = user.NOME,
+                    UF = user.UF,
+                    APROVACAO = true,
+                    FIXA = user.FIXA,
+                    LOGIN_SOLICITANTE = matricula,
+                    LOGIN_RESPONSAVEL = matricula,
+                    DT_SOLICITACAO = DateTime.Now,
+                    DT_RETORNO = DateTime.Now,
+                    STATUS = "APROVADO",
+                    DT_PRIMEIRO_RETORNO = DateTime.Now,
+                    CPF = user.CPF,
+                    PDV = user.PDV,
+                    TIPO = TIPO_ACESSOS_PENDENTES.ALTERACAO.Value,
+                    ID_ACESSOS_MOBILE = id,
+                    STATUS_USUARIO = false,
+                    DDD = user.DDD,
+                    TP_STATUS = user.TP_STATUS,
+                    ELEGIVEL = user.ELEGIVEL,
+                    UserAvatar = user.UserAvatar,
+                };
+
+                var solicitacao = CD.ACESSOS_MOBILE_PENDENTEs.Add(newsolicitacao).Entity;
+                await CD.SaveChangesAsync();
+
+                CD.HISTORICO_ACESSOS_MOBILE_PENDENTEs.AddRange(new HISTORICO_ACESSOS_MOBILE_PENDENTE[]
+                {
+                    new HISTORICO_ACESSOS_MOBILE_PENDENTE
+                    {
+                        ID_ACESSOS_PENDENTE = solicitacao.ID,
+                        MATRICULA = matricula,
+                        RESPOSTA = "SOLICITAÇÃO REALIZADA AUTOMATICAMENTE",
+                        STATUS = "ABERTO",
+                        DATA = DateTime.Now
+                    },
+                    new HISTORICO_ACESSOS_MOBILE_PENDENTE
+                    {
+                        ID_ACESSOS_PENDENTE = solicitacao.ID,
+                        MATRICULA = matricula,
+                        RESPOSTA = "SOLICITAÇÃO REALIZADA AUTOMATICAMENTE",
+                        STATUS = "APROVADO",
+                        DATA = DateTime.Now
+                    }
+                });
+                
                 await CD.SaveChangesAsync();
                 return new JsonResult(user);
             }
@@ -941,6 +995,59 @@ namespace Vivo_Apps_API.Controllers
                 user.STATUS = true;
                 user.LOGIN_MOD = matricula;
                 user.DT_MOD = DateTime.Now;
+
+                var newsolicitacao = new ACESSOS_MOBILE_PENDENTE
+                {
+                    EMAIL = user.EMAIL,
+                    MATRICULA = user.MATRICULA,
+                    SENHA = user.SENHA,
+                    REGIONAL = user.REGIONAL,
+                    CARGO = user.CARGO,
+                    CANAL = user.CANAL,
+                    NOME = user.NOME,
+                    UF = user.UF,
+                    APROVACAO = true,
+                    FIXA = user.FIXA,
+                    LOGIN_SOLICITANTE = matricula,
+                    LOGIN_RESPONSAVEL = matricula,
+                    DT_SOLICITACAO = DateTime.Now,
+                    DT_RETORNO = DateTime.Now,
+                    STATUS = "APROVADO",
+                    DT_PRIMEIRO_RETORNO = DateTime.Now,
+                    CPF = user.CPF,
+                    PDV = user.PDV,
+                    TIPO = TIPO_ACESSOS_PENDENTES.ALTERACAO.Value,
+                    ID_ACESSOS_MOBILE = id,
+                    STATUS_USUARIO = true,
+                    DDD = user.DDD,
+                    TP_STATUS = user.TP_STATUS,
+                    ELEGIVEL = user.ELEGIVEL,
+                    UserAvatar = user.UserAvatar,
+                };
+
+                var solicitacao = CD.ACESSOS_MOBILE_PENDENTEs.Add(newsolicitacao).Entity;
+                await CD.SaveChangesAsync();
+
+                CD.HISTORICO_ACESSOS_MOBILE_PENDENTEs.AddRange(new HISTORICO_ACESSOS_MOBILE_PENDENTE[]
+                {
+                    new HISTORICO_ACESSOS_MOBILE_PENDENTE
+                    {
+                        ID_ACESSOS_PENDENTE = solicitacao.ID,
+                        MATRICULA = matricula,
+                        RESPOSTA = "SOLICITAÇÃO REALIZADA AUTOMATICAMENTE",
+                        STATUS = "ABERTO",
+                        DATA = DateTime.Now
+                    },
+                    new HISTORICO_ACESSOS_MOBILE_PENDENTE
+                    {
+                        ID_ACESSOS_PENDENTE = solicitacao.ID,
+                        MATRICULA = matricula,
+                        RESPOSTA = "SOLICITAÇÃO REALIZADA AUTOMATICAMENTE",
+                        STATUS = "APROVADO",
+                        DATA = DateTime.Now
+                    }
+                });
+
                 await CD.SaveChangesAsync();
                 return new JsonResult(user);
             }
@@ -2039,7 +2146,7 @@ namespace Vivo_Apps_API.Controllers
             IEnumerable<PERFIL_PLATAFORMAS_VIVO> perfis_usuario = [];
             if (UserAntigo is not null)
             {
-                var idperfis = CD.PERFIL_USUARIOs.Where(x => x.MATRICULA == UserAntigo.MATRICULA).Select(x=> x.id_Perfil);
+                var idperfis = CD.PERFIL_USUARIOs.Where(x => x.MATRICULA == UserAntigo.MATRICULA).Select(x => x.id_Perfil);
                 perfis_usuario = CD.PERFIL_PLATAFORMAS_VIVOs.Where(x => idperfis.Contains(x.ID_PERFIL));
             }
             var acesso2 = _mapper.Map<SOLICITAR_USUARIO_MODEL>(acesso_pendente);

@@ -19,6 +19,10 @@ using Shared_Static_Class.Model_DTO;
 using DocumentFormat.OpenXml.Office2010.PowerPoint;
 using StackExchange.Redis;
 using System.Drawing;
+using Microsoft.AspNetCore.OutputCaching;
+using Azure.Core;
+using Microsoft.AspNetCore.Http;
+using System.Security.Policy;
 
 namespace Vivo_Apps_API.Hubs
 {
@@ -40,10 +44,15 @@ namespace Vivo_Apps_API.Hubs
         private DemandasContext Demanda_BD;
         public IHubContext<SuporteDemandaHub> _context;
         private readonly IMapper _mapper;
+        private readonly HttpClient _client;
+        private readonly IOutputCacheStore _cache;
+        private readonly DemandasController _service;
         public static IDictionary<string, ACESSOS_MOBILE_DTO> CurrentUsers = new Dictionary<string, ACESSOS_MOBILE_DTO>();
         public static IEnumerable<DEMANDA_DTO> data = new List<DEMANDA_DTO>();
-        public SuporteDemandaHub(IHubContext<SuporteDemandaHub> context, IDbContextFactory<DemandasContext> dbContextFactory)
+        public SuporteDemandaHub(IHubContext<SuporteDemandaHub> context, IDbContextFactory<DemandasContext> dbContextFactory, IOutputCacheStore cache)
         {
+            _client = new HttpClient();
+            _cache = cache;
             DbFactory = dbContextFactory;
             Demanda_BD = DbFactory.CreateDbContext();
             _context = context;
@@ -110,46 +119,32 @@ namespace Vivo_Apps_API.Hubs
 
             _mapper = config.CreateMapper();
         }
-
-
-        protected Task GetAllAsync(int? matricula = null)
+        //private string GetBaseUrl(this HttpRequest request)
+        //{
+        //    // SSL offloading
+        //    var scheme = request.Host.Host.Contains("localhost") ? request.Scheme : "https";
+        //    return $"{scheme}://{request.Host}{request.PathBase}";
+        //}
+        protected async Task GetAllAsync(int? matricula = null)
         {
-            try
+            var response = await _client.GetAsync($"https://gqq1twmt-31510.brs.devtunnels.ms/api/Demandas/GetAllChamados");
+            if (response.IsSuccessStatusCode)
             {
-                /** Sempre utilizamos apenas as demandas/sol. acessos do último ano **/
-
-                var dataBeforeFilter = Demanda_BD.DEMANDA_RELACAO_CHAMADO
-                    .Where(x => x.Respostas.First().DATA_RESPOSTA >= DateTime.Now.AddYears(-1)
-                        && x.Respostas.First().DATA_RESPOSTA <= DateTime.Now)
-                    .AsNoTracking();
-
-                var saida = dataBeforeFilter
-                    //.Include(x=> x.ChamadoRelacao)
-                    //    .ThenInclude(x=> x.Solicitante)
-                    //.Include(x => x.ChamadoRelacao)
-                    //.ThenInclude(x => x.Responsavel)
-                    //.Include(x => x.ChamadoRelacao)
-                    //    .ThenInclude(x => x.Fila)
-                    //.Include(x => x.Responsavel)
-                    //.Include(x => x.Solicitante)
-                    .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider);
-
-                //var saida = dataBeforeFilter
-                //    .ProjectTo<PAINEL_DEMANDAS_CHAMADO_DTO>(_mapper.ConfigurationProvider)
-                //    .AsAsyncEnumerable();
-
-                data = saida.ToList();
-                return Task.CompletedTask;
+                response.EnsureSuccessStatusCode();
+                var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
+                var listAnalistas = JsonConvert.DeserializeObject<IEnumerable<DEMANDA_DTO>>(responseString);
+                if (listAnalistas != null)
+                {
+                    data = listAnalistas;
+                    await Task.CompletedTask;
+                }
             }
-            catch (Exception ex)
-            {
-                return Task.CompletedTask;
-            }
+            await Task.CompletedTask;
         }
 
         public async Task SendTableDemandas(int? matricula = null)
         {
-            GetAllAsync(matricula);
+            await GetAllAsync(matricula);
 
             if (matricula != null)
             {
@@ -319,13 +314,13 @@ namespace Vivo_Apps_API.Hubs
 
                     CurrentUsers.Add(Context?.ConnectionId, user);
                 }
-                if (!data.Any())
-                {
-                    await GetAllAsync(null);
-                }
+
+                await GetTable(null);
 
                 await _context.Clients.All.SendAsync("CurrentUsers", CurrentUsers);
+
                 await base.OnConnectedAsync();
+
                 await GetTable(Context.ConnectionId);
             }
             catch (Exception ex)

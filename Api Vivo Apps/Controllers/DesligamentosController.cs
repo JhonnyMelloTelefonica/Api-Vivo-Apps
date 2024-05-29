@@ -33,6 +33,7 @@ using Worksheet = Microsoft.Office.Interop.Excel.Worksheet;
 using DocumentFormat.OpenXml.ExtendedProperties;
 using Microsoft.AspNetCore.StaticFiles;
 using AutoMapper;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -42,15 +43,17 @@ namespace Vivo_Apps_API.Controllers
     {
         private readonly ILogger<DesligamentosController> _logger;
         private readonly ISuporteDemandaHub _hubContext;
+        private readonly IOutputCacheStore _cache;
         private IDbContextFactory<DemandasContext> DbFactory;
         private DemandasContext DB;
         private Vivo_MaisContext CD;
         private IMapper _mapper;
 
         public DesligamentosController(ILogger<DesligamentosController> logger,
-            IDbContextFactory<DemandasContext> dbContextFactory,
+            IDbContextFactory<DemandasContext> dbContextFactory, IOutputCacheStore cache,
             ISuporteDemandaHub hubContext, Vivo_MaisContext cD)
         {
+            _cache = cache;
             CD = cD;
             _logger = logger;
             _logger = logger;
@@ -106,6 +109,7 @@ namespace Vivo_Apps_API.Controllers
                 await DB.SaveChangesAsync();
                 //await _hubContext.SendTableDemandas();
 
+                await _cache.EvictByTagAsync("AllDemandas", default);
                 await _hubContext.SendTableDemandas();
 
                 return Ok(new Response<string>

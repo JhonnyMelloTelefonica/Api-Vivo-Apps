@@ -947,7 +947,6 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
-
         [HttpGet("GetFilas")]
         [ProducesResponseType(typeof(Response<IEnumerable<DEMANDA_TIPO_FILA_DTO>>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
@@ -1106,7 +1105,8 @@ namespace Vivo_Apps_API.Controllers
                         break;
                 }
 
-                _hubContext.SendTableDemandas();
+                await _cache.EvictByTagAsync("AllDemandas", default);
+                await _hubContext.SendTableDemandas();
 
                 var options = new JsonSerializerOptions
                 {
@@ -1161,7 +1161,8 @@ namespace Vivo_Apps_API.Controllers
                 });
 
                 Demanda_BD.SaveChanges();
-                _hubContext.SendTableDemandas();
+                await _cache.EvictByTagAsync("AllDemandas", default);
+                await _hubContext.SendTableDemandas();
                 object demanda;
                 switch (tabela)
                 {
@@ -1332,6 +1333,7 @@ namespace Vivo_Apps_API.Controllers
                     ReferenceHandler = ReferenceHandler.IgnoreCycles
                 };
 
+                await _cache.EvictByTagAsync("AllDemandas", default);
                 await _hubContext.SendTableDemandas();
                 await _hubContext.NewNotificationByUser(responsavel, demanda.ChamadoRelacao);
                 await _hubContext.NewNotificationByUser(int.Parse(data.MAT_SOLICITANTE), demanda.ChamadoRelacao);
@@ -2010,15 +2012,24 @@ namespace Vivo_Apps_API.Controllers
         }
 
         [HttpGet("AnalistaSuporte/Get/IsSuporte={IsSuporte}/IsAcessoLogico={IsAcessoLogico}/SubFila={SubFila}/regional={regional}/matricula={matricula}")]
-        [ResponseCache(VaryByHeader = "User-Agent",Duration = 60, NoStore = false, Location = ResponseCacheLocation.Any)]
-        [OutputCache(Duration = 60, NoStore = false, VaryByHeaderNames = new string[] { "User-Agent" })]
+        [ResponseCache(VaryByHeader = "User-Agent", Duration = int.MaxValue, NoStore = false, Location = ResponseCacheLocation.Any)]
+        [OutputCache(Duration = int.MaxValue, Tags = new string[] { "analistas-suporte" }, NoStore = false, VaryByHeaderNames = new string[] { "User-Agent" })]
         public async Task<Results<Ok<IEnumerable<ACESSOS_MOBILE_DTO>>, BadRequest<Exception>>> GetAnalistaSuporte(bool IsSuporte, bool IsAcessoLogico, int SubFila, string regional, int matricula)
         {
             try
             {
                 IQueryable<ACESSOS_MOBILE> query = null;
-                if (IsSuporte)
-                // Caso sim filtra por todos os analistas da regional
+                if (IsAcessoLogico)
+                {
+                    query = CD.ACESSOS_MOBILEs
+                        .Where(x => x.REGIONAL == regional)
+                        .Where(x => CD.PERFIL_USUARIOs
+                                        .Where(y => y.id_Perfil == 15)
+                                        .Select(y => y.MATRICULA)
+                                        .Contains(x.MATRICULA))
+                        .Distinct();
+                }
+                else
                 {
                     var matanalistas = CD.DEMANDA_BD_OPERADOREs
                         .Where(x => x.REGIONAL == regional)
@@ -2027,30 +2038,6 @@ namespace Vivo_Apps_API.Controllers
 
                     query = CD.ACESSOS_MOBILEs
                         .Where(x => matanalistas.Contains(x.MATRICULA));
-
-                    if (SubFila != 0)
-                    // Caso sim filtra pela fila 
-                    {
-                        var filter_by_filas = CD.DEMANDA_RESPONSAVEL_FILAs
-                            .Where(x => x.ID_SUB_FILA == SubFila);
-
-                        query = query.Where(x => filter_by_filas.Select(x => x.MATRICULA_RESPONSAVEL).Contains(x.MATRICULA));
-                    }
-                }
-                else
-                {
-                    if (IsAcessoLogico)
-                    {
-                        query = CD.ACESSOS_MOBILEs
-                            .Where(x => x.REGIONAL == regional)
-                            .Where(x => CD.PERFIL_USUARIOs
-                                            .Where(y => y.id_Perfil == 15)
-                                            .Select(y => y.MATRICULA)
-                                            .Contains(x.MATRICULA))
-                            .Distinct();
-
-
-                    }
                 }
 
                 var saida = query
@@ -2068,6 +2055,31 @@ namespace Vivo_Apps_API.Controllers
             catch (Exception ex)
             {
                 return TypedResults.BadRequest(ex);
+            }
+        }
+
+        [HttpGet("GetAllChamados")]
+        [ResponseCache(VaryByHeader = "User-Agent", Duration = int.MaxValue, NoStore = false, Location = ResponseCacheLocation.Any)]
+        [OutputCache(Duration = int.MaxValue, Tags = new string[] { "AllDemandas" }, NoStore = false, VaryByHeaderNames = new string[] { "User-Agent" })]
+        public IEnumerable<DEMANDA_DTO> GetAllChamados(int? matricula)
+        {
+            try
+            {
+                /*** Sempre utilizamos apenas os chamados do último ano ***/
+
+                var dataBeforeFilter = Demanda_BD.DEMANDA_RELACAO_CHAMADO
+                    .Where(x => x.Respostas.First().DATA_RESPOSTA >= DateTime.Now.AddYears(-1)
+                        && x.Respostas.First().DATA_RESPOSTA <= DateTime.Now)
+                    .AsNoTracking();
+
+                var saida = dataBeforeFilter
+                    .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider);
+
+                return saida.ToList();
+            }
+            catch (Exception ex)
+            {
+                return [];
             }
         }
 
@@ -2127,6 +2139,7 @@ namespace Vivo_Apps_API.Controllers
                     .IgnoreAutoIncludes()
                     .ProjectTo<ACESSO_TERCEIROS_DTO>(_mapper.ConfigurationProvider)
                     .First(x => x.ID == IdAcesso);
+
         private DESLIGAMENTO_DTO GetDesligamentoByID(int IdDesligamento)
             => Demanda_BD.DEMANDA_DESLIGAMENTOS
                     .Include(x => x.Responsavel)

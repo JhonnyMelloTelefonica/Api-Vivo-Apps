@@ -1,4 +1,5 @@
-﻿@ApiVivoApps_http = http://localhost:5159
+﻿@Api Vivo Apps_HostAddress = http://localhost:31510
+@ApiVivoApps_http = http://localhost:5159
 
 @Api_Vivo_Apps_HostAddress = http://localhost:31510
 
@@ -56,10 +57,14 @@ Content-Type: application/json
 
 ###
 @IsSuporte=false
-@IsAcessoLogico=true
+@IsAcessoLogico=false
 @SubFila=0
 @regional=NE
 @matricula=151191
-GET {{ApiVivoApps_http}}/api/Demandas/AnalistaSuporte/Get/IsSuporte={{IsSuporte}}/IsAcessoLogico={{IsAcessoLogico}}/SubFila={{SubFila}}/regional={{regional}}/matricula={{matricula}} HTTP/2
+GET {{Api_Vivo_Apps_HostAddress}}/api/Demandas/AnalistaSuporte/Get/IsSuporte={{IsSuporte}}/IsAcessoLogico={{IsAcessoLogico}}/SubFila={{SubFila}}/regional={{regional}}/matricula={{matricula}} HTTP/2
+
+###
+
+GET {{Api_Vivo_Apps_HostAddress}}/api/demandas/GetAllChamados
 
 ###

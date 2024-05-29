@@ -23,6 +23,7 @@ using static Shared_Static_Class.Data.DEMANDA_RELACAO_CHAMADO;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.Text.Json.Serialization;
 using System.Text.Json;
+using Microsoft.AspNetCore.OutputCaching;
 
 
 namespace Vivo_Apps_API.Controllers
@@ -32,7 +33,7 @@ namespace Vivo_Apps_API.Controllers
     public class AcessoTerceirosController : ControllerBase
     {
         private readonly ILogger<AcessoTerceirosController> _logger;
-        private readonly IDistributedCache _cache;
+        private readonly IOutputCacheStore _cache;
         private readonly ISuporteDemandaHub _hubContext;
         private readonly string _sharedFilesPath = @"..\Shared_Razor_Components\wwwroot\";
         private readonly IMapper _mapper;
@@ -42,7 +43,7 @@ namespace Vivo_Apps_API.Controllers
         private Vivo_MaisContext CD;
 
         public AcessoTerceirosController(ILogger<AcessoTerceirosController> logger,
-            IDistributedCache cache, IDbContextFactory<DemandasContext> dbContextFactory,
+            IOutputCacheStore cache, IDbContextFactory<DemandasContext> dbContextFactory,
             ISuporteDemandaHub hubContext, Vivo_MaisContext cD)
         {
             CD = cD;
@@ -119,8 +120,9 @@ namespace Vivo_Apps_API.Controllers
                 await DB.SaveChangesAsync();
                 //await _hubContext.SendTableDemandas();
 
+                //_cache.
                 await _hubContext.SendTableDemandas(demanda.MATRICULA_RESPONSAVEL);
-
+                await _cache.EvictByTagAsync("AllDemandas", default);
                 var demanda_acesso = DB.DEMANDA_ACESSOS
                    .Include(x => x.Responsavel)
                    .Include(x => x.Solicitante)
@@ -210,6 +212,7 @@ namespace Vivo_Apps_API.Controllers
 
                 await DB.SaveChangesAsync();
                 //await _hubContext.SendTableDemandas();
+                await _cache.EvictByTagAsync("AllDemandas", default);
 
                 await _hubContext.SendTableDemandas();
 
