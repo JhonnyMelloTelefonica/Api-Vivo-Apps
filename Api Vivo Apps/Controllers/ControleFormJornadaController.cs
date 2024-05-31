@@ -2376,7 +2376,7 @@ namespace Vivo_Apps_API.Controllers
             else
             {
                 JORNADA_BD_HIERARQUIum PDVDivisão = CD.JORNADA_BD_HIERARQUIAs
-                    .Where(x => x.ADABAS == usuario.PDV).FirstOrDefault();
+                    .Where(x => x.ADABAS == usuario.PDV && x.RE_GV != null).FirstOrDefault();
 
                 if (PDVDivisão is not null)
                 {

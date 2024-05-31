@@ -251,17 +251,16 @@ namespace Vivo_Apps_API.Controllers
                 var users = CD.ACESSOS_MOBILE_PENDENTEs.AsQueryable();
 
                 // FILTRA PELA REGIONAL DO USUÁRIO
-                if (!filter.Value.IsMaster)
+                if (filter.Value.IsSuporte.HasValue && !filter.Value.IsMaster)
                 {
-
-                    users = users.Where(x => filter.Value.REGIONAL.Contains(x.REGIONAL));
-
-                }
-
-                // BUSCA PELO LOGIN DO SOLICITANTE
-                if (!filter.Value.IsSuporte.Value)
-                {
-                    users = users.Where(x => filter.Value.LOGIN_SOLICITANTE.Contains(x.LOGIN_SOLICITANTE.Value));
+                    if (filter.Value.IsSuporte.HasValue)
+                    {
+                        users = users.Where(x => filter.Value.REGIONAL.Contains(x.REGIONAL));
+                    }
+                    else 
+                    {
+                        users = users.Where(x => filter.Value.LOGIN_SOLICITANTE.Contains(x.LOGIN_SOLICITANTE.Value));
+                    }
                 }
 
                 if (filter.Value.NomeSolicitante is not null)
@@ -976,7 +975,7 @@ namespace Vivo_Apps_API.Controllers
                         DATA = DateTime.Now
                     }
                 });
-                
+
                 await CD.SaveChangesAsync();
                 return new JsonResult(user);
             }
@@ -1569,52 +1568,35 @@ namespace Vivo_Apps_API.Controllers
                 await CD.SaveChangesAsync();
 
                 /** Atualização de Perfil  **/
-                var perfilbymatricula = CD.PERFIL_USUARIOs.Where(x => x.MATRICULA == acesso.MATRICULA).AsEnumerable();
-
-                if (usuario.SOLICITACAO.DADOS_SOLICITACAO.Perfil.Count() > perfilbymatricula.Count())
-                // Caso a quantidade de perfis solicitado seja maior do que a existente
+                var perfilbymatricula = CD.PERFIL_USUARIOs.Where(x => x.MATRICULA == acesso.MATRICULA).ToList();
+                var perfissolicitados = usuario.SOLICITACAO.DADOS_SOLICITACAO.Perfil.Select(x => new PERFIL_USUARIO
                 {
-                    foreach (var valorescampo in usuario.SOLICITACAO.DADOS_SOLICITACAO.Perfil)
-                    //Faz um looping por todos os perfis solicitados
+                    ID = 0,
+                    MATRICULA = acesso.MATRICULA,
+                    id_Perfil = x,
+                    DT_MOD = DateTime.Now,
+                    LOGIN_MOD = matricula
+                }).ToList();
+
+                IEnumerable<PERFIL_USUARIO> perfisNovos = perfilbymatricula.UnionBy(perfissolicitados, x => x.id_Perfil).ToList();
+                /** Une os perfis que estão no banco e os inseridos pelo usuário em uma lista, dá o distinct automaticamente **/
+
+                IEnumerable<PERFIL_USUARIO> perfisExcluidos = perfilbymatricula.ExceptBy(perfissolicitados.Select(x=> x.id_Perfil), x=> x.id_Perfil).ToList();
+                /** Perfis que estão no banco e que não estão na união entre as 2 listas **/
+
+                foreach (var perfil in perfisNovos)
+                {
+                    if (perfil.ID == 0)
                     {
-                        if (!perfilbymatricula.Any(x => x.id_Perfil == valorescampo))
-                        //Caso os perfis atuais não possuam este perfil, adicionamos
-                        {
-                            CD.PERFIL_USUARIOs.Add(new PERFIL_USUARIO
-                            {
-                                MATRICULA = acesso.MATRICULA,
-                                id_Perfil = valorescampo,
-                                DT_MOD = DateTime.Now,
-                                LOGIN_MOD = matricula
-                            });
-                        }
+                        CD.PERFIL_USUARIOs.Add(perfil);
                     }
                 }
-                else if (usuario.SOLICITACAO.DADOS_SOLICITACAO.Perfil.Count() < perfilbymatricula.Count())
-                // Caso a quantidade de perfis solicitado seja menor do que a existente
-                {
-                    foreach (var valorescampo in perfilbymatricula)
-                    //Faz um looping por todos os perfis atuais
-                    {
-                        if (!usuario.SOLICITACAO.DADOS_SOLICITACAO.Perfil.Any(x => x == valorescampo.id_Perfil))
-                        //Caso os perfis solicitados não possuam este perfil ele 
-                        {
-                            CD.PERFIL_USUARIOs.Remove(valorescampo);
-                        }
-                    }
 
-                    foreach (var perfil in usuario.SOLICITACAO.DADOS_SOLICITACAO.Perfil
-                        .Intersect(perfilbymatricula.Select(x => x.id_Perfil.Value)))
-                    {
-                        CD.PERFIL_USUARIOs.Add(new PERFIL_USUARIO
-                        {
-                            MATRICULA = acesso.MATRICULA,
-                            id_Perfil = perfil,
-                            DT_MOD = DateTime.Now,
-                            LOGIN_MOD = matricula
-                        });
-                    }
+                foreach (var perfil in perfisExcluidos)
+                {
+                    CD.PERFIL_USUARIOs.Remove(perfil);
                 }
+
                 /** Atualização de Perfil  **/
 
                 var acesso_pendente = CD.ACESSOS_MOBILE_PENDENTEs.Find(id);

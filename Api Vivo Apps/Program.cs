@@ -28,9 +28,15 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container. 
 
+//builder.Services.AddControllers().AddJsonOptions(options =>
+//{
+//    options.JsonSerializerOptions.Converters.Add(new Iso8601DateTimeConverter());
+//});
+
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
-    options.JsonSerializerOptions.Converters.Add(new Iso8601DateTimeConverter());
+    options.JsonSerializerOptions.PropertyNamingPolicy = null;
+    options.JsonSerializerOptions.IgnoreNullValues = true;
 });
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
@@ -68,11 +74,7 @@ builder.Services.AddDistributedSqlServerCache(options =>
 builder.Services.AddSignalR();
 builder.Services.AddHttpClient();
 builder.Services.AddHttpLogging(o => o = new Microsoft.AspNetCore.HttpLogging.HttpLoggingOptions());
-builder.Services.AddControllers().AddJsonOptions(options =>
-{
-    options.JsonSerializerOptions.PropertyNamingPolicy = null;
-    options.JsonSerializerOptions.IgnoreNullValues = true;
-});
+
 
 //builder.Services.AddSingleton<TableDependencyService>();
 
