@@ -1,7 +1,4 @@
-﻿@Api Vivo Apps_HostAddress = http://localhost:31510
-@ApiVivoApps_http = http://localhost:5159
-
-@Api_Vivo_Apps_HostAddress = http://localhost:31510
+﻿@Api_Vivo_Apps_HostAddress = http://localhost:5159
 
 GET {{Api_Vivo_Apps_HostAddress}}/api/demandas/GetFilas
 

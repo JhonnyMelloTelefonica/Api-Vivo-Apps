@@ -127,7 +127,7 @@ namespace Vivo_Apps_API.Hubs
         //}
         protected async Task GetAllAsync(int? matricula = null)
         {
-            var response = await _client.GetAsync($"https://gqq1twmt-31510.brs.devtunnels.ms/api/Demandas/GetAllChamados");
+            var response = await _client.GetAsync($"https://gqq1twmt-5159.brs.devtunnels.ms/api/Demandas/GetAllChamados");
             if (response.IsSuccessStatusCode)
             {
                 response.EnsureSuccessStatusCode();
@@ -190,16 +190,26 @@ namespace Vivo_Apps_API.Hubs
                         /** Consulta para analistas do suporte que não tratam solicitação de acessos terceiro **/
                         case Controle_Demanda_role.ANALISTA:
 
+                            var list_ids = Demanda_BD.DEMANDA_RESPONSAVEL_FILA.Where(x => x.MATRICULA_RESPONSAVEL == user.MATRICULA).Select(x=> x.ID_SUB_FILA);
+
                             await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}")
                                 .SendAsync("TableDemandas",
                                 data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
-                                && x.ChamadoRelacao.Responsavel.MATRICULA == user.MATRICULA));
+                                && list_ids.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA)));
                             break;
 
                         /** Consulta para analistas do suporte que tratam solicitação de acessos terceiro **/
                         case Controle_Demanda_role.ANALISTA_ACESSO:
 
-                            var datatotalanalistaacesso = data.Where(x => x.MATRICULA_RESPONSAVEL == user.MATRICULA);
+                            var list_ids_user = Demanda_BD.DEMANDA_RESPONSAVEL_FILA.Where(x => x.MATRICULA_RESPONSAVEL == user.MATRICULA).Select(x=> x.ID_SUB_FILA);
+
+                            var datademandaanalistaacesso = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
+                                && list_ids_user.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA));
+
+                            var dataacessoanalistaacesso = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.AcessoRelacao);
+
+                            var datatotalanalistaacesso = datademandaanalistaacesso.UnionBy(dataacessoanalistaacesso, x=> x.ID_RELACAO);
+
                             await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}").SendAsync("TableDemandas", datatotalanalistaacesso);
                             break;
 
@@ -285,6 +295,7 @@ namespace Vivo_Apps_API.Hubs
                 if (matricula != string.Empty)
                 {
                     var saida = Demanda_BD.ACESSOS_MOBILE
+                        .Include(x=> x.DemandasResponsavel)
                         .First(x => x.MATRICULA == int.Parse(matricula));
 
                     var user = _mapper.Map<ACESSOS_MOBILE_DTO>(saida);
@@ -315,8 +326,8 @@ namespace Vivo_Apps_API.Hubs
                     CurrentUsers.Add(Context?.ConnectionId, user);
                 }
 
-                await GetTable(null);
-
+                await SendTableDemandas(null);
+                                
                 await _context.Clients.All.SendAsync("CurrentUsers", CurrentUsers);
 
                 await base.OnConnectedAsync();

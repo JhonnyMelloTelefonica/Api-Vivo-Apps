@@ -92,36 +92,10 @@ namespace Vivo_Apps_API.Controllers
             try
             {
                 //body.Solicitante = DB.ACESSOS_MOBILE.First(x => x.MATRICULA == body.MATRICULA_SOLICITANTE);
-                var demanda_relacao = DB.DEMANDA_RELACAO_CHAMADO.Find(id);
-                var demanda = DB.DEMANDA_ACESSOS.First(x => x.ID_RELACAO == id);
-                demanda.Matricula = newmatricula.ToString();
+                await ExecuteChangeMatriculaTerceiro(id, newmatricula, matricula_resp, mensagem, out DEMANDA_ACESSOS? demanda);
 
-                var resposta = new DEMANDA_CHAMADO_RESPOSTA
-                {
-                    ID_RELACAO = id,
-                    ID_CHAMADO = demanda.ID,
-                    RESPOSTA = mensagem,
-                    MATRICULA_RESPONSAVEL = matricula_resp,
-                    DATA_RESPOSTA = DateTime.Now,
-                    ARQUIVOS = null
-                };
-
-                demanda_relacao.Respostas.Add(resposta);
-                await DB.SaveChangesAsync();
-
-                demanda_relacao.Status.Add(new DEMANDA_STATUS_CHAMADO
-                {
-                    ID_CHAMADO = demanda.ID,
-                    STATUS = STATUS_ACESSOS_PENDENTES.APROVADO.Value,
-                    ID_RESPOSTA = resposta.ID,
-                    DATA = DateTime.Now
-                });
-
-                await DB.SaveChangesAsync();
-                //await _hubContext.SendTableDemandas();
-
-                //_cache.
                 await _hubContext.SendTableDemandas(demanda.MATRICULA_RESPONSAVEL);
+
                 await _cache.EvictByTagAsync("AllDemandas", default);
                 var demanda_acesso = DB.DEMANDA_ACESSOS
                    .Include(x => x.Responsavel)
@@ -166,6 +140,48 @@ namespace Vivo_Apps_API.Controllers
                 });
             }
         }
+
+        [HttpPost("InformarMatriculaMassivo")]
+        public async Task<IActionResult> InformarMatriculaMassivo(IEnumerable<Tuple<Guid,int>> id, int matricula_resp, string mensagem)
+        {
+            try
+            {
+                //body.Solicitante = DB.ACESSOS_MOBILE.First(x => x.MATRICULA == body.MATRICULA_SOLICITANTE);]
+                foreach (Tuple<Guid, int> singleid in id)
+                {
+                    await ExecuteChangeMatriculaTerceiro(singleid.Item1, singleid.Item2, matricula_resp, mensagem, out DEMANDA_ACESSOS? demanda);
+                }
+
+                await _cache.EvictByTagAsync("AllDemandas", default);
+                await _hubContext.SendTableDemandas();
+
+                return new JsonResult(new Response<string>
+                {
+                    Data = "A matrícula foi atualizada para todas as demandas",
+                    Succeeded = true,
+                    Message = $"Matrícula de todos os usuários foi alterada com sucesso, enviamos um e-mail informando o solicitante da alteração para cada uma das demandas",
+                }, new JsonSerializerOptions
+                {
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Algum erro ocorreu ao tentar criar um novo elemento");
+                return StatusCode(500, new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    },
+                });
+            }
+        }
+
 
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] DEMANDA_ACESSOS body, string MENSAGEM)
@@ -447,6 +463,37 @@ namespace Vivo_Apps_API.Controllers
                 return "-";
             }
             return xx;
+        }
+        private Task ExecuteChangeMatriculaTerceiro(Guid id, int newmatricula,
+            int matricula_resp, string mensagem, out DEMANDA_ACESSOS? demanda)
+        {
+            var demanda_relacao = DB.DEMANDA_RELACAO_CHAMADO.Find(id);
+            demanda = DB.DEMANDA_ACESSOS.First(x => x.ID_RELACAO == id);
+            demanda.Matricula = newmatricula.ToString();
+
+            var resposta = new DEMANDA_CHAMADO_RESPOSTA
+            {
+                ID_RELACAO = id,
+                ID_CHAMADO = demanda.ID,
+                RESPOSTA = mensagem,
+                MATRICULA_RESPONSAVEL = matricula_resp,
+                DATA_RESPOSTA = DateTime.Now,
+                ARQUIVOS = null
+            };
+
+            demanda_relacao.Respostas.Add(resposta);
+            DB.SaveChanges();
+
+            demanda_relacao.Status.Add(new DEMANDA_STATUS_CHAMADO
+            {
+                ID_CHAMADO = demanda.ID,
+                STATUS = STATUS_ACESSOS_PENDENTES.AGUARDANDO_ANALISTA.Value,
+                ID_RESPOSTA = resposta.ID,
+                DATA = DateTime.Now
+            });
+
+            DB.SaveChanges();
+            return Task.CompletedTask;
         }
     }
 }
