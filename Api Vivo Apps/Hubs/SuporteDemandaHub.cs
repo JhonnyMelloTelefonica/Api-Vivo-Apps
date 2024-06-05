@@ -125,9 +125,9 @@ namespace Vivo_Apps_API.Hubs
         //    var scheme = request.Host.Host.Contains("localhost") ? request.Scheme : "https";
         //    return $"{scheme}://{request.Host}{request.PathBase}";
         //}
-        protected async Task GetAllAsync(int? matricula = null)
+        protected async Task GetAllAsync(int? matricula = null)     
         {
-            var response = await _client.GetAsync($"https://gqq1twmt-5159.brs.devtunnels.ms/api/Demandas/GetAllChamados");
+            var response = await _client.GetAsync($"http://localhost:31510/api/Demandas/GetAllChamados");
             if (response.IsSuccessStatusCode)
             {
                 response.EnsureSuccessStatusCode();

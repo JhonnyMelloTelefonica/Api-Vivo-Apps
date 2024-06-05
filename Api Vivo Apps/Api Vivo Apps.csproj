@@ -7,8 +7,6 @@
 		<RootNamespace>Vivo_Apps_API</RootNamespace>
 		<UserSecretsId>acfdd39b-5641-46aa-87dd-6e6b243f875d</UserSecretsId>
 	</PropertyGroup>
-
-	<Import Project="..\..\Shared_Class_Vivo_Apps\Shared_Class_Vivo_Apps\Shared_Class_Vivo_Apps.projitems" Label="Shared" />
 	<ItemGroup>
 		<Compile Remove="DB_Context_Vivo_MAIS\Vivo_MaisContext.cs" />
 	</ItemGroup>
@@ -17,6 +15,7 @@
 		<Content Include="FilesTemplates\**" CopyToPublishDirectory="PreserveNewest" />
 	</ItemGroup>
 	<ItemGroup>
+	  <None Remove="FilesTemplates\AcessosTerceiro_Matricula_Massivo_Model.html" />
 	  <None Remove="FilesTemplates\Layout-Externo-Novo.xlsx" />
 	</ItemGroup>
 
@@ -88,7 +87,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\Shared_Razor_Components\Shared_Razor_Components.csproj" />
-		<ProjectReference Include="..\..\Shared_Static_Class\Shared_Static_Class.csproj" />
+	  <ProjectReference Include="..\..\Shared_Static_Class\Shared_Static_Class.csproj" />
 	</ItemGroup>
 </Project>

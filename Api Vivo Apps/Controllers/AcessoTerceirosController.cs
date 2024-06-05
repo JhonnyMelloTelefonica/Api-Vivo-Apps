@@ -8,7 +8,6 @@ using Shared_Static_Class.Data;
 using Shared_Static_Class.DB_Context_Vivo_MAIS;
 using Shared_Static_Class.Models;
 using Vivo_Apps_API.Hubs;
-using BootstrapBlazor.Components;
 using Path = System.IO.Path;
 using System.Data;
 using Range = Microsoft.Office.Interop.Excel.Range;
@@ -17,6 +16,7 @@ using Microsoft.AspNetCore.StaticFiles;
 using Shared_Static_Class.Model_DTO;
 using Newtonsoft.Json;
 using Vivo_Apps_API.Models;
+using Converters = Vivo_Apps_API.Models.Converters.Converters;
 using Microsoft.AspNetCore.SignalR;
 using AutoMapper.QueryableExtensions;
 using static Shared_Static_Class.Data.DEMANDA_RELACAO_CHAMADO;
@@ -24,6 +24,7 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using System.Text.Json.Serialization;
 using System.Text.Json;
 using Microsoft.AspNetCore.OutputCaching;
+using DataTable = System.Data.DataTable;
 
 
 namespace Vivo_Apps_API.Controllers
@@ -107,9 +108,6 @@ namespace Vivo_Apps_API.Controllers
                    .Include(x => x.Relacao)
                        .ThenInclude(x => x.Respostas)
                            .ThenInclude(x => x.Status)
-                   .Include(x => x.Relacao)
-                       .ThenInclude(x => x.Respostas)
-                           .ThenInclude(x => x.ARQUIVOS)
                    .IgnoreAutoIncludes()
                    .ProjectTo<ACESSO_TERCEIROS_DTO>(_mapper.ConfigurationProvider)
                    .First(x => x.ID == demanda.ID);
@@ -181,7 +179,6 @@ namespace Vivo_Apps_API.Controllers
                 });
             }
         }
-
 
         [HttpPost("create")]
         public async Task<IActionResult> Create([FromBody] DEMANDA_ACESSOS body, string MENSAGEM)
@@ -456,6 +453,79 @@ namespace Vivo_Apps_API.Controllers
             });
         }
 
+        [HttpPost("ExtractInclusaoAcessos")]
+        public async Task<JsonResult> GetUsuariosExcel([FromBody] IEnumerable<Guid> ids)
+        {
+            try
+            {
+                var acessos = DB.DEMANDA_RELACAO_CHAMADO
+                    .Include(x=> x.AcessoRelacao)
+                    .Where(x => ids.Contains(x.ID_RELACAO));
+
+                string templatepath = Path.Combine(Directory.GetCurrentDirectory(), "FilesTemplates//AcessosTerceiro_Matricula_Massivo_Model.html");
+                string htmldata = System.IO.File.ReadAllText(templatepath);
+
+                var excelstring = new System.Text.StringBuilder();
+
+                foreach (var blocao in acessos)
+                {
+                    excelstring.Append("<tr>");
+                    excelstring.Append($"<td>{blocao.Sequence}</td>");
+                    excelstring.Append($"<td>{blocao.ID_RELACAO}</td>");
+                    excelstring.Append($"<td>{blocao.AcessoRelacao.Matricula}</td>");
+                    excelstring.Append($"<td>{blocao.AcessoRelacao.Nome}</td>");
+                    excelstring.Append("</tr>");
+                }
+                htmldata = htmldata.Replace("@@ActualData", excelstring.ToString());
+
+                // Convertendo HTML para DataTable
+                DataTable dataTable = Converters.ConvertHtmlTableToDataTable(htmldata);
+
+                // Convertendo DataTable para XLSX
+                string StoredFilePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "FilesTemplates", "Excel_Saida_Matricula.xlsx");
+
+                if (System.IO.File.Exists(StoredFilePath))
+                {
+                    System.IO.File.Delete(StoredFilePath);
+                }
+
+                Converters.ExportToExcel(dataTable, StoredFilePath);
+
+                var provider = new FileExtensionContentTypeProvider();
+
+                if (!provider.TryGetContentType(StoredFilePath, out var contentType))
+                {
+                    contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+                }
+
+                var bytes = await System.IO.File.ReadAllBytesAsync(StoredFilePath);
+
+                System.IO.File.Delete(StoredFilePath);
+
+                return new JsonResult(new Response<FileContentResult>
+                {
+                    Data = File(bytes, contentType, System.IO.Path.Combine(StoredFilePath)),
+                    Succeeded = true,
+                    Message = "O excel foi gerado corretamente baseando-se nos filtros atuais, aguarde o download."
+                });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    },
+                });
+            }
+        }
+
+
         private dynamic preencherValor(string xx)
         {
             if (string.IsNullOrEmpty(xx))
@@ -487,7 +557,7 @@ namespace Vivo_Apps_API.Controllers
             demanda_relacao.Status.Add(new DEMANDA_STATUS_CHAMADO
             {
                 ID_CHAMADO = demanda.ID,
-                STATUS = STATUS_ACESSOS_PENDENTES.AGUARDANDO_ANALISTA.Value,
+                STATUS = STATUS_ACESSOS_PENDENTES.AGUARDANDO_TREINAMENTO.Value,
                 ID_RESPOSTA = resposta.ID,
                 DATA = DateTime.Now
             });
@@ -495,5 +565,31 @@ namespace Vivo_Apps_API.Controllers
             DB.SaveChanges();
             return Task.CompletedTask;
         }
+
+        //private ACESSO_TERCEIROS_DTO GetAcessoByID(int IdAcesso)
+        //    => DB.DEMANDA_ACESSOS
+        //            .Include(x => x.Responsavel)
+        //            .Include(x => x.Solicitante)
+        //            .Include(x => x.Relacao)
+        //                .ThenInclude(x => x.Respostas)
+        //                    .ThenInclude(x => x.Responsavel)
+        //                        .ThenInclude(x => x.ResponsavelDemandasTotais)
+        //            .Include(x => x.Relacao)
+        //                .ThenInclude(x => x.Respostas)
+        //                    .ThenInclude(x => x.Status)
+        //            .Include(x => x.Relacao)
+        //                .ThenInclude(x => x.Respostas)
+        //                    .ThenInclude(x => x.Status)
+        //                        .ThenInclude(x => x.Quem_redirecionou)
+        //            .Include(x => x.Relacao)
+        //                .ThenInclude(x => x.Respostas)
+        //                    .ThenInclude(x => x.Status)
+        //                        .ThenInclude(x => x.Para_Quem_redirecionou)
+        //            .Include(x => x.Relacao)
+        //                .ThenInclude(x => x.Respostas)
+        //                    .ThenInclude(x => x.ARQUIVOS)
+        //            .IgnoreAutoIncludes()
+        //            .ProjectTo<ACESSO_TERCEIROS_DTO>(_mapper.ConfigurationProvider)
+        //            .First(x => x.ID == IdAcesso);
     }
 }

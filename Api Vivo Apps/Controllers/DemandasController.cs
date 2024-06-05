@@ -32,7 +32,6 @@ using System.Net.Http;
 using System.Text;
 using Blazorise;
 using static Shared_Static_Class.Data.DEMANDA_RELACAO_CHAMADO;
-using BootstrapBlazor.Components;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages;
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.Build.Framework;
@@ -163,6 +162,29 @@ namespace Vivo_Apps_API.Controllers
             _mapper = config.CreateMapper();
         }
 
+
+        [HttpGet("GetFilesMenssageChamado/{IdResposta}")]
+        [ProducesResponseType(typeof(Response<IEnumerable<DEMANDA_ARQUIVOS_RESPOSTA>>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public async Task<JsonResult> GetFilesMenssageChamado(int IdResposta)
+        {
+            try
+            {
+                var Arquivos = Demanda_BD.DEMANDA_ARQUIVOS_RESPOSTA.Where(x=> x.ID_RESPOSTA == IdResposta);
+
+                var options = new JsonSerializerOptions
+                {
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                };
+
+                return new JsonResult(Arquivos, options);
+
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new DEMANDA_ARQUIVOS_RESPOSTA[0]);
+            }
+        }
 
         [HttpGet("GetAnalistasByRegional")]
         [ProducesResponseType(typeof(Response<IEnumerable<ACESSOS_MOBILE_DTO>>), 200)]
@@ -1340,14 +1362,6 @@ namespace Vivo_Apps_API.Controllers
 
                 var demandaCompleta = GetDemandaByID(demanda.ChamadoRelacao.ID);
 
-                var arquivosDemanda = demandaCompleta.Respostas.Where(x => x.ARQUIVOS is not null)
-                    .SelectMany(x => x.ARQUIVOS)
-                    .Select(x => new
-                    {
-                        nome = x.NOME_CAMPO,
-                        anexo = x.ARQUIVO
-                    });
-
                 /*string jsonContent = JsonConvert.SerializeObject(new
                 {
                     matricula = demandaCompleta.Solicitante.MATRICULA,
@@ -2018,27 +2032,21 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                IQueryable<ACESSOS_MOBILE> query = null;
-                if (IsAcessoLogico)
-                {
-                    query = CD.ACESSOS_MOBILEs
-                        .Where(x => x.REGIONAL == regional)
-                        .Where(x => CD.PERFIL_USUARIOs
-                                        .Where(y => y.id_Perfil == 15)
-                                        .Select(y => y.MATRICULA)
-                                        .Contains(x.MATRICULA))
-                        .Distinct();
-                }
-                else
-                {
+                    //var queryanalogico = CD.ACESSOS_MOBILEs
+                    //    .Where(x => x.REGIONAL == regional)
+                    //    .Where(x => CD.PERFIL_USUARIOs
+                    //                    .Where(y => y.id_Perfil == 15)
+                    //                    .Select(y => y.MATRICULA)
+                    //                    .Contains(x.MATRICULA))
+                    //    .Distinct().AsEnumerable();
+
                     var matanalistas = CD.DEMANDA_BD_OPERADOREs
                         .Where(x => x.REGIONAL == regional)
                         .Select(x => x.MATRICULA).ToArray()
                         .Distinct();
 
-                    query = CD.ACESSOS_MOBILEs
+                    var query = CD.ACESSOS_MOBILEs
                         .Where(x => matanalistas.Contains(x.MATRICULA));
-                }
 
                 var saida = query
                 .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
@@ -2108,9 +2116,6 @@ namespace Vivo_Apps_API.Controllers
                     .Include(x => x.Relacao)
                         .ThenInclude(x => x.Respostas)
                             .ThenInclude(x => x.Status)
-                    .Include(x => x.Relacao)
-                        .ThenInclude(x => x.Respostas)
-                            .ThenInclude(x => x.ARQUIVOS)
                     .ProjectTo<DEMANDAS_CHAMADO_DTO>(_mapper.ConfigurationProvider)
                     .First(x => x.ID == IdDemanda);
 
@@ -2133,9 +2138,6 @@ namespace Vivo_Apps_API.Controllers
                         .ThenInclude(x => x.Respostas)
                             .ThenInclude(x => x.Status)
                                 .ThenInclude(x => x.Para_Quem_redirecionou)
-                    .Include(x => x.Relacao)
-                        .ThenInclude(x => x.Respostas)
-                            .ThenInclude(x => x.ARQUIVOS)
                     .IgnoreAutoIncludes()
                     .ProjectTo<ACESSO_TERCEIROS_DTO>(_mapper.ConfigurationProvider)
                     .First(x => x.ID == IdAcesso);
@@ -2156,8 +2158,6 @@ namespace Vivo_Apps_API.Controllers
                         .ThenInclude(x => x.Responsavel)
                     .Include(x => x.Relacao)
                         .ThenInclude(x => x.Solicitante)
-                    .Include(x => x.Relacao)
-                        .ThenInclude(x => x.Respostas)
                     .IgnoreAutoIncludes()
                     .ProjectTo<DESLIGAMENTO_DTO>(_mapper.ConfigurationProvider)
                     .First(x => x.ID == IdDesligamento);
