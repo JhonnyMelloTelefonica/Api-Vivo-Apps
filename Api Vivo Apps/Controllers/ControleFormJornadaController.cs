@@ -313,11 +313,12 @@ namespace Vivo_Apps_API.Controllers
                     TIPO_PROVA = "Jornada";
                 }
 
-                var dadosDoBanco = CD.JORNADA_BD_QUESTIONs.ToList();
+                var dadosDoBanco = CD.JORNADA_BD_QUESTIONs.AsEnumerable();
 
                 // Parte 1: Consulta executada no banco de dados
                 var dadosDoBancoFiltrados = dadosDoBanco
-                    .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains(CARGO))
+                    .Where(x => x.STATUS_QUESTION.Value == true)
+                    .Where(x => x.CARGO.Split(new[] { ';' }).Contains(CARGO.ToString()))
                     .Where(y => y.TP_FORMS.Split(new[] { ';' }).Contains(TIPO_PROVA))
                     .Where(k => (FIXA == false ? k.FIXA == FIXA : k.FIXA != null))
                     .Where(k => k.REGIONAL == REGIONAL)

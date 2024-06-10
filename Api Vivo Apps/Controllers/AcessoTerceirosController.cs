@@ -25,6 +25,11 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 using Microsoft.AspNetCore.OutputCaching;
 using DataTable = System.Data.DataTable;
+using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.Drawing.Charts;
+using DocumentFormat.OpenXml.Vml;
+using Shared_Static_Class.Model_Demanda_Context;
+using DocumentFormat.OpenXml.Office2010.Excel;
 
 
 namespace Vivo_Apps_API.Controllers
@@ -140,7 +145,7 @@ namespace Vivo_Apps_API.Controllers
         }
 
         [HttpPost("InformarMatriculaMassivo")]
-        public async Task<IActionResult> InformarMatriculaMassivo(IEnumerable<Tuple<Guid,int>> id, int matricula_resp, string mensagem)
+        public async Task<IActionResult> InformarMatriculaMassivo(IEnumerable<Tuple<Guid, int>> id, int matricula_resp, string mensagem)
         {
             try
             {
@@ -347,15 +352,15 @@ namespace Vivo_Apps_API.Controllers
                     xlWorkSheet.Cells[i, 47] = "1 Sim";
                     xlWorkSheet.Cells[i, 48] = "2 Não";
 
-                    if (item.Acao.Value == Acao.INCLUSÃO)
+                    if (item.Acao == Acao.INCLUSÃO)
                     {
                         xlWorkSheet.Cells[i, 2] = "1 Inclusão";
                         xlWorkSheet.Cells[i, 3] = "-";
                     }
 
-                    if (item.Acao.Value == Acao.ALTERAÇÃO || item.Acao.Value == Acao.INATIVAÇÃO || item.Acao.Value == Acao.REATIVAÇÃO)
+                    if (item.Acao == Acao.ALTERAÇÃO || item.Acao == Acao.INATIVAÇÃO || item.Acao == Acao.REATIVAÇÃO)
                     {
-                        xlWorkSheet.Cells[i, 2] = item.Acao.Value.GetDisplayName();
+                        xlWorkSheet.Cells[i, 2] = item.Acao.GetDisplayName();
                         if (regional.Equals("NE"))
                         {
                             xlWorkSheet.Cells[i, 3] = item.Matricula; // MATRICULA
@@ -368,7 +373,7 @@ namespace Vivo_Apps_API.Controllers
                     }
                     else
                     {
-                        xlWorkSheet.Cells[i, 2] = item.Acao.Value.GetDisplayName();
+                        xlWorkSheet.Cells[i, 2] = item.Acao.GetDisplayName();
                         xlWorkSheet.Cells[i, 3] = "T4 DEALERS";
                     }
 
@@ -454,57 +459,111 @@ namespace Vivo_Apps_API.Controllers
         }
 
         [HttpPost("ExtractInclusaoAcessos")]
-        public async Task<JsonResult> GetUsuariosExcel([FromBody] IEnumerable<Guid> ids)
+        public async Task<IActionResult> GetUsuariosExcel([FromBody] IEnumerable<Guid> ids)
         {
             try
             {
                 var acessos = DB.DEMANDA_RELACAO_CHAMADO
-                    .Include(x=> x.AcessoRelacao)
+                    .Include(x => x.AcessoRelacao)
                     .Where(x => ids.Contains(x.ID_RELACAO));
 
-                string templatepath = Path.Combine(Directory.GetCurrentDirectory(), "FilesTemplates//AcessosTerceiro_Matricula_Massivo_Model.html");
-                string htmldata = System.IO.File.ReadAllText(templatepath);
+                string folderPath = string.Empty;
+                string outputPath = string.Empty;
 
-                var excelstring = new System.Text.StringBuilder();
-
-                foreach (var blocao in acessos)
+                foreach (System.Diagnostics.Process process in System.Diagnostics.Process.GetProcessesByName("EXCEL"))
                 {
-                    excelstring.Append("<tr>");
-                    excelstring.Append($"<td>{blocao.Sequence}</td>");
-                    excelstring.Append($"<td>{blocao.ID_RELACAO}</td>");
-                    excelstring.Append($"<td>{blocao.AcessoRelacao.Matricula}</td>");
-                    excelstring.Append($"<td>{blocao.AcessoRelacao.Nome}</td>");
-                    excelstring.Append("</tr>");
-                }
-                htmldata = htmldata.Replace("@@ActualData", excelstring.ToString());
-
-                // Convertendo HTML para DataTable
-                DataTable dataTable = Converters.ConvertHtmlTableToDataTable(htmldata);
-
-                // Convertendo DataTable para XLSX
-                string StoredFilePath = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "FilesTemplates", "Excel_Saida_Matricula.xlsx");
-
-                if (System.IO.File.Exists(StoredFilePath))
-                {
-                    System.IO.File.Delete(StoredFilePath);
+                    process.Kill();
                 }
 
-                Converters.ExportToExcel(dataTable, StoredFilePath);
+                folderPath = Path.Combine(System.IO.Directory.GetCurrentDirectory(), "FilesTemplates");
+
+                Microsoft.Office.Interop.Excel.Application xlApp = new Microsoft.Office.Interop.Excel.Application();
+                Microsoft.Office.Interop.Excel.Workbook livro = (Microsoft.Office.Interop.Excel.Workbook)(xlApp.Workbooks.Add(Path.Combine(folderPath, @"Extract_Matricula_Model.xlsx")));
+                Worksheet xlWorkSheet = (Worksheet)livro.Worksheets.get_Item(1);
+                Range r = xlWorkSheet.Cells;
+                r.NumberFormat = "@";
+                int i = 2; //Row
+                foreach (DEMANDA_RELACAO_CHAMADO item in acessos)
+                {
+                    var carteira = CD.Carteira_NEs.Where(x => x.Vendedor == item.AcessoRelacao.Adabas);
+                    //var extrator = CD.ACESSOS_MOBILEs.First(x => x.MATRICULA == item.AcessoRelacao.Matricula);
+                    //(item.AcessoRelacao?.Acao == Acao.INCLUSÃO ? "@0V@" : "@0W@")
+                    Microsoft.Office.Interop.Excel.Range oRange = (Microsoft.Office.Interop.Excel.Range)xlWorkSheet.Cells[i, 1];
+                    float Left = (float)((double)oRange.Left);
+                    float Top = (float)((double)oRange.Top);
+                    xlWorkSheet.Shapes.AddPicture(Path.Combine(folderPath, item.AcessoRelacao?.Acao == Acao.INCLUSÃO ? "Imagem1.gif" : "Imagem2.gif"), Microsoft.Office.Core.MsoTriState.msoFalse, Microsoft.Office.Core.MsoTriState.msoCTrue, Left, Top, 8, 8);
+
+                    xlWorkSheet.Cells[i, 2] = $"Foi criado o Terceiro : {item.AcessoRelacao?.Matricula}";
+                    xlWorkSheet.Cells[i, 3] = (int)Acao.INCLUSÃO;
+                    xlWorkSheet.Cells[i, 4] = string.IsNullOrEmpty(item.AcessoRelacao?.Matricula) ? item.AcessoRelacao?.Matricula : string.Empty;
+                    xlWorkSheet.Cells[i, 5] = "T4";
+                    xlWorkSheet.Cells[i, 6] = item.AcessoRelacao.Nome.Split()[0];
+                    xlWorkSheet.Cells[i, 7] = item.AcessoRelacao.Nome.Split().Count() > 1 ? item.AcessoRelacao.Nome.Split().Skip(1) : string.Empty;
+                    xlWorkSheet.Cells[i, 8] = (int)item.AcessoRelacao.Sexo;
+                    xlWorkSheet.Cells[i, 9] = string.Empty;
+                    xlWorkSheet.Cells[i, 10] = item.AcessoRelacao.Cpf;
+                    xlWorkSheet.Cells[i, 11] = item.AcessoRelacao.Cnpj;
+                    xlWorkSheet.Cells[i, 12] = 0;
+                    xlWorkSheet.Cells[i, 13] = item.AcessoRelacao.Rg;
+                    xlWorkSheet.Cells[i, 14] = item.AcessoRelacao.OrgaoEmissor;
+                    xlWorkSheet.Cells[i, 15] = item.AcessoRelacao.DataNascimento.Value.ToShortDateString();
+                    xlWorkSheet.Cells[i, 16] = "BR";
+                    xlWorkSheet.Cells[i, 17] = item.AcessoRelacao.Telefone;
+                    xlWorkSheet.Cells[i, 18] = item.AcessoRelacao.Email;
+                    xlWorkSheet.Cells[i, 19] = 2;
+                    xlWorkSheet.Cells[i, 20] = 1;
+                    xlWorkSheet.Cells[i, 21] = string.Empty;
+                    xlWorkSheet.Cells[i, 22] = 0;
+                    xlWorkSheet.Cells[i, 23] = string.Empty;
+                    xlWorkSheet.Cells[i, 24] = item.AcessoRelacao.Cnpj;
+                    xlWorkSheet.Cells[i, 25] = item.AcessoRelacao.SubGrupo;
+                    xlWorkSheet.Cells[i, 26] = "10017038";
+                    xlWorkSheet.Cells[i, 27] = "10017038";
+                    xlWorkSheet.Cells[i, 28] = "163794";
+                    xlWorkSheet.Cells[i, 29] = 0;
+                    xlWorkSheet.Cells[i, 30] = 0;
+                    xlWorkSheet.Cells[i, 31] = item.AcessoRelacao.DataContratoInicio != null ? item.AcessoRelacao.DataContratoInicio.Value.ToShortDateString() : string.Empty;
+                    //xlWorkSheet.Cells[$"AE{i}"] = item.AcessoRelacao.DataContratoFim != null ? item.AcessoRelacao.DataContratoFim.Value.ToShortDateString() : string.Empty;
+                    xlWorkSheet.Cells[i, 32] = "A";
+                    xlWorkSheet.Cells[i, 33] = "-";
+                    xlWorkSheet.Cells[i, 34] = "-";
+                    xlWorkSheet.Cells[i, 35] = "TBRA";
+                    xlWorkSheet.Cells[i, 36] = item.AcessoRelacao.Estado.Value.GetDisplayName(true, "T-");
+                    xlWorkSheet.Cells[i, 37] = item.AcessoRelacao.SubGrupo;
+                    xlWorkSheet.Cells[i, 38] = item.AcessoRelacao.Cidade;
+                    xlWorkSheet.Cells[i, 39] = item.AcessoRelacao.Estado.Value.GetDisplayName();
+                    xlWorkSheet.Cells[i, 40] = 0;
+                    xlWorkSheet.Cells[i, 41] = string.Empty;
+                    xlWorkSheet.Cells[i, 42] = 1;
+                    xlWorkSheet.Cells[i, 43] = 2;
+                    xlWorkSheet.Cells[i, 44] = string.Empty;
+                    xlWorkSheet.Cells[i, 45] = string.Empty;
+                    xlWorkSheet.Cells[i, 46] = 3;
+                    xlWorkSheet.Cells[i, 47] = string.Empty;
+                    xlWorkSheet.Cells[i, 48] = 1;
+                    xlWorkSheet.Cells[i, 49] = 2;
+                    i++;
+                }
+
+                object misValue = System.Reflection.Missing.Value;
+                outputPath = @$"SolicitacaoAcessosExterno_{acessos.Count()}_{DateTime.Now.ToShortDateString().Replace('/', '-')}.xlsx";
+                livro.SaveAs(Path.Combine(folderPath, outputPath), XlFileFormat.xlOpenXMLWorkbook, misValue, misValue, misValue, misValue, XlSaveAsAccessMode.xlExclusive, misValue, misValue, misValue, misValue, misValue);
+                livro.Close(true, misValue, misValue);
+                xlApp.Quit();
 
                 var provider = new FileExtensionContentTypeProvider();
 
-                if (!provider.TryGetContentType(StoredFilePath, out var contentType))
+                if (!provider.TryGetContentType(Path.Combine(folderPath, outputPath), out var contentType))
                 {
                     contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
                 }
+                var bytes = await System.IO.File.ReadAllBytesAsync(Path.Combine(folderPath, outputPath));
 
-                var bytes = await System.IO.File.ReadAllBytesAsync(StoredFilePath);
-
-                System.IO.File.Delete(StoredFilePath);
+                System.IO.File.Delete(Path.Combine(folderPath, outputPath));
 
                 return new JsonResult(new Response<FileContentResult>
                 {
-                    Data = File(bytes, contentType, System.IO.Path.Combine(StoredFilePath)),
+                    Data = File(bytes, contentType, Path.Combine(folderPath, outputPath)),
                     Succeeded = true,
                     Message = "O excel foi gerado corretamente baseando-se nos filtros atuais, aguarde o download."
                 });
@@ -525,6 +584,130 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
+        [HttpPost("UploadTreinamento")]
+        public IActionResult UploadTreinamento([FromBody] DEMANDA_RELACAO_TREINAMENTO_FINALIZADO NovoTreinamento, string mensagem, int matricula)
+        {
+            try
+            {
+                AddNewTreinamentoHistory(NovoTreinamento,mensagem,matricula, out bool valid);
+                if (!valid)
+                {
+                    return new JsonResult(new Response<bool>
+                    {
+                        Data = valid,
+                        Succeeded = true,
+                        Message = "O excel foi gerado corretamente baseando-se nos filtros atuais, aguarde o download."
+                    });
+                }
+
+                return new JsonResult(new Response<string>
+                {
+                    Data = string.Empty,
+                    Succeeded = true,
+                    Message = "O excel foi gerado corretamente baseando-se nos filtros atuais, aguarde o download."
+                });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    },
+                });
+            }
+        }
+        [HttpPost("UploadMassivoTreinamento")]
+        public IActionResult UploadMassivoTreinamento([FromBody] IEnumerable<DEMANDA_RELACAO_TREINAMENTO_FINALIZADO> NovosTreinamentos, string mensagem, int matricula)
+        {
+            try
+            {
+                foreach (var item in NovosTreinamentos)
+                {
+                    AddNewTreinamentoHistory(item, mensagem, matricula, out bool valid);
+                    if (!valid)
+                    {
+                        return new JsonResult(new Response<bool>
+                        {
+                            Data = valid,
+                            Succeeded = true,
+                            Message = $"o colaborador de matrícula {item.MATRICULA} ainda não foi desligado."
+                        });
+                    }
+                }
+
+                return new JsonResult(new Response<bool>
+                {
+                    Data = true,
+                    Succeeded = true,
+                    Message = "Foram atualizadas um total x de demandas que estavam aguardando a etapa de treinamento"
+                });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    },
+                });
+            }
+        }
+
+        private void AddNewTreinamentoHistory(DEMANDA_RELACAO_TREINAMENTO_FINALIZADO item,string mensagem,  int matricularesp, out bool valid)
+        {
+            valid = true;
+            var acessoaberto = DB.DEMANDA_ACESSOS.FirstOrDefault(x => x.Matricula == item.MATRICULA.ToString());
+            var matricularepetida = DB.DEMANDA_RELACAO_TREINAMENTO_FINALIZADO.FirstOrDefault(x => x.MATRICULA == item.MATRICULA);
+
+            if (acessoaberto != null)
+            {
+                if (matricularepetida != null)
+                {
+                    if(matricularepetida.STATUS_MATRICULA == "ATIVO")
+                    {
+                        valid = false;
+                    }
+                }
+                item.ID_RELACAO = acessoaberto.ID;
+                DB.DEMANDA_RELACAO_TREINAMENTO_FINALIZADO.Add(item);
+
+                var demanda_relacao = DB.DEMANDA_RELACAO_CHAMADO.Find(acessoaberto.ID_RELACAO);
+
+                var resposta = new DEMANDA_CHAMADO_RESPOSTA
+                {
+                    ID_RELACAO = acessoaberto.ID_RELACAO,
+                    ID_CHAMADO = acessoaberto.ID,
+                    RESPOSTA = mensagem,
+                    MATRICULA_RESPONSAVEL = matricularesp,
+                    DATA_RESPOSTA = DateTime.Now,
+                    ARQUIVOS = null
+                };
+
+                demanda_relacao.Respostas.Add(resposta);
+                DB.SaveChanges();
+
+                demanda_relacao.Status.Add(new DEMANDA_STATUS_CHAMADO
+                {
+                    ID_CHAMADO = acessoaberto.ID,
+                    STATUS = STATUS_ACESSOS_PENDENTES.APROVADO.Value,
+                    ID_RESPOSTA = resposta.ID,
+                    DATA = DateTime.Now
+                });
+
+                DB.SaveChanges();
+            }
+        }
 
         private dynamic preencherValor(string xx)
         {
@@ -566,30 +749,5 @@ namespace Vivo_Apps_API.Controllers
             return Task.CompletedTask;
         }
 
-        //private ACESSO_TERCEIROS_DTO GetAcessoByID(int IdAcesso)
-        //    => DB.DEMANDA_ACESSOS
-        //            .Include(x => x.Responsavel)
-        //            .Include(x => x.Solicitante)
-        //            .Include(x => x.Relacao)
-        //                .ThenInclude(x => x.Respostas)
-        //                    .ThenInclude(x => x.Responsavel)
-        //                        .ThenInclude(x => x.ResponsavelDemandasTotais)
-        //            .Include(x => x.Relacao)
-        //                .ThenInclude(x => x.Respostas)
-        //                    .ThenInclude(x => x.Status)
-        //            .Include(x => x.Relacao)
-        //                .ThenInclude(x => x.Respostas)
-        //                    .ThenInclude(x => x.Status)
-        //                        .ThenInclude(x => x.Quem_redirecionou)
-        //            .Include(x => x.Relacao)
-        //                .ThenInclude(x => x.Respostas)
-        //                    .ThenInclude(x => x.Status)
-        //                        .ThenInclude(x => x.Para_Quem_redirecionou)
-        //            .Include(x => x.Relacao)
-        //                .ThenInclude(x => x.Respostas)
-        //                    .ThenInclude(x => x.ARQUIVOS)
-        //            .IgnoreAutoIncludes()
-        //            .ProjectTo<ACESSO_TERCEIROS_DTO>(_mapper.ConfigurationProvider)
-        //            .First(x => x.ID == IdAcesso);
     }
 }
