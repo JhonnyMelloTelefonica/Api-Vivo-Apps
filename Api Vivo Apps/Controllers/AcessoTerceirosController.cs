@@ -30,6 +30,9 @@ using DocumentFormat.OpenXml.Drawing.Charts;
 using DocumentFormat.OpenXml.Vml;
 using Shared_Static_Class.Model_Demanda_Context;
 using DocumentFormat.OpenXml.Office2010.Excel;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
+using System;
+using DocumentFormat.OpenXml.Drawing.ChartDrawing;
 
 
 namespace Vivo_Apps_API.Controllers
@@ -98,6 +101,18 @@ namespace Vivo_Apps_API.Controllers
             try
             {
                 //body.Solicitante = DB.ACESSOS_MOBILE.First(x => x.MATRICULA == body.MATRICULA_SOLICITANTE);
+                var mat_Desligada = DB.DEMANDA_RELACAO_TREINAMENTO_FINALIZADO.FirstOrDefault(x => x.MATRICULA == newmatricula);
+
+                if (mat_Desligada != null && mat_Desligada.STATUS_MATRICULA == "ATIVO")
+                {
+                    return Ok(new Response<string>
+                    {
+                        Data = $"A solicitação não foi concluída pois você está solicitando acesso para uma matrícula que ainda possui um acesso ativo",
+                        Succeeded = false,
+                        Message = $"A solicitação não foi concluída pois você está solicitando acesso para uma matrícula que ainda possui um acesso ativo",
+                    });
+                }
+
                 await ExecuteChangeMatriculaTerceiro(id, newmatricula, matricula_resp, mensagem, out DEMANDA_ACESSOS? demanda);
 
                 await _hubContext.SendTableDemandas(demanda.MATRICULA_RESPONSAVEL);
@@ -152,6 +167,18 @@ namespace Vivo_Apps_API.Controllers
                 //body.Solicitante = DB.ACESSOS_MOBILE.First(x => x.MATRICULA == body.MATRICULA_SOLICITANTE);]
                 foreach (Tuple<Guid, int> singleid in id)
                 {
+                    var mat_Desligada = DB.DEMANDA_RELACAO_TREINAMENTO_FINALIZADO.FirstOrDefault(x => x.MATRICULA == singleid.Item2);
+
+                    if (mat_Desligada != null && mat_Desligada.STATUS_MATRICULA == "ATIVO")
+                    {
+                        return Ok(new Response<string>
+                        {
+                            Data = $"A solicitação não foi concluída pois você está solicitando acesso para uma matrícula que ainda possui um acesso ativo",
+                            Succeeded = false,
+                            Message = $"A solicitação não foi concluída pois você está solicitando acesso para uma matrícula que ainda possui um acesso ativo",
+                        });
+                    }
+
                     await ExecuteChangeMatriculaTerceiro(singleid.Item1, singleid.Item2, matricula_resp, mensagem, out DEMANDA_ACESSOS? demanda);
                 }
 
@@ -190,7 +217,6 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                //body.Solicitante = DB.ACESSOS_MOBILE.First(x => x.MATRICULA == body.MATRICULA_SOLICITANTE);
 
                 var demanda = new DEMANDA_RELACAO_CHAMADO
                 {
@@ -584,12 +610,15 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
-        [HttpPost("UploadTreinamento")]
-        public IActionResult UploadTreinamento([FromBody] DEMANDA_RELACAO_TREINAMENTO_FINALIZADO NovoTreinamento, string mensagem, int matricula)
+        [HttpPost("UploadTreinamento/{id}/{mensagem}/{matricula}")]
+        public async Task<IActionResult> UploadTreinamento([FromBody] TREINAMENTO_MODEL TREINAMENTO, Guid id, string mensagem, int matricula)
         {
             try
             {
-                AddNewTreinamentoHistory(NovoTreinamento,mensagem,matricula, out bool valid);
+                var NovoTreinamento = new DEMANDA_RELACAO_TREINAMENTO_FINALIZADO(TREINAMENTO.MATRICULA, TREINAMENTO.Nome, TREINAMENTO.Data_Admissão.Value, TREINAMENTO.Cargo, TREINAMENTO.Empresa, TREINAMENTO.CNPJ, TREINAMENTO.Canal, TREINAMENTO.Uf, TREINAMENTO.Cidade, TREINAMENTO.Data_Conclusao.Value, matricula, Formato_inclusao.DETALHADO);
+
+                await AddNewTreinamentoHistory(NovoTreinamento, mensagem, matricula, out bool valid, id);
+
                 if (!valid)
                 {
                     return new JsonResult(new Response<bool>
@@ -600,11 +629,29 @@ namespace Vivo_Apps_API.Controllers
                     });
                 }
 
-                return new JsonResult(new Response<string>
+                await _hubContext.SendTableDemandas(matricula);
+
+                await _cache.EvictByTagAsync("AllDemandas", default);
+
+                var demanda_acesso = DB.DEMANDA_ACESSOS
+                   .Include(x => x.Responsavel)
+                   .Include(x => x.Solicitante)
+                   .Include(x => x.Relacao)
+                       .ThenInclude(x => x.Respostas)
+                           .ThenInclude(x => x.Responsavel)
+                               .ThenInclude(x => x.ResponsavelDemandasTotais)
+                   .Include(x => x.Relacao)
+                       .ThenInclude(x => x.Respostas)
+                           .ThenInclude(x => x.Status)
+                   .IgnoreAutoIncludes()
+                   .ProjectTo<ACESSO_TERCEIROS_DTO>(_mapper.ConfigurationProvider)
+                   .First(x => x.ID == NovoTreinamento.ID_RELACAO);
+
+                return new JsonResult(new Response<ACESSO_TERCEIROS_DTO>
                 {
-                    Data = string.Empty,
+                    Data = demanda_acesso,
                     Succeeded = true,
-                    Message = "O excel foi gerado corretamente baseando-se nos filtros atuais, aguarde o download."
+                    Message = "Adicionamos o resgistro de treinamento para esta inclusão de usuário ,a demanda será finalizada."
                 });
             }
             catch (Exception ex)
@@ -622,30 +669,19 @@ namespace Vivo_Apps_API.Controllers
                 });
             }
         }
-        [HttpPost("UploadMassivoTreinamento")]
-        public IActionResult UploadMassivoTreinamento([FromBody] IEnumerable<DEMANDA_RELACAO_TREINAMENTO_FINALIZADO> NovosTreinamentos, string mensagem, int matricula)
+
+        [HttpPost("UploadMassivoTreinamento/{mensagem}/{matricula}")]
+        public async Task<IActionResult> UploadMassivoTreinamento([FromBody] IEnumerable<TREINAMENTO_MODEL> NovosTreinamentos, string mensagem, int matricula)
         {
             try
             {
-                foreach (var item in NovosTreinamentos)
-                {
-                    AddNewTreinamentoHistory(item, mensagem, matricula, out bool valid);
-                    if (!valid)
-                    {
-                        return new JsonResult(new Response<bool>
-                        {
-                            Data = valid,
-                            Succeeded = true,
-                            Message = $"o colaborador de matrícula {item.MATRICULA} ainda não foi desligado."
-                        });
-                    }
-                }
+                _ = Task.Run(() => UploadTreinamentoAsync(NovosTreinamentos, mensagem, matricula));
 
                 return new JsonResult(new Response<bool>
                 {
                     Data = true,
                     Succeeded = true,
-                    Message = "Foram atualizadas um total x de demandas que estavam aguardando a etapa de treinamento"
+                    Message = "Aguarde enquanto atualizamos as demandas com base nas informações do arquivo"
                 });
             }
             catch (Exception ex)
@@ -664,23 +700,81 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
-        private void AddNewTreinamentoHistory(DEMANDA_RELACAO_TREINAMENTO_FINALIZADO item,string mensagem,  int matricularesp, out bool valid)
+        private async Task UploadTreinamentoAsync(IEnumerable<TREINAMENTO_MODEL> NovosTreinamentos, string mensagem, int matricula)
+        {
+            int i = 0;
+
+            foreach (var TREINAMENTO in NovosTreinamentos)
+            {
+                if (i == NovosTreinamentos.Count() - 1)
+                {
+                    await _hubContext.ProgressMassivoTreinamento(matricula, 100, $"Upload de base de treinamento em 100%...");
+                }
+                if (i == (int)(NovosTreinamentos.Count() / 2.0))
+                {
+                    await _hubContext.ProgressMassivoTreinamento(matricula, 50, $"Upload de base de treinamento em 50%...");
+                }
+                if (i == (int)(NovosTreinamentos.Count() / 3.0))
+                {
+                    await _hubContext.ProgressMassivoTreinamento(matricula, 33, $"Upload de base de treinamento em 33%...");
+                }
+                if (i == (int)(NovosTreinamentos.Count() / 4.0))
+                {
+                    await _hubContext.ProgressMassivoTreinamento(matricula, 25, $"Upload de base de treinamento em 25%...");
+                }
+                if (i == (int)(NovosTreinamentos.Count() / 5.0))
+                {
+                    await _hubContext.ProgressMassivoTreinamento(matricula, 20, $"Upload de base de treinamento em 20%...");
+                }
+
+                var newitem = new DEMANDA_RELACAO_TREINAMENTO_FINALIZADO(TREINAMENTO.MATRICULA, TREINAMENTO.Nome, TREINAMENTO.Data_Admissão.Value, TREINAMENTO.Cargo, TREINAMENTO.Empresa, TREINAMENTO.CNPJ, TREINAMENTO.Canal, TREINAMENTO.Uf, TREINAMENTO.Cidade, TREINAMENTO.Data_Conclusao.Value, matricula, Formato_inclusao.MASSIVO);
+
+                await AddNewTreinamentoHistory(newitem, mensagem, matricula, out bool valid);
+
+                if (!valid)
+                {
+                    await _hubContext.ProgressMassivoTreinamento(matricula, 100, $"Não foi possível finalizar pois já existe um usuário ativo com a matrícula {TREINAMENTO.MATRICULA}, todas as matrículas anteriores a essa no arquivo foram validadas.");
+                }
+                i++;
+            }
+        }
+
+        private Task AddNewTreinamentoHistory(DEMANDA_RELACAO_TREINAMENTO_FINALIZADO item, string mensagem, int matricularesp, out bool valid, Guid? id = null)
         {
             valid = true;
-            var acessoaberto = DB.DEMANDA_ACESSOS.FirstOrDefault(x => x.Matricula == item.MATRICULA.ToString());
-            var matricularepetida = DB.DEMANDA_RELACAO_TREINAMENTO_FINALIZADO.FirstOrDefault(x => x.MATRICULA == item.MATRICULA);
+            DEMANDA_ACESSOS? acessoaberto;
+
+            /** Caso o Id seja informado, procura por ID, caso não busca por matricula **/
+
+            if (id.HasValue)
+                acessoaberto = DB.DEMANDA_ACESSOS.First(x => x.ID_RELACAO == id);
+            else
+                acessoaberto = DB.DEMANDA_ACESSOS.FirstOrDefault(x => x.Matricula == item.MATRICULA.ToString());
 
             if (acessoaberto != null)
             {
+                /** Caso encontre algum acesso continua com a requisição **/
+
+                var matricularepetida = DB.DEMANDA_RELACAO_TREINAMENTO_FINALIZADO.FirstOrDefault(x => x.MATRICULA == item.MATRICULA);
+
+                /** Caso encontre algum item na tabela de treinamento
+                 * com a mesma matrícula retorna impossibilitando a continuidade
+                 * e não adiciona um novo elemento na tabela **/
+
                 if (matricularepetida != null)
                 {
-                    if(matricularepetida.STATUS_MATRICULA == "ATIVO")
+                    if (matricularepetida.STATUS_MATRICULA == "ATIVO")
                     {
                         valid = false;
                     }
+
+                    return Task.CompletedTask;
                 }
+
                 item.ID_RELACAO = acessoaberto.ID;
                 DB.DEMANDA_RELACAO_TREINAMENTO_FINALIZADO.Add(item);
+
+                DB.SaveChanges();
 
                 var demanda_relacao = DB.DEMANDA_RELACAO_CHAMADO.Find(acessoaberto.ID_RELACAO);
 
@@ -695,30 +789,25 @@ namespace Vivo_Apps_API.Controllers
                 };
 
                 demanda_relacao.Respostas.Add(resposta);
+
                 DB.SaveChanges();
 
                 demanda_relacao.Status.Add(new DEMANDA_STATUS_CHAMADO
                 {
                     ID_CHAMADO = acessoaberto.ID,
-                    STATUS = STATUS_ACESSOS_PENDENTES.APROVADO.Value,
+                    STATUS = STATUS_ACESSOS_PENDENTES.AGUARDANDO_CRIAÇÃO_DE_ACESSO.Value,
                     ID_RESPOSTA = resposta.ID,
                     DATA = DateTime.Now
                 });
 
                 DB.SaveChanges();
             }
+
+            return Task.CompletedTask;
+
         }
 
-        private dynamic preencherValor(string xx)
-        {
-            if (string.IsNullOrEmpty(xx))
-            {
-                return "-";
-            }
-            return xx;
-        }
-        private Task ExecuteChangeMatriculaTerceiro(Guid id, int newmatricula,
-            int matricula_resp, string mensagem, out DEMANDA_ACESSOS? demanda)
+        private Task ExecuteChangeMatriculaTerceiro(Guid id, int newmatricula, int matricula_resp, string mensagem, out DEMANDA_ACESSOS? demanda)
         {
             var demanda_relacao = DB.DEMANDA_RELACAO_CHAMADO.Find(id);
             demanda = DB.DEMANDA_ACESSOS.First(x => x.ID_RELACAO == id);
@@ -747,6 +836,14 @@ namespace Vivo_Apps_API.Controllers
 
             DB.SaveChanges();
             return Task.CompletedTask;
+        }
+        private dynamic preencherValor(string xx)
+        {
+            if (string.IsNullOrEmpty(xx))
+            {
+                return "-";
+            }
+            return xx;
         }
 
     }

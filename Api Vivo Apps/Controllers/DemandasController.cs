@@ -1120,6 +1120,15 @@ namespace Vivo_Apps_API.Controllers
                         demanda = GetAcessoByID(data.IdChamado);
                         break;
                     case Tabela_Demanda.DesligamentoRelacao:
+                        var desligamento = Demanda_BD.DEMANDA_DESLIGAMENTOS.Find(data.IdChamado);
+                        var mat_Desligada = Demanda_BD.DEMANDA_RELACAO_TREINAMENTO_FINALIZADO.FirstOrDefault(x => x.MATRICULA == desligamento.Matricula);
+                        
+                        if (data.Status == STATUS_ACESSOS_PENDENTES.APROVADO.Value && mat_Desligada != null)
+                        {
+                            mat_Desligada.STATUS_MATRICULA = "INATIVO";
+                            await Demanda_BD.SaveChangesAsync();
+                        }
+
                         demanda = GetDesligamentoByID(data.IdChamado);
                         break;
                     default:

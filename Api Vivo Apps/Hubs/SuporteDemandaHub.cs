@@ -31,6 +31,7 @@ namespace Vivo_Apps_API.Hubs
         Task GetTable(string? connectionId = null);
         Task NewNotification(string senderName, string title, string message, string link, string regional);
         Task NewNotificationByUser(int matricula, DEMANDA_CHAMADO content);
+        Task ProgressMassivoTreinamento(int matricula, int porcentagem,string message);
         Task SendTableDemandas(int? matricula = null);
         /** Este metódo indica para o HUB que as demandas precisam ser atualizadas 
          * Caso seja passado o paramêtro de alguma matrícula, o HUB apenas notifica a matrícula em questão se ela estiver conectada 
@@ -125,7 +126,7 @@ namespace Vivo_Apps_API.Hubs
         //    var scheme = request.Host.Host.Contains("localhost") ? request.Scheme : "https";
         //    return $"{scheme}://{request.Host}{request.PathBase}";
         //}
-        protected async Task GetAllAsync(int? matricula = null)     
+        protected async Task GetAllAsync(int? matricula = null)
         {
             var response = await _client.GetAsync($"http://localhost:31510/api/Demandas/GetAllChamados");
             if (response.IsSuccessStatusCode)
@@ -190,7 +191,7 @@ namespace Vivo_Apps_API.Hubs
                         /** Consulta para analistas do suporte que não tratam solicitação de acessos terceiro **/
                         case Controle_Demanda_role.ANALISTA:
 
-                            var list_ids = Demanda_BD.DEMANDA_RESPONSAVEL_FILA.Where(x => x.MATRICULA_RESPONSAVEL == user.MATRICULA).Select(x=> x.ID_SUB_FILA);
+                            var list_ids = Demanda_BD.DEMANDA_RESPONSAVEL_FILA.Where(x => x.MATRICULA_RESPONSAVEL == user.MATRICULA).Select(x => x.ID_SUB_FILA);
 
                             await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}")
                                 .SendAsync("TableDemandas",
@@ -201,14 +202,14 @@ namespace Vivo_Apps_API.Hubs
                         /** Consulta para analistas do suporte que tratam solicitação de acessos terceiro **/
                         case Controle_Demanda_role.ANALISTA_ACESSO:
 
-                            var list_ids_user = Demanda_BD.DEMANDA_RESPONSAVEL_FILA.Where(x => x.MATRICULA_RESPONSAVEL == user.MATRICULA).Select(x=> x.ID_SUB_FILA);
+                            var list_ids_user = Demanda_BD.DEMANDA_RESPONSAVEL_FILA.Where(x => x.MATRICULA_RESPONSAVEL == user.MATRICULA).Select(x => x.ID_SUB_FILA);
 
                             var datademandaanalistaacesso = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
                                 && list_ids_user.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA));
 
                             var dataacessoanalistaacesso = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.AcessoRelacao);
 
-                            var datatotalanalistaacesso = datademandaanalistaacesso.UnionBy(dataacessoanalistaacesso, x=> x.ID_RELACAO);
+                            var datatotalanalistaacesso = datademandaanalistaacesso.UnionBy(dataacessoanalistaacesso, x => x.ID_RELACAO);
 
                             await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}").SendAsync("TableDemandas", datatotalanalistaacesso);
                             break;
@@ -263,6 +264,19 @@ namespace Vivo_Apps_API.Hubs
             _context.Clients.Group(regional).SendAsync("NewNotification", senderName, title, message, link);
             return Task.CompletedTask;
         }
+
+        public Task ProgressMassivoTreinamento(int matricula, int porcentagem, string message)
+        {
+            if (CurrentUsers.Any(x => x.Value.MATRICULA == matricula))
+            {
+                foreach (var item in CurrentUsers.Where(x => x.Value.MATRICULA == matricula))
+                {
+                    _context.Clients.Client(item.Key).SendAsync("ProgressMassivoTreinamento",porcentagem, message);
+                }
+            }
+
+            return Task.CompletedTask;
+        }
         public Task NewNotificationByUser(int matricula, DEMANDA_CHAMADO content)
         {
             if (CurrentUsers.Any(x => x.Value.MATRICULA == matricula))
@@ -295,7 +309,7 @@ namespace Vivo_Apps_API.Hubs
                 if (matricula != string.Empty)
                 {
                     var saida = Demanda_BD.ACESSOS_MOBILE
-                        .Include(x=> x.DemandasResponsavel)
+                        .Include(x => x.DemandasResponsavel)
                         .First(x => x.MATRICULA == int.Parse(matricula));
 
                     var user = _mapper.Map<ACESSOS_MOBILE_DTO>(saida);
@@ -327,7 +341,7 @@ namespace Vivo_Apps_API.Hubs
                 }
 
                 await SendTableDemandas(null);
-                                
+
                 await _context.Clients.All.SendAsync("CurrentUsers", CurrentUsers);
 
                 await base.OnConnectedAsync();
