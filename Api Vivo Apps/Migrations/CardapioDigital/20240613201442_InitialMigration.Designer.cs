@@ -3,17 +3,20 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Shared_Static_Class.DB_Context_Vivo_MAIS;
 
 #nullable disable
 
-namespace Vivo_Apps_API.Migrations
+namespace Vivo_Apps_API.Migrations.CardapioDigital
 {
-    [DbContext(typeof(DemandasContext))]
-    partial class DemandasContextModelSnapshot : ModelSnapshot
+    [DbContext(typeof(CardapioDigitalContext))]
+    [Migration("20240613201442_InitialMigration")]
+    partial class InitialMigration
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -152,11 +155,8 @@ namespace Vivo_Apps_API.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("ID"));
 
-                    b.Property<string>("Acao")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
-                        .HasDefaultValue("NULL");
+                    b.Property<int>("Acao")
+                        .HasColumnType("int");
 
                     b.Property<string>("Adabas")
                         .IsRequired()
@@ -225,14 +225,10 @@ namespace Vivo_Apps_API.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<int>("Estado")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
+                        .HasColumnType("int");
 
                     b.Property<int>("Funcao")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasDefaultValue(0);
+                        .HasColumnType("int");
 
                     b.Property<Guid>("ID_RELACAO")
                         .IsUnicode(false)
@@ -287,11 +283,8 @@ namespace Vivo_Apps_API.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Sexo")
-                        .IsRequired()
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("nvarchar(max)")
-                        .HasDefaultValue("NULL");
+                    b.Property<int>("Sexo")
+                        .HasColumnType("int");
 
                     b.Property<string>("Sobrenome")
                         .IsRequired()
@@ -464,10 +457,7 @@ namespace Vivo_Apps_API.Migrations
 
                     b.HasIndex(new[] { "ID_SUB_FILA" }, "IX_DEMANDA_CAMPOS_FILA_ID_SUB_FILA");
 
-                    b.ToTable("DEMANDA_CAMPOS_FILA", null, t =>
-                        {
-                            t.ExcludeFromMigrations();
-                        });
+                    b.ToTable("DEMANDA_CAMPOS_FILA");
                 });
 
             modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_CHAMADO", b =>
@@ -713,10 +703,7 @@ namespace Vivo_Apps_API.Migrations
 
                     b.HasIndex(new[] { "ID_SUB_FILA" }, "IX_DEMANDA_RESPONSAVEL_FILA_ID_SUB_FILA");
 
-                    b.ToTable("DEMANDA_RESPONSAVEL_FILA", null, t =>
-                        {
-                            t.ExcludeFromMigrations();
-                        });
+                    b.ToTable("DEMANDA_RESPONSAVEL_FILA");
                 });
 
             modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_STATUS_CHAMADO", b =>
@@ -817,10 +804,7 @@ namespace Vivo_Apps_API.Migrations
 
                     b.HasIndex(new[] { "ID_TIPO_FILA" }, "IX_DEMANDA_SUB_FILA_ID_TIPO_FILA");
 
-                    b.ToTable("DEMANDA_SUB_FILA", null, t =>
-                        {
-                            t.ExcludeFromMigrations();
-                        });
+                    b.ToTable("DEMANDA_SUB_FILA");
                 });
 
             modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_TIPO_FILA", b =>
@@ -858,10 +842,7 @@ namespace Vivo_Apps_API.Migrations
 
                     b.HasKey("ID_TIPO_FILA");
 
-                    b.ToTable("DEMANDA_TIPO_FILA", null, t =>
-                        {
-                            t.ExcludeFromMigrations();
-                        });
+                    b.ToTable("DEMANDA_TIPO_FILA");
                 });
 
             modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_VALORES_CAMPOS_SUSPENSO", b =>
@@ -887,10 +868,35 @@ namespace Vivo_Apps_API.Migrations
 
                     b.HasIndex(new[] { "ID_CAMPOS" }, "IX_DEMANDA_VALORES_CAMPOS_SUSPENSO_ID_CAMPOS");
 
-                    b.ToTable("DEMANDA_VALORES_CAMPOS_SUSPENSO", null, t =>
-                        {
-                            t.ExcludeFromMigrations();
-                        });
+                    b.ToTable("DEMANDA_VALORES_CAMPOS_SUSPENSO");
+                });
+
+            modelBuilder.Entity("Shared_Static_Class.Data.FICHA_TECNICA", b =>
+                {
+                    b.Property<Guid>("ID_FICHA")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Especificação")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<Guid>("ID_PRODUTO")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsImportant")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsInfoAdicional")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Valor")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("ID_FICHA");
+
+                    b.HasIndex("ID_PRODUTO");
+
+                    b.ToTable("PRODUTOS_CARDAPIO_FICHA_TECNICA", "Cardapio");
                 });
 
             modelBuilder.Entity("Shared_Static_Class.Data.PERFIL_USUARIO", b =>
@@ -919,6 +925,67 @@ namespace Vivo_Apps_API.Migrations
                         {
                             t.ExcludeFromMigrations();
                         });
+                });
+
+            modelBuilder.Entity("Shared_Static_Class.Data.PRODUTOS_CARDAPIO", b =>
+                {
+                    b.Property<Guid>("ID_PRODUTO")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("Avaliacao")
+                        .HasColumnType("int");
+
+                    b.Property<int>("Categoria")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Cor")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime>("DATA_INCLUSÃO")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("DATA_MODIFICAÇÃO")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Descrição")
+                        .HasMaxLength(1200)
+                        .HasColumnType("nvarchar(1200)");
+
+                    b.Property<string>("Fabricante")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Imagens")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsOferta")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("MAT_INCLUSÃO")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MAT_MODIFICAÇÃO")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MaxParcelas")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Nome")
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
+
+                    b.Property<decimal>("Valor")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.HasKey("ID_PRODUTO");
+
+                    b.HasIndex("MAT_INCLUSÃO")
+                        .IsUnique();
+
+                    b.HasIndex("MAT_MODIFICAÇÃO")
+                        .IsUnique();
+
+                    b.ToTable("PRODUTOS_CARDAPIO", "Cardapio");
                 });
 
             modelBuilder.Entity("Shared_Static_Class.Model_Demanda_Context.DEMANDA_RELACAO_TREINAMENTO_FINALIZADO", b =>
@@ -1029,7 +1096,6 @@ namespace Vivo_Apps_API.Migrations
                     b.HasOne("Shared_Static_Class.Data.ACESSOS_MOBILE", "Solicitante")
                         .WithMany("AcessosSolicitados")
                         .HasForeignKey("MATRICULA_SOLICITANTE")
-                        .HasPrincipalKey("MATRICULA")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1104,13 +1170,11 @@ namespace Vivo_Apps_API.Migrations
 
                     b.HasOne("Shared_Static_Class.Data.ACESSOS_MOBILE", "Responsavel")
                         .WithMany("DemandasResponsavel")
-                        .HasForeignKey("MATRICULA_RESPONSAVEL")
-                        .HasPrincipalKey("MATRICULA");
+                        .HasForeignKey("MATRICULA_RESPONSAVEL");
 
                     b.HasOne("Shared_Static_Class.Data.ACESSOS_MOBILE", "Solicitante")
                         .WithMany("DemandasSolicitadas")
                         .HasForeignKey("MATRICULA_SOLICITANTE")
-                        .HasPrincipalKey("MATRICULA")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1136,7 +1200,6 @@ namespace Vivo_Apps_API.Migrations
                     b.HasOne("Shared_Static_Class.Data.ACESSOS_MOBILE", "Responsavel")
                         .WithMany("RespostasDemandas")
                         .HasForeignKey("MATRICULA_RESPONSAVEL")
-                        .HasPrincipalKey("MATRICULA")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1174,13 +1237,11 @@ namespace Vivo_Apps_API.Migrations
                 {
                     b.HasOne("Shared_Static_Class.Data.ACESSOS_MOBILE", "Responsavel")
                         .WithMany("ResponsavelDemandasTotais")
-                        .HasForeignKey("MATRICULA_RESPONSAVEL")
-                        .HasPrincipalKey("MATRICULA");
+                        .HasForeignKey("MATRICULA_RESPONSAVEL");
 
                     b.HasOne("Shared_Static_Class.Data.ACESSOS_MOBILE", "Solicitante")
                         .WithMany("DemandasTotais")
                         .HasForeignKey("MATRICULA_SOLICITANTE")
-                        .HasPrincipalKey("MATRICULA")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -1249,6 +1310,34 @@ namespace Vivo_Apps_API.Migrations
                         .IsRequired();
 
                     b.Navigation("ID_CAMPOSNavigation");
+                });
+
+            modelBuilder.Entity("Shared_Static_Class.Data.FICHA_TECNICA", b =>
+                {
+                    b.HasOne("Shared_Static_Class.Data.PRODUTOS_CARDAPIO", "Produto")
+                        .WithMany("Ficha")
+                        .HasForeignKey("ID_PRODUTO")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Produto");
+                });
+
+            modelBuilder.Entity("Shared_Static_Class.Data.PRODUTOS_CARDAPIO", b =>
+                {
+                    b.HasOne("Shared_Static_Class.Data.ACESSOS_MOBILE", "Responsavel_Inclusao")
+                        .WithOne()
+                        .HasForeignKey("Shared_Static_Class.Data.PRODUTOS_CARDAPIO", "MAT_INCLUSÃO")
+                        .HasPrincipalKey("Shared_Static_Class.Data.ACESSOS_MOBILE", "MATRICULA");
+
+                    b.HasOne("Shared_Static_Class.Data.ACESSOS_MOBILE", "Responsavel_Modificacao")
+                        .WithOne()
+                        .HasForeignKey("Shared_Static_Class.Data.PRODUTOS_CARDAPIO", "MAT_MODIFICAÇÃO")
+                        .HasPrincipalKey("Shared_Static_Class.Data.ACESSOS_MOBILE", "MATRICULA");
+
+                    b.Navigation("Responsavel_Inclusao");
+
+                    b.Navigation("Responsavel_Modificacao");
                 });
 
             modelBuilder.Entity("Shared_Static_Class.Model_Demanda_Context.DEMANDA_RELACAO_TREINAMENTO_FINALIZADO", b =>
@@ -1333,6 +1422,11 @@ namespace Vivo_Apps_API.Migrations
             modelBuilder.Entity("Shared_Static_Class.Data.DEMANDA_TIPO_FILA", b =>
                 {
                     b.Navigation("DEMANDA_SUB_FILAs");
+                });
+
+            modelBuilder.Entity("Shared_Static_Class.Data.PRODUTOS_CARDAPIO", b =>
+                {
+                    b.Navigation("Ficha");
                 });
 #pragma warning restore 612, 618
         }

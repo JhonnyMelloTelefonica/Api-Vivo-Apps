@@ -1092,6 +1092,7 @@ namespace Vivo_Apps_API.Controllers
                 //});
 
                 var chamado_relacao = Demanda_BD.DEMANDA_RELACAO_CHAMADO.Find(data.ID_RELACAO);
+                chamado_relacao.LastStatus = data.Status;
                 object demanda = null;
 
                 switch (tabela)
@@ -1274,6 +1275,7 @@ namespace Vivo_Apps_API.Controllers
                     PRIORIDADE_SEGMENTO = false,
                     MATRICULA_SOLICITANTE = int.Parse(data.MAT_SOLICITANTE),
                     MATRICULA_RESPONSAVEL = responsavel,
+                    LastStatus = STATUS_ACESSOS_PENDENTES.ABERTO.Value,
                     ChamadoRelacao = new DEMANDA_CHAMADO
                     {
                         ID_FILA_CHAMADO = data.FILA_DTO.ID_SUB_FILA,
@@ -1347,7 +1349,7 @@ namespace Vivo_Apps_API.Controllers
                 demanda.Status.Add(new DEMANDA_STATUS_CHAMADO
                 {
                     ID_CHAMADO = demanda.ChamadoRelacao.ID,
-                    STATUS = "ABERTO",
+                    STATUS = STATUS_ACESSOS_PENDENTES.ABERTO.Value,
                     ID_RESPOSTA = demanda.Respostas.First().ID,
                     DATA = DateTime.Now
                 });

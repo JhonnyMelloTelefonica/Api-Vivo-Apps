@@ -78,6 +78,7 @@ namespace Vivo_Apps_API.Controllers
                     PRIORIDADE = false,
                     PRIORIDADE_SEGMENTO = false,
                     DesligamentoRelacao = body,
+                    LastStatus = STATUS_ACESSOS_PENDENTES.ABERTO.Value,
                     ID_CHAMADO = body.ID
                 };
 

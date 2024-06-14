@@ -97,6 +97,12 @@ builder.Services.AddDbContextFactory<DemandasContext>(opt =>
     opt.EnableDetailedErrors();
 }, ServiceLifetime.Singleton);
 
+builder.Services.AddDbContextFactory<CardapioDigitalContext>(opt =>
+{
+    opt.EnableSensitiveDataLogging();
+    opt.EnableDetailedErrors();
+}, ServiceLifetime.Singleton);
+
 builder.Services.AddSingleton<ISuporteDemandaHub, SuporteDemandaHub>();
 
 builder.Services.AddOutputCache(options =>

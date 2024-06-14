@@ -217,7 +217,6 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-
                 var demanda = new DEMANDA_RELACAO_CHAMADO
                 {
                     Sequence = DB.DEMANDA_RELACAO_CHAMADO.Count() + 1,
@@ -226,6 +225,7 @@ namespace Vivo_Apps_API.Controllers
                     DATA_ABERTURA = DateTime.Now,
                     PRIORIDADE = false,
                     PRIORIDADE_SEGMENTO = false,
+                    LastStatus = STATUS_ACESSOS_PENDENTES.ABERTO.Value,
                     AcessoRelacao = body,
                     ID_CHAMADO = body.ID
                 };
@@ -485,7 +485,7 @@ namespace Vivo_Apps_API.Controllers
         }
 
         [HttpPost("ExtractInclusaoAcessos")]
-        public async Task<IActionResult> GetUsuariosExcel([FromBody] IEnumerable<Guid> ids)
+        public async Task<IActionResult> ExtractMatriculaAcessos([FromBody] IEnumerable<Guid> ids)
         {
             try
             {
@@ -514,60 +514,64 @@ namespace Vivo_Apps_API.Controllers
                     var carteira = CD.Carteira_NEs.Where(x => x.Vendedor == item.AcessoRelacao.Adabas);
                     //var extrator = CD.ACESSOS_MOBILEs.First(x => x.MATRICULA == item.AcessoRelacao.Matricula);
                     //(item.AcessoRelacao?.Acao == Acao.INCLUSÃO ? "@0V@" : "@0W@")
-                    Microsoft.Office.Interop.Excel.Range oRange = (Microsoft.Office.Interop.Excel.Range)xlWorkSheet.Cells[i, 1];
+
+                    xlWorkSheet.Cells[i, 1] = item.ID_CHAMADO;
+                    xlWorkSheet.Cells[i, 2] = item.ID_RELACAO.ToString();
+
+                    Microsoft.Office.Interop.Excel.Range oRange = (Microsoft.Office.Interop.Excel.Range)xlWorkSheet.Cells[i, 3];
                     float Left = (float)((double)oRange.Left);
                     float Top = (float)((double)oRange.Top);
                     xlWorkSheet.Shapes.AddPicture(Path.Combine(folderPath, item.AcessoRelacao?.Acao == Acao.INCLUSÃO ? "Imagem1.gif" : "Imagem2.gif"), Microsoft.Office.Core.MsoTriState.msoFalse, Microsoft.Office.Core.MsoTriState.msoCTrue, Left, Top, 8, 8);
 
-                    xlWorkSheet.Cells[i, 2] = $"Foi criado o Terceiro : {item.AcessoRelacao?.Matricula}";
-                    xlWorkSheet.Cells[i, 3] = (int)Acao.INCLUSÃO;
-                    xlWorkSheet.Cells[i, 4] = string.IsNullOrEmpty(item.AcessoRelacao?.Matricula) ? item.AcessoRelacao?.Matricula : string.Empty;
-                    xlWorkSheet.Cells[i, 5] = "T4";
-                    xlWorkSheet.Cells[i, 6] = item.AcessoRelacao.Nome.Split()[0];
-                    xlWorkSheet.Cells[i, 7] = item.AcessoRelacao.Nome.Split().Count() > 1 ? item.AcessoRelacao.Nome.Split().Skip(1) : string.Empty;
-                    xlWorkSheet.Cells[i, 8] = (int)item.AcessoRelacao.Sexo;
-                    xlWorkSheet.Cells[i, 9] = string.Empty;
-                    xlWorkSheet.Cells[i, 10] = item.AcessoRelacao.Cpf;
-                    xlWorkSheet.Cells[i, 11] = item.AcessoRelacao.Cnpj;
-                    xlWorkSheet.Cells[i, 12] = 0;
-                    xlWorkSheet.Cells[i, 13] = item.AcessoRelacao.Rg;
-                    xlWorkSheet.Cells[i, 14] = item.AcessoRelacao.OrgaoEmissor;
-                    xlWorkSheet.Cells[i, 15] = item.AcessoRelacao.DataNascimento.Value.ToShortDateString();
-                    xlWorkSheet.Cells[i, 16] = "BR";
-                    xlWorkSheet.Cells[i, 17] = item.AcessoRelacao.Telefone;
-                    xlWorkSheet.Cells[i, 18] = item.AcessoRelacao.Email;
-                    xlWorkSheet.Cells[i, 19] = 2;
-                    xlWorkSheet.Cells[i, 20] = 1;
-                    xlWorkSheet.Cells[i, 21] = string.Empty;
-                    xlWorkSheet.Cells[i, 22] = 0;
+                    xlWorkSheet.Cells[i, 4] = $"Foi criado o Terceiro : {item.AcessoRelacao?.Matricula}";
+                    xlWorkSheet.Cells[i, 5] = (int)Acao.INCLUSÃO;
+                    xlWorkSheet.Cells[i, 6] = string.IsNullOrEmpty(item.AcessoRelacao?.Matricula) ? item.AcessoRelacao?.Matricula : string.Empty;
+                    xlWorkSheet.Cells[i, 7] = "T4";
+                    xlWorkSheet.Cells[i, 8] = item.AcessoRelacao.Nome.Split()[0];
+                    xlWorkSheet.Cells[i, 9] = item.AcessoRelacao.Nome.Split().Count() > 1 ? item.AcessoRelacao.Nome.Split().Skip(1) : string.Empty;
+                    xlWorkSheet.Cells[i, 10] = (int)item.AcessoRelacao.Sexo;
+                    xlWorkSheet.Cells[i, 11] = string.Empty;
+                    xlWorkSheet.Cells[i, 12] = item.AcessoRelacao.Cpf;
+                    xlWorkSheet.Cells[i, 13] = item.AcessoRelacao.Cnpj;
+                    xlWorkSheet.Cells[i, 14] = 0;
+                    xlWorkSheet.Cells[i, 15] = item.AcessoRelacao.Rg;
+                    xlWorkSheet.Cells[i, 16] = item.AcessoRelacao.OrgaoEmissor;
+                    xlWorkSheet.Cells[i, 17] = item.AcessoRelacao.DataNascimento.Value.ToShortDateString();
+                    xlWorkSheet.Cells[i, 18] = "BR";
+                    xlWorkSheet.Cells[i, 19] = item.AcessoRelacao.Telefone;
+                    xlWorkSheet.Cells[i, 20] = item.AcessoRelacao.Email;
+                    xlWorkSheet.Cells[i, 21] = 2;
+                    xlWorkSheet.Cells[i, 22] = 1;
                     xlWorkSheet.Cells[i, 23] = string.Empty;
-                    xlWorkSheet.Cells[i, 24] = item.AcessoRelacao.Cnpj;
-                    xlWorkSheet.Cells[i, 25] = item.AcessoRelacao.SubGrupo;
-                    xlWorkSheet.Cells[i, 26] = "10017038";
-                    xlWorkSheet.Cells[i, 27] = "10017038";
-                    xlWorkSheet.Cells[i, 28] = "163794";
-                    xlWorkSheet.Cells[i, 29] = 0;
-                    xlWorkSheet.Cells[i, 30] = 0;
-                    xlWorkSheet.Cells[i, 31] = item.AcessoRelacao.DataContratoInicio != null ? item.AcessoRelacao.DataContratoInicio.Value.ToShortDateString() : string.Empty;
+                    xlWorkSheet.Cells[i, 24] = 0;
+                    xlWorkSheet.Cells[i, 25] = string.Empty;
+                    xlWorkSheet.Cells[i, 26] = item.AcessoRelacao.Cnpj;
+                    xlWorkSheet.Cells[i, 27] = item.AcessoRelacao.SubGrupo;
+                    xlWorkSheet.Cells[i, 28] = "10017038";
+                    xlWorkSheet.Cells[i, 29] = "10017038";
+                    xlWorkSheet.Cells[i, 30] = "163794";
+                    xlWorkSheet.Cells[i, 31] = 0;
+                    xlWorkSheet.Cells[i, 32] = 0;
+                    xlWorkSheet.Cells[i, 33] = item.AcessoRelacao.DataContratoInicio != null ? item.AcessoRelacao.DataContratoInicio.Value.ToShortDateString() : string.Empty;
                     //xlWorkSheet.Cells[$"AE{i}"] = item.AcessoRelacao.DataContratoFim != null ? item.AcessoRelacao.DataContratoFim.Value.ToShortDateString() : string.Empty;
-                    xlWorkSheet.Cells[i, 32] = "A";
-                    xlWorkSheet.Cells[i, 33] = "-";
-                    xlWorkSheet.Cells[i, 34] = "-";
-                    xlWorkSheet.Cells[i, 35] = "TBRA";
-                    xlWorkSheet.Cells[i, 36] = item.AcessoRelacao.Estado.Value.GetDisplayName(true, "T-");
-                    xlWorkSheet.Cells[i, 37] = item.AcessoRelacao.SubGrupo;
-                    xlWorkSheet.Cells[i, 38] = item.AcessoRelacao.Cidade;
-                    xlWorkSheet.Cells[i, 39] = item.AcessoRelacao.Estado.Value.GetDisplayName();
-                    xlWorkSheet.Cells[i, 40] = 0;
-                    xlWorkSheet.Cells[i, 41] = string.Empty;
-                    xlWorkSheet.Cells[i, 42] = 1;
-                    xlWorkSheet.Cells[i, 43] = 2;
-                    xlWorkSheet.Cells[i, 44] = string.Empty;
-                    xlWorkSheet.Cells[i, 45] = string.Empty;
-                    xlWorkSheet.Cells[i, 46] = 3;
+                    xlWorkSheet.Cells[i, 34] = "A";
+                    xlWorkSheet.Cells[i, 35] = "-";
+                    xlWorkSheet.Cells[i, 36] = "-";
+                    xlWorkSheet.Cells[i, 37] = "TBRA";
+                    xlWorkSheet.Cells[i, 38] = item.AcessoRelacao.Estado.Value.GetDisplayName(true, "T-");
+                    xlWorkSheet.Cells[i, 39] = item.AcessoRelacao.SubGrupo;
+                    xlWorkSheet.Cells[i, 40] = item.AcessoRelacao.Cidade;
+                    xlWorkSheet.Cells[i, 41] = item.AcessoRelacao.Estado.Value.GetDisplayName();
+                    xlWorkSheet.Cells[i, 42] = 0;
+                    xlWorkSheet.Cells[i, 43] = string.Empty;
+                    xlWorkSheet.Cells[i, 44] = 1;
+                    xlWorkSheet.Cells[i, 45] = 2;
+                    xlWorkSheet.Cells[i, 46] = string.Empty;
                     xlWorkSheet.Cells[i, 47] = string.Empty;
-                    xlWorkSheet.Cells[i, 48] = 1;
-                    xlWorkSheet.Cells[i, 49] = 2;
+                    xlWorkSheet.Cells[i, 48] = 3;
+                    xlWorkSheet.Cells[i, 49] = string.Empty;
+                    xlWorkSheet.Cells[i, 50] = 1;
+                    xlWorkSheet.Cells[i, 51] = 2;
                     i++;
                 }
 
@@ -651,7 +655,10 @@ namespace Vivo_Apps_API.Controllers
                 {
                     Data = demanda_acesso,
                     Succeeded = true,
-                    Message = "Adicionamos o resgistro de treinamento para esta inclusão de usuário ,a demanda será finalizada."
+                    Message = "Adicionamos o resgistro de treinamento para este de usuário, falta apenas a criação de acesso para finalizar este chamado."
+                }, new JsonSerializerOptions
+                {
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
                 });
             }
             catch (Exception ex)
@@ -799,7 +806,7 @@ namespace Vivo_Apps_API.Controllers
                     ID_RESPOSTA = resposta.ID,
                     DATA = DateTime.Now
                 });
-
+                demanda_relacao.LastStatus = STATUS_ACESSOS_PENDENTES.AGUARDANDO_CRIAÇÃO_DE_ACESSO.Value;
                 DB.SaveChanges();
             }
 
@@ -811,30 +818,40 @@ namespace Vivo_Apps_API.Controllers
         {
             var demanda_relacao = DB.DEMANDA_RELACAO_CHAMADO.Find(id);
             demanda = DB.DEMANDA_ACESSOS.First(x => x.ID_RELACAO == id);
-            demanda.Matricula = newmatricula.ToString();
 
-            var resposta = new DEMANDA_CHAMADO_RESPOSTA
+            if (demanda.Acao == Acao.INCLUSÃO 
+            && string.IsNullOrEmpty(demanda.Matricula) 
+            && demanda_relacao.LastStatus == STATUS_ACESSOS_PENDENTES.ABERTO.Value)
+            // Se for uma inclusão em que a matrícula ainda está vazia incluimos a demanda
             {
-                ID_RELACAO = id,
-                ID_CHAMADO = demanda.ID,
-                RESPOSTA = mensagem,
-                MATRICULA_RESPONSAVEL = matricula_resp,
-                DATA_RESPOSTA = DateTime.Now,
-                ARQUIVOS = null
-            };
+                demanda.Matricula = newmatricula.ToString();
 
-            demanda_relacao.Respostas.Add(resposta);
-            DB.SaveChanges();
+                var resposta = new DEMANDA_CHAMADO_RESPOSTA
+                {
+                    ID_RELACAO = id,
+                    ID_CHAMADO = demanda.ID,
+                    RESPOSTA = mensagem,
+                    MATRICULA_RESPONSAVEL = matricula_resp,
+                    DATA_RESPOSTA = DateTime.Now,
+                    ARQUIVOS = null
+                };
 
-            demanda_relacao.Status.Add(new DEMANDA_STATUS_CHAMADO
-            {
-                ID_CHAMADO = demanda.ID,
-                STATUS = STATUS_ACESSOS_PENDENTES.AGUARDANDO_TREINAMENTO.Value,
-                ID_RESPOSTA = resposta.ID,
-                DATA = DateTime.Now
-            });
+                demanda_relacao.Respostas.Add(resposta);
+                DB.SaveChanges();
 
-            DB.SaveChanges();
+                demanda_relacao.Status.Add(new DEMANDA_STATUS_CHAMADO
+                {
+                    ID_CHAMADO = demanda.ID,
+                    STATUS = STATUS_ACESSOS_PENDENTES.AGUARDANDO_TREINAMENTO.Value,
+                    ID_RESPOSTA = resposta.ID,
+                    DATA = DateTime.Now
+                });
+
+                demanda_relacao.LastStatus = STATUS_ACESSOS_PENDENTES.AGUARDANDO_TREINAMENTO.Value;
+
+                DB.SaveChanges();
+            }
+
             return Task.CompletedTask;
         }
         private dynamic preencherValor(string xx)
