@@ -33,6 +33,8 @@ using DocumentFormat.OpenXml.Office2010.Excel;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using System;
 using DocumentFormat.OpenXml.Drawing.ChartDrawing;
+using System.Globalization;
+using DocumentFormat.OpenXml.ExtendedProperties;
 
 
 namespace Vivo_Apps_API.Controllers
@@ -316,23 +318,60 @@ namespace Vivo_Apps_API.Controllers
                 {
                     var carteira = CD.Carteira_NEs.Where(x => x.Vendedor == item.Adabas);
                     var extrator = CD.ACESSOS_MOBILEs.First(x => x.MATRICULA == matricula);
+                    item.DataContratoInicio = DateTime.Now;
 
-                    xlWorkSheet.Cells[i, 1] = item.Nome.ToUpper();     //1 Nome
+                    xlWorkSheet.Cells[i, 1] = extrator.NOME.ToUpper();     //1 Nome
+                    xlWorkSheet.Cells[i, 2] = item.Acao.GetDisplayName();
+
+                    if (item.Acao == Acao.INCLUSÃO)
+                    {
+                        xlWorkSheet.Cells[i, 3] = "-";
+                    }
+                    else
+                    {
+                        xlWorkSheet.Cells[i, 3] = item.Matricula;
+                    }
                     xlWorkSheet.Cells[i, 4] = "T4 Dealers";                             //2 
-                    xlWorkSheet.Cells[i, 8] = "-";                                      //3
+                    xlWorkSheet.Cells[i, 5] = item.Nome;
+                    xlWorkSheet.Cells[i, 6] = preencherValor(item.Sobrenome);
+                    xlWorkSheet.Cells[i, 7] = item.Sexo.Value.GetDisplayName();
+                    xlWorkSheet.Cells[i, 8] = "-";
+                    //string CPFFinal = Convert.ToUInt64(cpf).ToString(@"000\.000\.000\-00");
+                    xlWorkSheet.Cells[i, 9] = item.Cpf;
+                    // Ver se precisa da formatação do PIS aqui
+                    xlWorkSheet.Cells[i, 10] = preencherValor(item.PIS);
                     xlWorkSheet.Cells[i, 11] = "0 Solt";                                //4
+                    xlWorkSheet.Cells[i, 12] = preencherValor(item.Rg);
+                    //Orgao Emissor
+                    string filteredString = new string(item.OrgaoEmissor.Where(Char.IsLetter).ToArray());
+                    string modifiedString = string.Join("/", filteredString.Take(3), filteredString.Skip(3));
+
+
+                    xlWorkSheet.Cells[i, 13] = modifiedString.ToUpper();
+                    xlWorkSheet.Cells[i, 14] = item.DataNascimento;                     //3
                     xlWorkSheet.Cells[i, 15] = "BR Brasileiro";                         //5
-                    xlWorkSheet.Cells[i, 26] = "NÃO INFORMADO";                         //6
-                    xlWorkSheet.Cells[i, 27] = "NÃO INFORMADO";                         //7
-                    xlWorkSheet.Cells[i, 29] = "NÃO INFORMADO";                         //8
-                    xlWorkSheet.Cells[i, 30] = "NÃO INFORMADO";                         //9
-                    xlWorkSheet.Cells[i, 33] = "-";                                     //10
-                    xlWorkSheet.Cells[i, 34] = "-";                                     //11
-                    xlWorkSheet.Cells[i, 35] = "-";                                     //12
-                    xlWorkSheet.Cells[i, 36] = "-";                                     //13
-                    xlWorkSheet.Cells[i, 37] = "-";                                     //14
-                    xlWorkSheet.Cells[i, 41] = "TOD";                                   //15
-                    xlWorkSheet.Cells[i, 40] = "10000911";                              //16
+                    xlWorkSheet.Cells[i, 16] = item.Telefone;     // COLUNA   AM
+                    xlWorkSheet.Cells[i, 18] = "2 Ens Méd/Profissional";
+                    xlWorkSheet.Cells[i, 19] = "1 Completo";
+                    xlWorkSheet.Cells[i, 20] = "-";
+                    xlWorkSheet.Cells[i, 21] = "-";
+                    xlWorkSheet.Cells[i, 22] = "-";
+                    xlWorkSheet.Cells[i, 23] = preencherValor(item.Cnpj);
+                    if (regional == "NE")
+                    {
+                        if (item.SubGrupo == "ALTERNATIVOS PF")
+                        {
+                            xlWorkSheet.Cells[i, 24] = "4 Governo";
+                        }
+                        else
+                        {
+                            xlWorkSheet.Cells[i, 24] = preencherValor(item.SubGrupo.ToUpper());
+                        }
+                    }
+                    else
+                    {
+                        xlWorkSheet.Cells[i, 24] = preencherValor(item.SubGrupo.ToUpper());
+                    }
                     if (regional.Equals("N"))
                     {
                         var cnpjDt = CD.APROVADORES_s.Where(x => x.CNPJ == item.Cnpj).Select(x => new { OP = x.Unidade_Gestor_Operacional, Cont = x.Unidade_Gestor_Contrato });
@@ -351,22 +390,16 @@ namespace Vivo_Apps_API.Controllers
                         xlWorkSheet.Cells[i, 26] = "10017038";
                     }
                     xlWorkSheet.Cells[i, 27] = matricula.ToString();
-
-                    xlWorkSheet.Cells[i, 29] = item.DataContratoInicio;
-                    xlWorkSheet.Cells[i, 30] = item.DataContratoFim;
-
+                    xlWorkSheet.Cells[i, 29] = item.DataContratoInicio.Value.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
+                    xlWorkSheet.Cells[i, 30] = item.DataContratoInicio.Value.AddYears(2).ToString("yyyyMMdd", CultureInfo.InvariantCulture);
                     xlWorkSheet.Cells[i, 31] = "A Ativo";
                     xlWorkSheet.Cells[i, 32] = "";
                     xlWorkSheet.Cells[i, 33] = "80000064    SERVIÇOS - VENDAS";
                     xlWorkSheet.Cells[i, 34] = "TBRA";
-                    xlWorkSheet.Cells[i, 35] = item.Estado.Value.GetDisplayName(true, "T-");
-                    xlWorkSheet.Cells[i, 36] = item.Cidade.ToUpper();
-                    xlWorkSheet.Cells[i, 37] = item.Estado.Value.GetDisplayName();
+                    xlWorkSheet.Cells[i, 35] = "T-" + item.Estado?.GetDisplayName();
+                    xlWorkSheet.Cells[i, 36] = item.Estado.Value.GetDisplayName();
+                    xlWorkSheet.Cells[i, 37] = item.Cidade.ToUpper();
                     xlWorkSheet.Cells[i, 38] = "";
-                    //↓ COLUNA NÚMERO DE TELEFONE ↓
-                    xlWorkSheet.Cells[i, 16] = item.Telefone;     // COLUNA   AM
-                    xlWorkSheet.Cells[i, 49] = item.Celular.Replace("+", "");   // COLUNA AL
-                                                                                //↑ COLUNA E-MAIL ↑
                     xlWorkSheet.Cells[i, 39] = "";      // COLUNA AL
                     xlWorkSheet.Cells[i, 40] = "";     // COLUNA   AM
                     xlWorkSheet.Cells[i, 41] = "1 Sim";
@@ -377,81 +410,6 @@ namespace Vivo_Apps_API.Controllers
                     xlWorkSheet.Cells[i, 46] = "";
                     xlWorkSheet.Cells[i, 47] = "1 Sim";
                     xlWorkSheet.Cells[i, 48] = "2 Não";
-
-                    if (item.Acao == Acao.INCLUSÃO)
-                    {
-                        xlWorkSheet.Cells[i, 2] = "1 Inclusão";
-                        xlWorkSheet.Cells[i, 3] = "-";
-                    }
-
-                    if (item.Acao == Acao.ALTERAÇÃO || item.Acao == Acao.INATIVAÇÃO || item.Acao == Acao.REATIVAÇÃO)
-                    {
-                        xlWorkSheet.Cells[i, 2] = item.Acao.GetDisplayName();
-                        if (regional.Equals("NE"))
-                        {
-                            xlWorkSheet.Cells[i, 3] = item.Matricula; // MATRICULA
-                        }
-                        else
-                        {
-
-                            xlWorkSheet.Cells[i, 3] = "T4 DEALERS";
-                        }
-                    }
-                    else
-                    {
-                        xlWorkSheet.Cells[i, 2] = item.Acao.GetDisplayName();
-                        xlWorkSheet.Cells[i, 3] = "T4 DEALERS";
-                    }
-
-                    xlWorkSheet.Cells[i, 5] = item.Nome;
-                    xlWorkSheet.Cells[i, 6] = preencherValor(item.Sobrenome);
-                    xlWorkSheet.Cells[i, 7] = item.Sexo.Value.GetDisplayName();
-
-                    //string CPFFinal = Convert.ToUInt64(cpf).ToString(@"000\.000\.000\-00");
-                    xlWorkSheet.Cells[i, 9] = item.Cpf;
-
-                    // Ver se precisa da formatação do PIS aqui
-                    xlWorkSheet.Cells[i, 10] = preencherValor(item.PIS);
-
-                    xlWorkSheet.Cells[i, 12] = preencherValor(item.Rg);
-
-                    //Orgao Emissor
-                    xlWorkSheet.Cells[i, 13] = item.OrgaoEmissor.ToUpper();
-
-                    xlWorkSheet.Cells[i, 14] = item.DataNascimento;
-
-                    xlWorkSheet.Cells[i, 18] = "2 Ens Méd/Profissional";
-                    xlWorkSheet.Cells[i, 19] = "1 Completo";
-                    xlWorkSheet.Cells[i, 20] = "-";
-                    xlWorkSheet.Cells[i, 21] = "-";
-                    xlWorkSheet.Cells[i, 22] = "-";
-
-
-                    xlWorkSheet.Cells[i, 23] = preencherValor(item.Cnpj);
-
-
-                    if (regional == "NE")
-                    {
-                        if (item.SubGrupo == "ALTERNATIVOS PF")
-                        {
-                            xlWorkSheet.Cells[i, 24] = "4 Governo";
-                        }
-                        else
-                        {
-                            xlWorkSheet.Cells[i, 24] = preencherValor(item.SubGrupo.ToUpper());
-                        }
-                    }
-                    else
-                    {
-                        xlWorkSheet.Cells[i, 24] = preencherValor(item.SubGrupo.ToUpper());
-                    }
-
-                    if (regional.Equals("N"))
-                    {
-                        xlWorkSheet.Cells[i, 39] = "";
-                        xlWorkSheet.Cells[i, 40] = "";
-                        xlWorkSheet.Cells[i, 43] = "";
-                    }
                     i++;
                 }
                 object misValue = System.Reflection.Missing.Value;
@@ -649,7 +607,7 @@ namespace Vivo_Apps_API.Controllers
                            .ThenInclude(x => x.Status)
                    .IgnoreAutoIncludes()
                    .ProjectTo<ACESSO_TERCEIROS_DTO>(_mapper.ConfigurationProvider)
-                   .First(x => x.ID == NovoTreinamento.ID_RELACAO);
+                   .First(x => x.ID_RELACAO == NovoTreinamento.ID_RELACAO);
 
                 return new JsonResult(new Response<ACESSO_TERCEIROS_DTO>
                 {
@@ -715,7 +673,7 @@ namespace Vivo_Apps_API.Controllers
             {
                 if (i == NovosTreinamentos.Count() - 1)
                 {
-                    await _hubContext.ProgressMassivoTreinamento(matricula, 100, $"Upload de base de treinamento em 100%...");
+                    await _hubContext.ProgressMassivoTreinamento(matricula, 100, $"Upload de base de treinamento finalizado ✔");
                 }
                 if (i == (int)(NovosTreinamentos.Count() / 2.0))
                 {
@@ -752,6 +710,24 @@ namespace Vivo_Apps_API.Controllers
             DEMANDA_ACESSOS? acessoaberto;
 
             /** Caso o Id seja informado, procura por ID, caso não busca por matricula **/
+            /** Caso encontre algum acesso continua com a requisição **/
+
+            var matricularepetida = DB.DEMANDA_RELACAO_TREINAMENTO_FINALIZADO.FirstOrDefault(x => x.MATRICULA == item.MATRICULA);
+
+            /** Caso encontre algum item na tabela de treinamento
+             * com a mesma matrícula retorna impossibilitando a continuidade
+             * e não adiciona um novo elemento na tabela **/
+
+            if (matricularepetida != null)
+            {
+                if (matricularepetida.STATUS_MATRICULA == "ATIVO")
+                {
+                    valid = false;
+                    return Task.CompletedTask;
+                }
+
+            }
+
 
             if (id.HasValue)
                 acessoaberto = DB.DEMANDA_ACESSOS.First(x => x.ID_RELACAO == id);
@@ -760,25 +736,8 @@ namespace Vivo_Apps_API.Controllers
 
             if (acessoaberto != null)
             {
-                /** Caso encontre algum acesso continua com a requisição **/
 
-                var matricularepetida = DB.DEMANDA_RELACAO_TREINAMENTO_FINALIZADO.FirstOrDefault(x => x.MATRICULA == item.MATRICULA);
-
-                /** Caso encontre algum item na tabela de treinamento
-                 * com a mesma matrícula retorna impossibilitando a continuidade
-                 * e não adiciona um novo elemento na tabela **/
-
-                if (matricularepetida != null)
-                {
-                    if (matricularepetida.STATUS_MATRICULA == "ATIVO")
-                    {
-                        valid = false;
-                    }
-
-                    return Task.CompletedTask;
-                }
-
-                item.ID_RELACAO = acessoaberto.ID;
+                item.ID_RELACAO = acessoaberto.ID_RELACAO;
                 DB.DEMANDA_RELACAO_TREINAMENTO_FINALIZADO.Add(item);
 
                 DB.SaveChanges();
@@ -819,8 +778,8 @@ namespace Vivo_Apps_API.Controllers
             var demanda_relacao = DB.DEMANDA_RELACAO_CHAMADO.Find(id);
             demanda = DB.DEMANDA_ACESSOS.First(x => x.ID_RELACAO == id);
 
-            if (demanda.Acao == Acao.INCLUSÃO 
-            && string.IsNullOrEmpty(demanda.Matricula) 
+            if (demanda.Acao == Acao.INCLUSÃO
+            && string.IsNullOrEmpty(demanda.Matricula)
             && demanda_relacao.LastStatus == STATUS_ACESSOS_PENDENTES.ABERTO.Value)
             // Se for uma inclusão em que a matrícula ainda está vazia incluimos a demanda
             {
