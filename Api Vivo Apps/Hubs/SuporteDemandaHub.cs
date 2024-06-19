@@ -48,9 +48,16 @@ namespace Vivo_Apps_API.Hubs
         private readonly HttpClient _client;
         private readonly IOutputCacheStore _cache;
         private readonly DemandasController _service;
+        private readonly IConfiguration _config;
+        private readonly IWebHostEnvironment _envirionment;
         public static IDictionary<string, ACESSOS_MOBILE_DTO> CurrentUsers = new Dictionary<string, ACESSOS_MOBILE_DTO>();
         public static IEnumerable<DEMANDA_DTO> data = new List<DEMANDA_DTO>();
-        public SuporteDemandaHub(IHubContext<SuporteDemandaHub> context, IDbContextFactory<DemandasContext> dbContextFactory, IOutputCacheStore cache)
+        private string api_host_dev;
+        private string api_host_production;
+        public SuporteDemandaHub(
+            IHubContext<SuporteDemandaHub> context,
+            IDbContextFactory<DemandasContext> dbContextFactory,
+            IOutputCacheStore cache, IConfiguration configuration, IWebHostEnvironment envirionment)
         {
             _client = new HttpClient();
             _cache = cache;
@@ -119,6 +126,10 @@ namespace Vivo_Apps_API.Hubs
             });
 
             _mapper = config.CreateMapper();
+            _config = configuration;
+            _envirionment = envirionment;   
+            api_host_dev = _config.GetConnectionString("api_host_link");
+            api_host_production = _config.GetConnectionString("api_host_link_production");
         }
         //private string GetBaseUrl(this HttpRequest request)
         //{
@@ -128,7 +139,7 @@ namespace Vivo_Apps_API.Hubs
         //}
         protected async Task GetAllAsync(int? matricula = null)
         {
-            var response = await _client.GetAsync($"http://localhost:31510/api/Demandas/GetAllChamados");
+            var response = await _client.GetAsync((!_envirionment.IsDevelopment() ? api_host_production : api_host_dev)+ "api/Demandas/GetAllChamados");
             if (response.IsSuccessStatusCode)
             {
                 response.EnsureSuccessStatusCode();
