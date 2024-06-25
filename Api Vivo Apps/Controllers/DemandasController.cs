@@ -2036,7 +2036,7 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
-        [HttpGet("AnalistaSuporte/Get/IsSuporte={IsSuporte}/IsAcessoLogico={IsAcessoLogico}/SubFila={SubFila}/regional={regional}/matricula={matricula}")]
+        [HttpGet("AnalistaSuporte/Get/{IsSuporte}/{IsAcessoLogico}/{SubFila}/{regional}/{matricula}")]
         [ResponseCache(VaryByHeader = "User-Agent", Duration = int.MaxValue, NoStore = false, Location = ResponseCacheLocation.Any)]
         [OutputCache(Duration = int.MaxValue, Tags = new string[] { "analistas-suporte" }, NoStore = false, VaryByHeaderNames = new string[] { "User-Agent" })]
         public async Task<Results<Ok<IEnumerable<ACESSOS_MOBILE_DTO>>, BadRequest<Exception>>> GetAnalistaSuporte(bool IsSuporte, bool IsAcessoLogico, int SubFila, string regional, int matricula)
