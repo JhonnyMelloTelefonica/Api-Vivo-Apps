@@ -65,7 +65,8 @@ namespace Vivo_Apps_API.Controllers
 
                 var result = BD.PRODUTOS_CARDAPIO
                     .Include(x => x.Ficha)
-                    .Include(x => x.Imagens).Take(1)
+                    .Include(x => x.Imagens.Take(1))
+                    .Take(10)
                     .AsEnumerable();
 
                 return new JsonResult(new Response<IEnumerable<PRODUTOS_CARDAPIO>>
@@ -155,7 +156,6 @@ namespace Vivo_Apps_API.Controllers
             return Ok(result);
         }
 
-
         [HttpDelete("Delete/{id}")]
         [ProducesResponseType(typeof(Response<string>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
@@ -171,7 +171,7 @@ namespace Vivo_Apps_API.Controllers
                 {
                     Data = "Tudo certo",
                     Succeeded = true,
-                    Message = $"O Produto {produto.Nome} foi adicionado"
+                    Message = $"O Produto {produto.Nome} e todas as informações complementares a ele foi excluído"
                 }, new JsonSerializerOptions
                 {
                     ReferenceHandler = ReferenceHandler.IgnoreCycles
@@ -294,13 +294,23 @@ namespace Vivo_Apps_API.Controllers
                 foreach (var ficha in NovaFicha)
                 {
                     if (ficha.ID_FICHA == Guid.Empty)
-                    {
+                    { /* Caso não haja Id Adicionamos*/
                         BD.FICHA_TECNICA.Add(ficha);
+                    }
+                    else
+                    {/* Caso haja Id Atualizamos sua propriedades*/
+                        var fichainDB = BD.FICHA_TECNICA.Find(ficha.ID_FICHA);
+
+                        fichainDB.Especificação = ficha.Especificação;
+                        fichainDB.Valor = ficha.Valor;
+                        fichainDB.IsImportant = ficha.IsImportant;
+                        fichainDB.IsInfoAdicional = ficha.IsInfoAdicional;
                     }
                 }
 
                 foreach (var ficha in FichaExcluida)
                 {
+                    /* Caso Esteja na lista é uma imagem deletada*/
                     BD.FICHA_TECNICA.Remove(ficha);
                 }
 
