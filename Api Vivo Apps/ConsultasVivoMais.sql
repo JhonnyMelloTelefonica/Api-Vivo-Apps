@@ -1,0 +1,9 @@
+
+--select * from ACESSOS_MOBILE where MATRICULA IN (
+--select DISTINCT(MATRICULA_SOLICITANTE) from [Vivo_MAIS].Demandas.DEMANDA_RELACAO_CHAMADO )
+
+select * from Cardapio.PRODUTOS_CARDAPIO
+--select * from Cardapio.PRODUTOS_CARDAPIO_FICHA_TECNICA
+--select * from Cardapio.PRODUTOS_CARDAPIO_IMAGENS
+
+--select * from Demandas.DEMANDA_RELACAO_TREINAMENTO_FINALIZADO	

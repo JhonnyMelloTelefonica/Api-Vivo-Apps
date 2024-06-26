@@ -31,7 +31,7 @@ namespace Vivo_Apps_API.Hubs
         Task GetTable(string? connectionId = null);
         Task NewNotification(string senderName, string title, string message, string link, string regional);
         Task NewNotificationByUser(int matricula, DEMANDA_CHAMADO content);
-        Task ProgressMassivoTreinamento(int matricula, int porcentagem,string message);
+        Task ProgressMassivoTreinamento(int matricula, int porcentagem, string message);
         Task SendTableDemandas(int? matricula = null);
         /** Este metódo indica para o HUB que as demandas precisam ser atualizadas 
          * Caso seja passado o paramêtro de alguma matrícula, o HUB apenas notifica a matrícula em questão se ela estiver conectada 
@@ -127,7 +127,7 @@ namespace Vivo_Apps_API.Hubs
 
             _mapper = config.CreateMapper();
             _config = configuration;
-            _envirionment = envirionment;   
+            _envirionment = envirionment;
             api_host_dev = _config.GetConnectionString("api_host_link");
             api_host_production = _config.GetConnectionString("api_host_link_production");
         }
@@ -139,7 +139,7 @@ namespace Vivo_Apps_API.Hubs
         //}
         protected async Task GetAllAsync(int? matricula = null)
         {
-            var response = await _client.GetAsync((!_envirionment.IsDevelopment() ? api_host_production : api_host_dev)+ "api/Demandas/GetAllChamados");
+            var response = await _client.GetAsync((!_envirionment.IsDevelopment() ? api_host_production : api_host_dev) + "api/Demandas/GetAllChamados");
             if (response.IsSuccessStatusCode)
             {
                 response.EnsureSuccessStatusCode();
@@ -244,18 +244,12 @@ namespace Vivo_Apps_API.Hubs
         {
             foreach (var item in data.Where(x => ids.Contains(x.ID_RELACAO)))
             {
-                if (!item.PRIORIDADE)
-                    item.PRIORIDADE = true;
-                else if (item.PRIORIDADE)
-                    item.PRIORIDADE = false;
+                item.PRIORIDADE = !item.PRIORIDADE;
             }
 
             foreach (var item in Demanda_BD.DEMANDA_RELACAO_CHAMADO.Where(x => ids.Contains(x.ID_RELACAO)))
             {
-                if (!item.PRIORIDADE)
-                    item.PRIORIDADE = true;
-                else if (item.PRIORIDADE)
-                    item.PRIORIDADE = false;
+                item.PRIORIDADE = !item.PRIORIDADE;
 
                 item.Historico_Prioridade.Add(new CHAMADO_HISTORICO_PRIORIDADE
                 {
@@ -267,7 +261,7 @@ namespace Vivo_Apps_API.Hubs
 
             Demanda_BD.SaveChanges();
 
-            await SendTableDemandas();
+            await GetTable();
         }
 
         public Task NewNotification(string senderName, string title, string message, string link, string regional)
@@ -282,7 +276,7 @@ namespace Vivo_Apps_API.Hubs
             {
                 foreach (var item in CurrentUsers.Where(x => x.Value.MATRICULA == matricula))
                 {
-                    _context.Clients.Client(item.Key).SendAsync("ProgressMassivoTreinamento",porcentagem, message);
+                    _context.Clients.Client(item.Key).SendAsync("ProgressMassivoTreinamento", porcentagem, message);
                 }
             }
 

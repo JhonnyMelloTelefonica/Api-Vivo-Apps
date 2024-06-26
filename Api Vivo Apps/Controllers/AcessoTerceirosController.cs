@@ -344,8 +344,7 @@ namespace Vivo_Apps_API.Controllers
                     xlWorkSheet.Cells[i, 12] = preencherValor(item.Rg);
                     //Orgao Emissor
                     string filteredString = new string(item.OrgaoEmissor.Where(Char.IsLetter).ToArray());
-                    string modifiedString = string.Join("/", filteredString.Take(3), filteredString.Skip(3));
-
+                    string modifiedString = string.Join("/", new string(filteredString.Take(3).ToArray()), new string(filteredString.Skip(3).ToArray()));
 
                     xlWorkSheet.Cells[i, 13] = modifiedString.ToUpper();
                     xlWorkSheet.Cells[i, 14] = item.DataNascimento;                     //3

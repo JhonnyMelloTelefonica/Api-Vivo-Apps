@@ -30,8 +30,6 @@ namespace Vivo_Apps_API.Controllers
 
         private readonly ILogger<CardapioDigitalController> _logger;
         private readonly IMapper _mapper;
-
-
         public CardapioDigitalController(ILogger<CardapioDigitalController> logger, IDbContextFactory<CardapioDigitalContext> dbFactory)
         {
             _logger = logger;
@@ -49,7 +47,6 @@ namespace Vivo_Apps_API.Controllers
             DbFactory = dbFactory;
             BD = DbFactory.CreateDbContext();
         }
-
 
         [HttpGet("Get")]
         [ProducesResponseType(typeof(Response<IEnumerable<PRODUTOS_CARDAPIO>>), 200)]
@@ -154,7 +151,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpDelete("Delete/{id}")]
         [ProducesResponseType(typeof(Response<string>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult Delete([FromBody] Guid id)
+        public JsonResult Delete(Guid id)
         {
             try
             {
@@ -273,7 +270,7 @@ namespace Vivo_Apps_API.Controllers
                 result.Nome = produto.Nome;
                 result.Descrição = produto.Descrição;
                 result.Avaliacao = produto.Avaliacao;
-                result.Categoria = produto.Categoria;
+                result.Categoria_Produto = produto.Categoria_Produto;
                 result.Fabricante = produto.Fabricante;
                 result.Cor = produto.Cor;
                 result.IsOferta = produto.IsOferta;
@@ -300,6 +297,7 @@ namespace Vivo_Apps_API.Controllers
                         fichainDB.Valor = ficha.Valor;
                         fichainDB.IsImportant = ficha.IsImportant;
                         fichainDB.IsInfoAdicional = ficha.IsInfoAdicional;
+                        fichainDB.Categoria_Especificação = ficha.Categoria_Especificação;
                     }
                 }
 
