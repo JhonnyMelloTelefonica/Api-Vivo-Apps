@@ -342,7 +342,7 @@ namespace Vivo_Apps_API.Controllers
                 {
                     if (filter.Value.DT_SOLICITACAO.Count() >= 2)
                     {
-                        users = users.ToList().Where(x => filter.Value.DT_SOLICITACAO[0] <= Convert.ToDateTime(x.DT_SOLICITACAO) && filter.Value.DT_SOLICITACAO[1] >= Convert.ToDateTime(x.DT_SOLICITACAO)).AsQueryable();
+                        users = users.ToList().Where(x => filter.Value.DT_SOLICITACAO[0] <= x.DT_SOLICITACAO && filter.Value.DT_SOLICITACAO[1] >= x.DT_SOLICITACAO).AsQueryable();
                     }
                 }
 

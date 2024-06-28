@@ -1497,41 +1497,28 @@ namespace Vivo_Apps_API.Controllers
                     DataProvas = DataProvas.Where(x => filter.Value.TP_FORMS.Contains(x.TP_FORMS));
                 }
 
-                //if (filter.Value.PeriodoCriacao is not null)
-                //{
-                //    if (filter.Value.PeriodoCriacao.Any())
-                //    {
-                //        if (filter.Value.PeriodoCriacao.Count() == 2)
-                //        {
-                //            DataProvas = DataProvas.Where(x => Convert.ToDateTime(x.DT_CRIACAO) > filter.Value.PeriodoCriacao[0]
-                //            && Convert.ToDateTime(x.DT_CRIACAO) < filter.Value.PeriodoCriacao[1]);
-                //        }
-                //    }
-                //}
+                if (filter.Value.PeriodoInicioAprovacao.Any())
+                {
+                    if (filter.Value.PeriodoInicioAprovacao.Count() == 2)
+                    {
+                        DataProvas = DataProvas.Where(x => x.DT_INICIO_AVALIACAO > filter.Value.PeriodoInicioAprovacao[0]
+                        && x.DT_INICIO_AVALIACAO < filter.Value.PeriodoInicioAprovacao[1]);
+                    }
+                }
 
-                //if (filter.Value.PeriodoInicio is not null)
-                //{
-                //    if (filter.Value.PeriodoInicio.Any())
-                //    {
-                //        if (filter.Value.PeriodoInicio.Count() == 2)
-                //        {
-                //            DataProvas = DataProvas.Where(x => Convert.ToDateTime(x.DT_INICIO_AVALIACAO) > filter.Value.PeriodoInicio[0]
-                //            && Convert.ToDateTime(x.DT_INICIO_AVALIACAO) < filter.Value.PeriodoInicio[1]);
-                //        }
-                //    }
-                //}
+                if (filter.Value.PeriodoFinalizacao.Any())
+                {
+                    if (filter.Value.PeriodoFinalizacao.Count() == 2)
+                    {
+                        DataProvas = DataProvas.Where(x => x.DT_FINALIZACAO > filter.Value.PeriodoFinalizacao[0]
+                        && x.DT_FINALIZACAO < filter.Value.PeriodoFinalizacao[1]);
+                    }
+                }
 
-                //if (filter.Value.PeriodoFinalizacao is not null)
-                //{
-                //    if (filter.Value.PeriodoFinalizacao.Any())
-                //    {
-                //        if (filter.Value.PeriodoFinalizacao.Count() == 2)
-                //        {
-                //            DataProvas = DataProvas.Where(x => Convert.ToDateTime(x.DT_FINALIZACAO) > filter.Value.PeriodoFinalizacao[0]
-                //            && Convert.ToDateTime(x.DT_FINALIZACAO) < filter.Value.PeriodoFinalizacao[1]);
-                //        }
-                //    }
-                //}
+                if (filter.Value.Caderno != 0)
+                {
+                    DataProvas = DataProvas.Where(x => x.CADERNO == filter.Value.Caderno);
+                }
 
                 //var teste = DataProvas
                 //    .GroupBy(x => x.ID_PROVA)

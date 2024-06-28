@@ -18,6 +18,7 @@ using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Drawing;
 using NuGet.Versioning;
+using Microsoft.AspNetCore.OutputCaching;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -46,6 +47,41 @@ namespace Vivo_Apps_API.Controllers
             //_mapper = config.CreateMapper();
             DbFactory = dbFactory;
             BD = DbFactory.CreateDbContext();
+        }
+
+        [HttpGet("GetProductsNames")]
+        [ProducesResponseType(typeof(Response<IEnumerable<dynamic>>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        [ResponseCache(VaryByHeader = "User-Agent", Duration = int.MaxValue, NoStore = false, Location = ResponseCacheLocation.Any)]
+        [OutputCache(Duration = int.MaxValue, Tags = new string[] { "Product-Names" }, NoStore = false, VaryByHeaderNames = new string[] { "User-Agent" })]
+        public JsonResult GetProductsNames()
+        {
+            try
+            {
+                var result = BD.PRODUTOS_CARDAPIO.IgnoreAutoIncludes()
+                    .Select(x => new { Id = x.ID_PRODUTO, Name = x.Nome, Categoria = x.Categoria_Produto });
+
+                return new JsonResult(new Response<IEnumerable<dynamic>>
+                {
+                    Data = result,
+                    Succeeded = true,
+                    Message = "Tudo certo."
+                });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    },
+                });
+            }
         }
 
         [HttpGet("Get")]
