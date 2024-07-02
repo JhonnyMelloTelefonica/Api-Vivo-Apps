@@ -91,6 +91,11 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
+                //var result = BD.PRODUTOS_CARDAPIO
+                //    .Include(x => x.Ficha)
+                //    .Include(x => x.Imagens.First())
+                //    .AsEnumerable();
+
                 var result = BD.PRODUTOS_CARDAPIO
                     .Include(x => x.Ficha)
                     .Include(x => x.Imagens.Take(1))
