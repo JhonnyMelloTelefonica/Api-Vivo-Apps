@@ -170,7 +170,7 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var Arquivos = Demanda_BD.DEMANDA_ARQUIVOS_RESPOSTA.Where(x=> x.ID_RESPOSTA == IdResposta);
+                var Arquivos = Demanda_BD.DEMANDA_ARQUIVOS_RESPOSTA.Where(x => x.ID_RESPOSTA == IdResposta);
 
                 var options = new JsonSerializerOptions
                 {
@@ -474,119 +474,202 @@ namespace Vivo_Apps_API.Controllers
 
                 if (data.DEMANDA_CAMPOS_FILAs.Any())
                 {
-                    List<string> camposAntigos = CD.DEMANDA_CAMPOS_FILAs.Where(x => x.ID_SUB_FILA == data.ID_SUB_FILA).Select(x => x.CAMPO).ToList();
-
-                    if (data.DEMANDA_CAMPOS_FILAs.Count > camposAntigos.Count)
+                    List<DEMANDA_CAMPOS_FILA> camposAntigos = CD.DEMANDA_CAMPOS_FILAs.Where(x => x.ID_SUB_FILA == data.ID_SUB_FILA).ToList();
+                    List<DEMANDA_CAMPOS_FILA> camposAtualizados = data.DEMANDA_CAMPOS_FILAs.Select(x => new DEMANDA_CAMPOS_FILA
                     {
-                        foreach (var campo in data.DEMANDA_CAMPOS_FILAs)
+                        ID_CAMPOS = x.ID_CAMPOS,
+                        ID_SUB_FILA = data.ID_SUB_FILA,
+                        CAMPO = x.CAMPO,
+                        MASCARA = x.MASCARA,
+                        CAMPO_SUSPENSO = x.CAMPO_SUSPENSO,
+                        REGIONAL = regional,
+                        DT_CRIACAO = DateTime.Now.ToString(),
+                        STATUS_CAMPOS_FILA = x.STATUS_CAMPOS_FILA,
+                        MAT_CRIADOR = matricula,
+                        DEMANDA_VALORES_CAMPOS_SUSPENSOs = x.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Select(y => new DEMANDA_VALORES_CAMPOS_SUSPENSO
                         {
-                            if (!camposAntigos.Any(x => x == campo.CAMPO))
-                            {
-                                var NewCampo = CD.DEMANDA_CAMPOS_FILAs.Add(new DEMANDA_CAMPOS_FILA
-                                {
-                                    CAMPO = campo.CAMPO,
-                                    CAMPO_SUSPENSO = campo.CAMPO_SUSPENSO,
-                                    DT_CRIACAO = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
-                                    ID_SUB_FILA = NewSubFila.ID_SUB_FILA,
-                                    MASCARA = campo.CAMPO_SUSPENSO == true ? "" : campo.MASCARA,
-                                    MAT_CRIADOR = matricula,
-                                    REGIONAL = regional,
-                                    STATUS_CAMPOS_FILA = true,
-                                }).Entity;
+                            ID_VALORES = y.ID_VALORES,
+                            VALOR = y.VALOR,
+                            ID_CAMPOS = x.ID_CAMPOS,
+                            STATUS = y.STATUS
+                        }).ToList(),
+                    }).ToList();
 
-                                if (campo.CAMPO_SUSPENSO)
-                                {
-                                    if (campo.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Any())
-                                    {
-                                        foreach (var valorescampo in campo.DEMANDA_VALORES_CAMPOS_SUSPENSOs)
-                                        {
-                                            CD.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Add(new DEMANDA_VALORES_CAMPOS_SUSPENSO
-                                            {
-                                                ID_CAMPOS = NewCampo.ID_CAMPOS,
-                                                VALOR = valorescampo.VALOR
-                                            });
-                                        }
-                                    }
+                    IEnumerable<DEMANDA_CAMPOS_FILA> NovaFicha = camposAntigos.Union(camposAtualizados).ToList();
+                    /** Une os perfis que estão no banco e os inseridos pelo usuário em uma lista, dá o distinct automaticamente **/
+                    IEnumerable<DEMANDA_CAMPOS_FILA> FichaExcluida = camposAntigos.ExceptBy(camposAtualizados.Select(x => x.ID_CAMPOS), x => x.ID_CAMPOS).ToList();
+                    /** Perfis que estão no banco e que não estão na união entre as 2 listas **/
+
+
+                    foreach (var ficha in NovaFicha)
+                    {
+                        if (ficha.ID_CAMPOS == 0)
+                        { /* Caso não haja Id Adicionamos*/
+                            CD.DEMANDA_CAMPOS_FILAs.Add(ficha);
+                        }
+                        else
+                        {/* Caso haja Id Atualizamos sua propriedades*/
+                            var fichainDB = CD.DEMANDA_CAMPOS_FILAs.Find(ficha.ID_CAMPOS);
+
+                            fichainDB.ID_CAMPOS = ficha.ID_CAMPOS;
+                            fichainDB.ID_SUB_FILA = ficha.ID_SUB_FILA;
+                            fichainDB.CAMPO = ficha.CAMPO;
+                            fichainDB.MASCARA = ficha.MASCARA;
+                            fichainDB.CAMPO_SUSPENSO = ficha.CAMPO_SUSPENSO;
+                            fichainDB.REGIONAL = ficha.REGIONAL;
+                            fichainDB.DT_CRIACAO = ficha.DT_CRIACAO;
+                            fichainDB.STATUS_CAMPOS_FILA = ficha.STATUS_CAMPOS_FILA;
+                            fichainDB.MAT_CRIADOR = ficha.MAT_CRIADOR;
+
+                            List<DEMANDA_VALORES_CAMPOS_SUSPENSO> valorescamposAntigos = CD.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Where(x => x.ID_CAMPOS == ficha.ID_CAMPOS).ToList();
+
+                            IEnumerable<DEMANDA_VALORES_CAMPOS_SUSPENSO> NovaFichavalores = valorescamposAntigos.Union(ficha.DEMANDA_VALORES_CAMPOS_SUSPENSOs).ToList();
+                            /** Une os perfis que estão no banco e os inseridos pelo usuário em uma lista, dá o distinct automaticamente **/
+                            IEnumerable<DEMANDA_VALORES_CAMPOS_SUSPENSO> FichaExcluidavalores = valorescamposAntigos.ExceptBy(ficha.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Select(x => x.ID_VALORES), x => x.ID_VALORES).ToList();
+
+                            foreach (var valor in NovaFichavalores)
+                            {
+                                if (valor.ID_VALORES == 0)
+                                { /* Caso não haja Id Adicionamos*/
+                                    CD.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Add(valor);
                                 }
+                                else
+                                {/* Caso haja Id Atualizamos sua propriedades*/
+                                    var valorinDB = CD.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Find(valor.ID_VALORES);
+
+                                    valorinDB.ID_VALORES = valor.ID_VALORES;
+                                    valorinDB.VALOR = valor.VALOR;
+                                    valorinDB.ID_CAMPOS = valor.ID_CAMPOS;
+                                    valorinDB.STATUS = valor.STATUS;
+                                }
+                            }
+                            foreach (var valor in FichaExcluidavalores)
+                            {
+                                /* Caso Esteja na lista é uma imagem deletada*/
+                                CD.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Remove(valor);
                             }
                         }
                     }
-                    else if (data.DEMANDA_CAMPOS_FILAs.Count < camposAntigos.Count)
+
+                    foreach (var ficha in FichaExcluida)
                     {
-                        foreach (var valorescampo in camposAntigos)
-                        {
-                            if (!data.DEMANDA_CAMPOS_FILAs.Any(x => x.CAMPO == valorescampo))
-                            {
-                                var campo = CD.DEMANDA_CAMPOS_FILAs.Where(x =>
-                                    x.ID_SUB_FILA == data.ID_SUB_FILA && x.CAMPO == valorescampo).First();
-
-                                campo.STATUS_CAMPOS_FILA = false;
-
-                                if (campo.CAMPO_SUSPENSO)
-                                {
-                                    var camposus = CD.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Where(x =>
-                                        x.ID_CAMPOS == campo.ID_CAMPOS);
-
-                                    camposus.ExecuteUpdate(x => x.SetProperty(y => y.STATUS, y => false));
-
-                                    //CD.DEMANDA_VALORES_CAMPOS_SUSPENSOs.RemoveRange(camposus);
-                                }
-                            }
-                        }
+                        /* Caso Esteja na lista é uma imagem deletada*/
+                        CD.DEMANDA_CAMPOS_FILAs.Remove(ficha);
                     }
-                    else
-                    {
-                        foreach (var campo in data.DEMANDA_CAMPOS_FILAs)
-                        {
-                            var campofrombanco = CD.DEMANDA_CAMPOS_FILAs
-                                .Find(campo.ID_CAMPOS);
-
-                            campofrombanco.CAMPO = campo.CAMPO;
-                            campofrombanco.MASCARA = campo.GetMascara();
-                            campofrombanco.CAMPO_SUSPENSO = campo.CAMPO_SUSPENSO;
-                            campofrombanco.STATUS_CAMPOS_FILA = campo.STATUS_CAMPOS_FILA;
-
-                            if (campo.CAMPO_SUSPENSO)
-                            {
-                                var NewCampo = CD.DEMANDA_CAMPOS_FILAs.Find(campo.ID_CAMPOS);
-                                if (NewCampo is not null)
-                                {
-                                    if (campo.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Any())
-                                    {
-                                        List<string> camposSusAntigos = CD.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Where(x => x.ID_CAMPOS == campo.ID_CAMPOS).Select(x => x.VALOR).ToList();
-
-                                        if (campo.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Count > camposSusAntigos.Count)
+                    /***
+                                        if (data.DEMANDA_CAMPOS_FILAs.Count > camposAntigos.Count)
                                         {
-                                            foreach (var valorescampo in campo.DEMANDA_VALORES_CAMPOS_SUSPENSOs)
+                                            foreach (var campo in data.DEMANDA_CAMPOS_FILAs)
                                             {
-                                                if (!camposSusAntigos.Any(x => x == valorescampo.VALOR))
+                                                if (!camposAntigos.Any(x => x == campo.CAMPO))
                                                 {
-                                                    CD.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Add(new DEMANDA_VALORES_CAMPOS_SUSPENSO
+                                                    var NewCampo = CD.DEMANDA_CAMPOS_FILAs.Add(new DEMANDA_CAMPOS_FILA
                                                     {
-                                                        ID_CAMPOS = NewCampo.ID_CAMPOS,
-                                                        VALOR = valorescampo.VALOR
-                                                    });
+                                                        CAMPO = campo.CAMPO,
+                                                        CAMPO_SUSPENSO = campo.CAMPO_SUSPENSO,
+                                                        DT_CRIACAO = DateTime.Now.ToString("dd/MM/yyyy HH:mm"),
+                                                        ID_SUB_FILA = NewSubFila.ID_SUB_FILA,
+                                                        MASCARA = campo.CAMPO_SUSPENSO == true ? "" : campo.MASCARA,
+                                                        MAT_CRIADOR = matricula,
+                                                        REGIONAL = regional,
+                                                        STATUS_CAMPOS_FILA = true,
+                                                    }).Entity;
+
+                                                    if (campo.CAMPO_SUSPENSO)
+                                                    {
+                                                        if (campo.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Any())
+                                                        {
+                                                            foreach (var valorescampo in campo.DEMANDA_VALORES_CAMPOS_SUSPENSOs)
+                                                            {
+                                                                CD.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Add(new DEMANDA_VALORES_CAMPOS_SUSPENSO
+                                                                {
+                                                                    ID_CAMPOS = NewCampo.ID_CAMPOS,
+                                                                    VALOR = valorescampo.VALOR
+                                                                });
+                                                            }
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
-                                        else if (campo.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Count < camposSusAntigos.Count)
+                                        else if (data.DEMANDA_CAMPOS_FILAs.Count < camposAntigos.Count)
                                         {
-                                            foreach (var valorescampo in camposSusAntigos)
+                                            foreach (var valorescampo in camposAntigos)
                                             {
-                                                if (!campo.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Any(x => x.VALOR == valorescampo))
+                                                if (!data.DEMANDA_CAMPOS_FILAs.Any(x => x.CAMPO == valorescampo))
                                                 {
-                                                    var camposus = CD.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Where(x =>
-                                                        x.ID_CAMPOS == NewCampo.ID_CAMPOS && x.VALOR == valorescampo).First();
-                                                    camposus.STATUS = false;
-                                                    //CD.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Remove(camposus);
+                                                    var campo = CD.DEMANDA_CAMPOS_FILAs.Where(x =>
+                                                        x.ID_SUB_FILA == data.ID_SUB_FILA && x.CAMPO == valorescampo).First();
+
+                                                    campo.STATUS_CAMPOS_FILA = false;
+
+                                                    if (campo.CAMPO_SUSPENSO)
+                                                    {
+                                                        var camposus = CD.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Where(x =>
+                                                            x.ID_CAMPOS == campo.ID_CAMPOS);
+
+                                                        camposus.ExecuteUpdate(x => x.SetProperty(y => y.STATUS, y => false));
+
+                                                        //CD.DEMANDA_VALORES_CAMPOS_SUSPENSOs.RemoveRange(camposus);
+                                                    }
                                                 }
                                             }
                                         }
-                                    }
-                                }
-                            }
-                        }
-                    }
+                                        else
+                                        {
+                                            foreach (var campo in data.DEMANDA_CAMPOS_FILAs)
+                                            {
+                                                var campofrombanco = CD.DEMANDA_CAMPOS_FILAs
+                                                    .Find(campo.ID_CAMPOS);
+
+                                                campofrombanco.CAMPO = campo.CAMPO;
+                                                campofrombanco.MASCARA = campo.GetMascara();
+                                                campofrombanco.CAMPO_SUSPENSO = campo.CAMPO_SUSPENSO;
+                                                campofrombanco.STATUS_CAMPOS_FILA = campo.STATUS_CAMPOS_FILA;
+
+                                                if (campo.CAMPO_SUSPENSO)
+                                                {
+                                                    var NewCampo = CD.DEMANDA_CAMPOS_FILAs.Find(campo.ID_CAMPOS);
+                                                    if (NewCampo is not null)
+                                                    {
+                                                        if (campo.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Any())
+                                                        {
+                                                            List<string> camposSusAntigos = CD.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Where(x => x.ID_CAMPOS == campo.ID_CAMPOS).Select(x => x.VALOR).ToList();
+
+                                                            if (campo.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Count > camposSusAntigos.Count)
+                                                            {
+                                                                foreach (var valorescampo in campo.DEMANDA_VALORES_CAMPOS_SUSPENSOs)
+                                                                {
+                                                                    if (!camposSusAntigos.Any(x => x == valorescampo.VALOR))
+                                                                    {
+                                                                        CD.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Add(new DEMANDA_VALORES_CAMPOS_SUSPENSO
+                                                                        {
+                                                                            ID_CAMPOS = NewCampo.ID_CAMPOS,
+                                                                            VALOR = valorescampo.VALOR
+                                                                        });
+                                                                    }
+                                                                }
+                                                            }
+                                                            else if (campo.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Count < camposSusAntigos.Count)
+                                                            {
+                                                                foreach (var valorescampo in camposSusAntigos)
+                                                                {
+                                                                    if (!campo.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Any(x => x.VALOR == valorescampo))
+                                                                    {
+                                                                        var camposus = CD.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Where(x =>
+                                                                            x.ID_CAMPOS == NewCampo.ID_CAMPOS && x.VALOR == valorescampo).First();
+                                                                        camposus.STATUS = false;
+                                                                        //CD.DEMANDA_VALORES_CAMPOS_SUSPENSOs.Remove(camposus);
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                     * ***/
+
                     CD.SaveChanges();
                 }
 
@@ -1123,7 +1206,7 @@ namespace Vivo_Apps_API.Controllers
                     case Tabela_Demanda.DesligamentoRelacao:
                         var desligamento = Demanda_BD.DEMANDA_DESLIGAMENTOS.Find(data.IdChamado);
                         var mat_Desligada = Demanda_BD.DEMANDA_RELACAO_TREINAMENTO_FINALIZADO.FirstOrDefault(x => x.MATRICULA == desligamento.Matricula);
-                        
+
                         if (data.Status == STATUS_ACESSOS_PENDENTES.APROVADO.Value && mat_Desligada != null)
                         {
                             mat_Desligada.STATUS_MATRICULA = "INATIVO";
@@ -2043,21 +2126,21 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                    //var queryanalogico = CD.ACESSOS_MOBILEs
-                    //    .Where(x => x.REGIONAL == regional)
-                    //    .Where(x => CD.PERFIL_USUARIOs
-                    //                    .Where(y => y.id_Perfil == 15)
-                    //                    .Select(y => y.MATRICULA)
-                    //                    .Contains(x.MATRICULA))
-                    //    .Distinct().AsEnumerable();
+                //var queryanalogico = CD.ACESSOS_MOBILEs
+                //    .Where(x => x.REGIONAL == regional)
+                //    .Where(x => CD.PERFIL_USUARIOs
+                //                    .Where(y => y.id_Perfil == 15)
+                //                    .Select(y => y.MATRICULA)
+                //                    .Contains(x.MATRICULA))
+                //    .Distinct().AsEnumerable();
 
-                    var matanalistas = CD.DEMANDA_BD_OPERADOREs
-                        .Where(x => x.REGIONAL == regional)
-                        .Select(x => x.MATRICULA).ToArray()
-                        .Distinct();
+                var matanalistas = CD.DEMANDA_BD_OPERADOREs
+                    .Where(x => x.REGIONAL == regional)
+                    .Select(x => x.MATRICULA).ToArray()
+                    .Distinct();
 
-                    var query = CD.ACESSOS_MOBILEs
-                        .Where(x => matanalistas.Contains(x.MATRICULA));
+                var query = CD.ACESSOS_MOBILEs
+                    .Where(x => matanalistas.Contains(x.MATRICULA));
 
                 var saida = query
                 .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
@@ -2095,6 +2178,47 @@ namespace Vivo_Apps_API.Controllers
                     .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider);
 
                 return saida.ToList();
+            }
+            catch (Exception ex)
+            {
+                return [];
+            }
+        }
+
+        [HttpGet("GetAnalistaObservacao")]
+        public IEnumerable<DEMANDA_OBSERVACOES_ANALISTAS> GetAnalistaObservacao(Guid idChamado, int matricula)
+        {
+            try
+            {
+                var data = Demanda_BD.DEMANDA_OBSERVACOES_ANALISTAS
+                    .Where(x => x.ID_RELACAO == idChamado && x.MAT_ANALISTA == matricula)
+                    .IgnoreAutoIncludes()
+                    .AsNoTracking();
+
+                return data;
+            }
+            catch (Exception ex)
+            {
+                return [];
+            }
+        }
+        [HttpPost("PostAnalistaObservacao")]
+        public IEnumerable<DEMANDA_OBSERVACOES_ANALISTAS> GetAnalistaObservacao(Guid idChamado, int matricula, string Observacao, bool takeall = false)
+        {
+            try
+            {
+                Demanda_BD.DEMANDA_OBSERVACOES_ANALISTAS.Add(new DEMANDA_OBSERVACOES_ANALISTAS(idChamado, DateTime.Now, matricula, Observacao));
+                Demanda_BD.SaveChanges();
+
+                var data = Demanda_BD.DEMANDA_OBSERVACOES_ANALISTAS
+                    .Where(x => x.ID_RELACAO == idChamado && x.MAT_ANALISTA == matricula)
+                    .IgnoreAutoIncludes()
+                    .AsNoTracking();
+
+                if (takeall)
+                    return data;
+                else
+                    return data.Take(1);
             }
             catch (Exception ex)
             {

@@ -350,8 +350,6 @@ namespace Vivo_Apps_API.Hubs
                 await _context.Clients.All.SendAsync("CurrentUsers", CurrentUsers);
 
                 await base.OnConnectedAsync();
-
-                await GetTable(Context.ConnectionId);
             }
             catch (Exception ex)
             {

@@ -114,7 +114,7 @@ namespace Vivo_Apps_API.Controllers
 
                 return Ok(new Response<string>
                 {
-                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Data = demanda.ID_RELACAO.ToString(),
                     Succeeded = true,
                     Message = $"Solicitação de desligamento criada, N° {demanda.Sequence}",
                 });

@@ -1,12 +1,35 @@
 
 --select * from ACESSOS_MOBILE where MATRICULA IN (
 --select DISTINCT(MATRICULA_SOLICITANTE) from [Vivo_MAIS].Demandas.DEMANDA_RELACAO_CHAMADO )
-
+select * from DEMANDA_TIPO_FILA
 select TOP 1 * from ACESSO where Login = '151191'
 select top 100 * from ACESSO_PERMISSAO_MENU
+
+ --DROP index IX_DEMANDA_OBSERVACOES_ANALISTAS_MAT_ANALISTA on Demandas.DEMANDA_OBSERVACOES_ANALISTAS;
+delete Demandas.DEMANDA_OBSERVACOES_ANALISTAS
+
+
+select top 1 * from CARTEIRA_NE A
+where a.ANOMES = '202404'
+
+select COUNT(*) from CARTEIRA_NE A
+right join (select * from CARTEIRA_NE where anomes = '202406') B 
+ON A.Cnpj = B.Cnpj
+where a.ANOMES = '202404'
+
+select COUNT(*) from CARTEIRA_NE A
+left join (select * from CARTEIRA_NE where anomes = '202406') B 
+ON A.Cnpj = B.Cnpj
+where a.ANOMES = '202404'
+
+select COUNT(*) from CARTEIRA_NE A
+ join (select * from CARTEIRA_NE where anomes = '202406') B 
+ON A.Cnpj = B.Cnpj
+where a.ANOMES = '202404'
+
+
 --	Insert into ACESSO VALUES('165088','João Matheus de Brito Almeida','Joao.malmeida@telefonica.com','NE',null,null,'ATIVO',0)
 --Insert into ACESSO_PERMISSAO_MENU VALUES ((SELECT IdAcesso from ACESSO WHERE Login = '165088'), 'SUPORTE','ADMINISTRATIVO')
-select * from CONTROLE_DE_DEMANDAS_FILA
 select * from CONTROLE_DE_DEMANDAS_CAMPOS_FILA where ID_FILA IN (573,574)
 
     --B.CAMPO,
@@ -15,20 +38,28 @@ select * from CONTROLE_DE_DEMANDAS_CAMPOS_FILA where ID_FILA IN (573,574)
 
     select COUNT(*) from CONTROLE_DE_DEMANDAS_CHAMADO where ID_FILA_CHAMADO in (573,574)
 
-
+    
     SELECT A.ID,
     F.FILA,
     C.STATUS,
     D.Nome,
     A.DATA_ABERTURA,
     E.DATA_RESPOSTA,
+    /*
+    Seleção de Campos baseado na tabela CONTROLE_DE_DEMANDAS_CAMPOS_FILA WHERE ID = fila que estamos filtrando
+    */
     MAX(CASE WHEN B.CAMPO = 'ADABAS' THEN B.VALOR END) AS ADABAS,
     MAX(CASE WHEN B.CAMPO = 'CPF Do Cliente' THEN B.VALOR END) AS CPF_Do_Cliente,
-    MAX(CASE WHEN B.CAMPO = 'Nome Do Cliente' THEN B.VALOR END) AS Nome_Do_Cliente
+    MAX(CASE WHEN B.CAMPO = 'Nome Do Cliente' THEN B.VALOR END) AS Nome_Do_Cliente,
+    MAX(CASE WHEN B.CAMPO = 'Valor Contestado' THEN B.VALOR END) AS Valor_Contestado,
+    MAX(CASE WHEN B.CAMPO = 'Valor Total' THEN B.VALOR END) AS Valor_Total,
+    MAX(CASE WHEN B.CAMPO = 'Houve movimento de alta, migra e/ou troca na conta financeira contestada nos últimos 90 dias?' THEN B.VALOR END) AS Houve_Movimento,
+    E.RESPOSTA AS Ultima_Resposta,
+    MAX(CASE WHEN B.CAMPO = 'Problema' THEN B.VALOR END) AS Primeira_Resposta
 FROM CONTROLE_DE_DEMANDAS_CHAMADO A
 
 inner JOIN (SELECT * FROM CONTROLE_DE_DEMANDAS_RELACAO_CAMPOS_CHAMADO B WHERE B.CAMPO IN ('ADABAS'
-, 'Nome Do Cliente','CPF Do Cliente'
+, 'Nome Do Cliente','CPF Do Cliente','Houve movimento de alta, migra e/ou troca na conta financeira contestada nos últimos 90 dias?','Valor Contestado','Valor Total','Problema'
 )) B ON A.ID_CAMPOS_CHAMADO = B.ID_CAMPOS_CHAMADO
 
 LEFT JOIN (
@@ -39,28 +70,27 @@ LEFT JOIN (
 LEFT JOIN ACESSO D ON A.MATRICULA_SOLICITANTE = D.Login
 
 left JOIN (
-    SELECT ID,ID_CHAMADO,DATA_RESPOSTA,ROW_NUMBER() OVER (PARTITION BY ID_CHAMADO ORDER BY ID desc) AS rn
+    SELECT ID,RESPOSTA,ID_CHAMADO,DATA_RESPOSTA,ROW_NUMBER() OVER (PARTITION BY ID_CHAMADO ORDER BY ID desc) AS rn
     FROM CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTA
 ) E ON A.ID = E.ID_CHAMADO AND E.rn = 1
 
 LEFT JOIN CONTROLE_DE_DEMANDAS_FILA F ON A.ID_FILA_CHAMADO = F.ID
+
 WHERE A.ID_FILA_CHAMADO IN (573, 574)
-GROUP BY A.ID, F.FILA, C.STATUS, D.Nome, A.DATA_ABERTURA, E.DATA_RESPOSTA;
+GROUP BY A.ID, F.FILA, C.STATUS, D.Nome, A.DATA_ABERTURA, E.DATA_RESPOSTA,E.RESPOSTA;
 
-
-
-select TOP 10 * from CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTA
+--select TOP 10 * from CONTROLE_DE_DEMANDAS_
 
     SELECT ID,ID_CHAMADO,DATA_RESPOSTA,ROW_NUMBER() OVER (PARTITION BY ID_CHAMADO ORDER BY ID desc) AS rn
     FROM CONTROLE_DE_DEMANDAS_CHAMADO_RESPOSTA
 
-Status
-Solicitante
-Data Abertura
-Data Ult. Alteração 
-ADABAS
-Nome Da Loja
-Login
+--Status
+--Solicitante
+--Data Abertura
+--Data Ult. Alteração 
+--ADABAS
+--Nome Da Loja
+--Login
 --delete ACESSOS_MOBILE_PENDENTE WHERE MATRICULA = 165088
 --delete PERFIL_USUARIO_PENDENTE where ID_ACESSO_PENDENTE = 5221
 --delete HISTORICO_ACESSOS_MOBILE_PENDENTE where ID_ACESSOS_PENDENTE = 5221
@@ -114,4 +144,76 @@ Login
 --'FIXA - COMERCIAL/QUALIDADE',
 --'MG',
 --'Não')
+/* Insert na carteira baseado nos dados da carteira anterior*/
+insert into CARTEIRA_NE
+select 
+[Cnpj],
+[RazaoSocial],
+[NomeFantasia],
+[Uf],
+[GA / GG],
+[RE_GA],
+[GGP],
+[RE_GGP],
+[StatusCallidus],
+[Vendedor],
+[REDE],
+[Canal],
+[DDD_LOCALIDADE_PDV],
+[Atividade],
+[AREA ATUAÇÃO DDD],
+[GV],
+[RE_GV],
+[LoginSiebel],
+[Cidade],
+[Bairro],
+[Cep],
+[Endereco],
+[Numero],
+[Complemento],
+[Data Credenciamento],
+[Data Descredenciamento],
+[Modelo Loja],
+[Tipo Loja],
+[Local Loja],
+[GSS],
+[Qt de PA],
+[Metragem],
+[SEGMENTAÇÃO],
+[Estrelagem],
+[MT],
+'202405',
+[NO_VIVO360],
+[NO_VIVONEXT],
+[NO_GSS],
+[DT_MOD_CAD],
+[LOGIN_MOD_CAD],
+[DataInicioContrato],
+[DataFimContrato],
+[InscriçãoEstadual],
+[OptanteSimples],
+[Contato],
+[Telefone],
+[EmailFinanceiro],
+[EmailComercial],
+[EmailDivulgação],
+[CodigoBanco],
+[Banco],
+[Agencia],
+[NumeroConta],
+[DigitoVerificador],
+[SetorAtividade],
+[PontoVenda],
+[Genero],
+[CodigoCliente],
+[CodigoFornecedor],
+[Area],
+Ixos
+from CARTEIRA_NE
+
+where ANOMES = '202404'
+/* Insert na carteira baseado nos dados da carteira anterior*/
+
+
+
 
