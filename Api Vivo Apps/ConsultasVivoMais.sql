@@ -1,6 +1,29 @@
 
 --select * from ACESSOS_MOBILE where MATRICULA IN (
 --select DISTINCT(MATRICULA_SOLICITANTE) from [Vivo_MAIS].Demandas.DEMANDA_RELACAO_CHAMADO )
+
+select B.CARGO,FIXA from JORNADA_BD_QUESTION_HISTORICO A
+JOIN JORNADA_BD_CARGOS_CANAL B ON A.CARGO = B.ID
+where CADERNO = 36 and TP_FORMS = 'Jornada'
+GROUP BY A.CARGO,FIXA,B.CARGO order BY B.CARGO
+
+select * from acesso where nome like '%Braian Araujo Ribeiro%'
+update
+acesso 
+set regional = 'MG'
+where nome like '%Braian Araujo Ribeiro%'
+
+select * from CASO_NAO WHERE Login = '129294'
+--insert into Caso_NAO values
+--('PER0437-001','129294'),
+--('ALR0437-002','129294'),
+--('PER0437-003','129294')
+
+--select * from carteira_demais_canais_rede_colaborador
+--where rede like '%log%'
+
+
+
 select * from DEMANDA_TIPO_FILA
 select TOP 1 * from ACESSO where Login = '151191'
 select top 100 * from ACESSO_PERMISSAO_MENU

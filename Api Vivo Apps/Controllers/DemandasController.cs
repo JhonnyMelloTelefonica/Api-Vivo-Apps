@@ -36,6 +36,7 @@ using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pag
 using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.Build.Framework;
 using Microsoft.AspNetCore.Http.HttpResults;
+using DocumentFormat.OpenXml.Spreadsheet;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -1053,22 +1054,20 @@ namespace Vivo_Apps_API.Controllers
         }
 
         [HttpGet("GetFilas")]
-        [ProducesResponseType(typeof(Response<IEnumerable<DEMANDA_TIPO_FILA_DTO>>), 200)]
+        [ProducesResponseType(typeof(Response<IEnumerable<Option<int>>>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
         public JsonResult GetFilas()
         {
             try
             {
-                var Dados_Fila = Demanda_BD.DEMANDA_TIPO_FILA
-                    .ProjectTo<DEMANDA_TIPO_FILA_DTO>(_mapper.ConfigurationProvider)
-                    .AsEnumerable();
+                var Dados_Fila = Demanda_BD.DEMANDA_TIPO_FILA.Select(x => new Option<int>(x.ID_TIPO_FILA, x.NOME_TIPO_FILA)).Distinct().AsEnumerable();
 
                 var options = new JsonSerializerOptions
                 {
                     ReferenceHandler = ReferenceHandler.IgnoreCycles
                 };
 
-                return new JsonResult(new Response<IEnumerable<DEMANDA_TIPO_FILA_DTO>>
+                return new JsonResult(new Response<IEnumerable<Option<int>>>
                 {
                     Data = Dados_Fila,
                     Succeeded = true,
@@ -1093,21 +1092,26 @@ namespace Vivo_Apps_API.Controllers
         }
 
         [HttpGet("GetDadosFilaByID")]
-        [ProducesResponseType(typeof(Response<DATA_CRIAR_DEMANDA>), 200)]
+        [ProducesResponseType(typeof(Response<object>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult GetDadosFilaByID()
+        public JsonResult GetDadosFilaByID(int id_fila)
         {
             try
             {
                 var Carteira = CD.Carteira_NEs.Where(x => x.ANOMES == CD.Carteira_NEs.Max(y => y.ANOMES));
                 var Sap = CD.CNS_BASE_TERCEIROS_SAP_GTs.AsQueryable();
+                var Dados_Fila = Demanda_BD.DEMANDA_SUB_FILA.Select(x => new Option<int>(x.ID_SUB_FILA, x.NOME_SUB_FILA)).Distinct().AsEnumerable();
 
-                return new JsonResult(new Response<DATA_CRIAR_DEMANDA>
+                return new JsonResult(new Response<object>
                 {
-                    Data = new DATA_CRIAR_DEMANDA
+                    Data = new
                     {
-                        Carteira = Carteira,
-                        Sap = Sap
+                        DATA_CRIAR_DEMANDA = new DATA_CRIAR_DEMANDA
+                        {
+                            Carteira = Carteira,
+                            Sap = Sap
+                        },
+                        sub_fila = Dados_Fila
                     },
                     Succeeded = true,
                     Errors = null,
@@ -1984,9 +1988,9 @@ namespace Vivo_Apps_API.Controllers
         [HttpPost("GetDataDash")]
         [ProducesResponseType(typeof(Response<DEMANDAS_CHAMADO_DTO>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public async Task<JsonResult> GetDataDash([FromBody] Tuple<IEnumerable<int>, IEnumerable<DateTime?>, IEnumerable<ACESSOS_MOBILE_DTO>?, DEMANDA_TIPO_FILA_DTO?, DEMANDA_SUB_FILA_DTO?> Data, string regional, int matricula,
+        public async Task<JsonResult> GetDataDash([FromBody] Tuple<IEnumerable<int>, IEnumerable<DateTime>, IEnumerable<ACESSOS_MOBILE_DTO>?, DEMANDA_TIPO_FILA_DTO?, DEMANDA_SUB_FILA_DTO?> Data, string regional, int matricula,
             //Nullable Parameters
-            string? status, bool? Prioridade)
+            string? status, bool Comprioridade, bool Semprioridade)
         {
             try
             {
@@ -1994,11 +1998,12 @@ namespace Vivo_Apps_API.Controllers
 
                 if (Data.Item1.Any(x => new int[] { 1, 20 }.Contains(x))) //filtra demandas por gerente
                 {
-                    if (!string.IsNullOrEmpty(status))
-                        linqFiltered = linqFiltered.Where(x => x.Relacao.Status.Any(y => y.STATUS == status));
-
-                    if (Data.Item3.Any())
+                    if (Data.Item3.Any()) // filtro pro Analista
                         linqFiltered = linqFiltered.Where(x => Data.Item3.Select(x => x.MATRICULA).Contains(x.MATRICULA_RESPONSAVEL.Value));
+
+                    if (!string.IsNullOrEmpty(status)) // filtro por status
+                        linqFiltered = linqFiltered.Include(x => x.Relacao)
+                            .Where(x => x.Relacao.Status.Any() && x.Relacao.Status.OrderBy(y => y.DATA).Last().STATUS == status);
                 }
                 else if (Data.Item1.Any(x => new int[] { 14, 15 }.Contains(x))) //filtra demandas por analista
                 {
@@ -2012,13 +2017,18 @@ namespace Vivo_Apps_API.Controllers
                 if (Data.Item2 is not null && Data.Item2.Count() > 1)
                     linqFiltered = linqFiltered.Where(x => x.DATA_ABERTURA >= Data.Item2.ElementAt(0) && x.DATA_ABERTURA <= Data.Item2.ElementAt(1));
 
-                if (Prioridade.HasValue)
-                    linqFiltered = linqFiltered.Where(x => Prioridade == true ? x.Relacao.PRIORIDADE : !x.Relacao.PRIORIDADE);
+                if (Comprioridade || Semprioridade)
+                {
+                    if (Comprioridade)
+                        linqFiltered = linqFiltered.Where(x => x.Relacao.PRIORIDADE == true);
+                    else if (Semprioridade)
+                        linqFiltered = linqFiltered.Where(x => x.Relacao.PRIORIDADE == false);
+                }
 
-                if (Data.Item4 is not null)
+                if (Data.Item4 is not null && Data.Item4.ID_TIPO_FILA != 0)
                     linqFiltered = linqFiltered.Where(x => x.Fila.ID_TIPO_FILA == Data.Item4.ID_TIPO_FILA);
 
-                if (Data.Item5 is not null)
+                if (Data.Item5 is not null && Data.Item5.ID_SUB_FILA != 0)
                     linqFiltered = linqFiltered.Where(x => x.Fila.ID_SUB_FILA == Data.Item5.ID_SUB_FILA);
 
 
@@ -2029,6 +2039,7 @@ namespace Vivo_Apps_API.Controllers
                 int Em_andamento = 0;
                 double Porc_Primeiro_SLA_24h = 0.0;
                 double Porc_Dentro_SLA = 0.0;
+                int Qtd_Dentro_SLA = 0;
                 int Aguardando_outra_área = 0;
                 int Em_Aberto = 0;
                 int Devolvido = 0;
@@ -2037,11 +2048,11 @@ namespace Vivo_Apps_API.Controllers
                 {
 
                     Concluído = linqFiltered
-                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS == "CONCLUÍDO")
+                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS == STATUS_ACESSOS_PENDENTES.APROVADO.Value)
                         .Count();
 
                     Em_andamento = linqFiltered
-                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS != "CONCLUÍDO")
+                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS != STATUS_ACESSOS_PENDENTES.APROVADO.Value)
                         .Count();
 
                     var list24Diferences = linqFiltered
@@ -2055,22 +2066,22 @@ namespace Vivo_Apps_API.Controllers
                     Porc_Primeiro_SLA_24h = Math.Round((Qtd_Primeiro_SLA_24h / (double)Total_de_Demandas) * 100.0, 1);
 
                     var list_Dentro_SLA = linqFiltered
-                          .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).Last().STATUS == "CONCLUÍDO")
+                          .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).Last().STATUS == STATUS_ACESSOS_PENDENTES.APROVADO.Value)
                           .Select(x => new { lastdate = x.Relacao.Status.OrderBy(k => k.DATA).Last().DATA, dt_abertura = x.DATA_ABERTURA.Value, sla = x.Fila.SLA })
                           .AsEnumerable();
 
-                    var Qtd_Dentro_SLA = list_Dentro_SLA.Where(x => calculeDate(x.lastdate, x.dt_abertura) <= x.sla).Count();
+                    Qtd_Dentro_SLA = list_Dentro_SLA.Where(x => calculeDate(x.lastdate, x.dt_abertura) <= x.sla).Count();
 
                     Porc_Dentro_SLA = Math.Round((Qtd_Dentro_SLA / (double)Total_de_Demandas) * 100.0, 1);
 
                     Aguardando_outra_área = linqFiltered
-                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS == "AGUARDANDO OUTRA ÁREA")
+                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS == STATUS_ACESSOS_PENDENTES.AGUARDANDO_OUTRA_AREA.Value)
                         .Count();
                     Em_Aberto = linqFiltered
-                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS == "ABERTO")
+                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS == STATUS_ACESSOS_PENDENTES.ABERTO.Value)
                         .Count();
                     Devolvido = linqFiltered
-                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS == "DEVOLVIDO AO ANALISTA")
+                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS == STATUS_ACESSOS_PENDENTES.AGUARDANDO_ANALISTA.Value)
                         .Count();
                     DemandaPrioridade = linqFiltered
                         .Where(x => x.Relacao.PRIORIDADE)
@@ -2092,10 +2103,11 @@ namespace Vivo_Apps_API.Controllers
                           Em_andamento,
                           Porc_Primeiro_SLA_24h,
                           Porc_Dentro_SLA,
+                          Qtd_Dentro_SLA,
                           Aguardando_outra_área,
                           Em_Aberto,
                           Devolvido,
-                          Prioridade
+                          DemandaPrioridade
                       },
                       Succeeded = true,
                       Message = "Tudo Certo"
@@ -2185,8 +2197,40 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
+        [HttpGet("GetAllIndexChamado")]
+        public IEnumerable<DEMANDA_DTO> GetAllIndexChamado(int MATRICULA, Controle_Demanda_role role)
+        {
+            try
+            {
+                /*** Sempre utilizamos apenas os chamados do último ano ***/
+                var dataBeforeFilter = Demanda_BD.DEMANDA_RELACAO_CHAMADO
+                   .Where(x => x.Respostas.First().DATA_RESPOSTA >= DateTime.Now.AddYears(-1)
+                       && x.Respostas.First().DATA_RESPOSTA <= DateTime.Now)
+                   .AsNoTracking();
+
+                var first20 = dataBeforeFilter
+                    .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider)
+                    .OrderByDescending(x => x.PRIORIDADE)
+                    .ThenByDescending(x => x.PRIORIDADE_SEGMENTO)
+                    .ThenBy(x => x.Sequence).Take(20).ToList();
+
+                var dataresp = dataBeforeFilter
+                    .Where(x => x.MATRICULA_SOLICITANTE == MATRICULA)
+                    .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider)
+                    .ToList();
+
+                var data = dataresp.UnionBy(first20, x => x.ID_RELACAO);
+
+                return data.Take(40).ToList();
+            }
+            catch (Exception ex)
+            {
+                return [];
+            }
+        }
+
         [HttpGet("GetAnalistaObservacao")]
-        public IEnumerable<DEMANDA_OBSERVACOES_ANALISTAS> GetAnalistaObservacao(Guid idChamado, int matricula)
+        public IEnumerable<DEMANDA_OBSERVACOES_ANALISTAS> GetAnalistaObservacao(Guid idChamado, int matricula, bool takeall)
         {
             try
             {
@@ -2195,15 +2239,19 @@ namespace Vivo_Apps_API.Controllers
                     .IgnoreAutoIncludes()
                     .AsNoTracking();
 
-                return data;
+                if (takeall)
+                    return data;
+                else
+                    return data.Take(1);
             }
             catch (Exception ex)
             {
                 return [];
             }
         }
+
         [HttpPost("PostAnalistaObservacao")]
-        public IEnumerable<DEMANDA_OBSERVACOES_ANALISTAS> GetAnalistaObservacao(Guid idChamado, int matricula, string Observacao, bool takeall = false)
+        public IEnumerable<DEMANDA_OBSERVACOES_ANALISTAS> PostAnalistaObservacao(Guid idChamado, int matricula, string Observacao)
         {
             try
             {
@@ -2215,10 +2263,7 @@ namespace Vivo_Apps_API.Controllers
                     .IgnoreAutoIncludes()
                     .AsNoTracking();
 
-                if (takeall)
-                    return data;
-                else
-                    return data.Take(1);
+                return data;
             }
             catch (Exception ex)
             {

@@ -261,7 +261,7 @@ namespace Vivo_Apps_API.Hubs
 
             Demanda_BD.SaveChanges();
 
-            await GetTable();
+            await _context.Clients.All.SendAsync("PriorityChanged", ids);
         }
 
         public Task NewNotification(string senderName, string title, string message, string link, string regional)

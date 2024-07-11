@@ -26,6 +26,8 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.AddServiceDefaults();
+
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
     serverOptions.Limits.KeepAliveTimeout = TimeSpan.FromMinutes(20);
@@ -57,7 +59,7 @@ builder.Services.AddSwaggerGen(c =>
         Contact = new OpenApiContact
         {
             Email = "ne_automacao.br@telefonica.com",
-            Name = "Automação NE",
+            Name = "AutomaÃ§Ã£o NE",
             Url = new Uri("mailto:ne_automacao.br@telefonica.com")
         }
     });
@@ -116,6 +118,8 @@ builder.Services.AddOutputCache(options =>
 });
 
 var app = builder.Build();
+
+app.MapDefaultEndpoints();
 
 app.Lifetime.ApplicationStarted.Register(async () =>
 {
