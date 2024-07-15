@@ -1,19 +1,47 @@
+/**-----------------------------------------------------------
+
+INSERÇÃO DE USUÁRIO NO VIVO +
+
+-----------------------------------------------------------**/
+select * from ACESSO WHERE Login = '163661'
+select * from ACESSO_PERMISSAO_MENU WHERE idAcesso = '4536'
+	Insert into ACESSO VALUES('163661','GEANE SOUZA PANCHO DIAS','GEANE.DIAS@TELEFONICA.COM','NE',null,null,'ATIVO',0)
+Insert into ACESSO_PERMISSAO_MENU VALUES ((SELECT IdAcesso from ACESSO WHERE Login = '163661'),  'GERENTE GERAL - LLPP','LOJA')
+
+/*-----------------------------------------------------------
+
+INSERÇÃO DE USUÁRIO NO VIVO +
+
+-----------------------------------------------------------*/
 
 --select * from ACESSOS_MOBILE where MATRICULA IN (
 --select DISTINCT(MATRICULA_SOLICITANTE) from [Vivo_MAIS].Demandas.DEMANDA_RELACAO_CHAMADO )
 
-select B.CARGO,FIXA from JORNADA_BD_QUESTION_HISTORICO A
-JOIN JORNADA_BD_CARGOS_CANAL B ON A.CARGO = B.ID
-where CADERNO = 36 and TP_FORMS = 'Jornada'
-GROUP BY A.CARGO,FIXA,B.CARGO order BY B.CARGO
+--update DEMANDA_TIPO_FILA
+--set DESCRICAO = 'Apenas um teste, Apenas um teste, Apenas um teste, Apenas um teste, Apenas um teste, Apenas um teste, Apenas um teste, Apenas um teste, Apenas um teste.'
+
+select * from JORNADA_BD_CARGOS_CANAL
+
+select * from DEMANDA_CAMPOS_FILA
+
+--select A.CARGO,A.ID_PROVA ,A.ID_QUESTION,A.FIXA from  JORNADA_BD_QUESTION_HISTORICO A
+--JOIN JORNADA_BD_QUESTION B on A.ID_QUESTION = B.ID_QUESTION
+--where A.CADERNO = 36 
+--and A.TP_FORMS = 'Jornada'
+--and B.STATUS_QUESTION = 0
+
+--delete JORNADA_BD_QUESTION_HISTORICO where ID_PROVA = 5785
+
 
 select * from acesso where nome like '%Braian Araujo Ribeiro%'
-update
-acesso 
-set regional = 'MG'
-where nome like '%Braian Araujo Ribeiro%'
+
+--update acesso 
+--set regional = 'MG'
+--where nome like '%Braian Araujo Ribeiro%'
 
 select * from CASO_NAO WHERE Login = '129294'
+
+select * from CNS_BASE_TERCEIROS_SAP_GT
 --insert into Caso_NAO values
 --('PER0437-001','129294'),
 --('ALR0437-002','129294'),
@@ -51,8 +79,7 @@ ON A.Cnpj = B.Cnpj
 where a.ANOMES = '202404'
 
 
---	Insert into ACESSO VALUES('165088','João Matheus de Brito Almeida','Joao.malmeida@telefonica.com','NE',null,null,'ATIVO',0)
---Insert into ACESSO_PERMISSAO_MENU VALUES ((SELECT IdAcesso from ACESSO WHERE Login = '165088'), 'SUPORTE','ADMINISTRATIVO')
+
 select * from CONTROLE_DE_DEMANDAS_CAMPOS_FILA where ID_FILA IN (573,574)
 
     --B.CAMPO,
@@ -238,5 +265,11 @@ where ANOMES = '202404'
 /* Insert na carteira baseado nos dados da carteira anterior*/
 
 
+select * from JORNADA_BD_QUESTION WHERE ID_QUESTION = 9883
 
+--update JORNADA_BD_QUESTION 
+--set  STATUS_QUESTION = 0
+--where REGIONAL = 'MG' AND STATUS_QUESTION = 1
+--SELECT * FROM JORNADA_BD_ANSWER_ALTERNATIVAS where STATUS_ALTERNATIVA = 0
+--update JORNADA_BD_ANSWER_ALTERNATIVAS  SET STATUS_ALTERNATIVA = 1
 

@@ -1054,20 +1054,20 @@ namespace Vivo_Apps_API.Controllers
         }
 
         [HttpGet("GetFilas")]
-        [ProducesResponseType(typeof(Response<IEnumerable<Option<int>>>), 200)]
+        [ProducesResponseType(typeof(Response<IEnumerable<OptionFilas>>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
         public JsonResult GetFilas()
         {
             try
             {
-                var Dados_Fila = Demanda_BD.DEMANDA_TIPO_FILA.Select(x => new Option<int>(x.ID_TIPO_FILA, x.NOME_TIPO_FILA)).Distinct().AsEnumerable();
+                var Dados_Fila = Demanda_BD.DEMANDA_TIPO_FILA.Select(x => new OptionFilas(x.ID_TIPO_FILA, x.NOME_TIPO_FILA, x.DESCRICAO)).Distinct().AsEnumerable();
 
                 var options = new JsonSerializerOptions
                 {
                     ReferenceHandler = ReferenceHandler.IgnoreCycles
                 };
 
-                return new JsonResult(new Response<IEnumerable<Option<int>>>
+                return new JsonResult(new Response<IEnumerable<OptionFilas>>
                 {
                     Data = Dados_Fila,
                     Succeeded = true,
@@ -1100,7 +1100,7 @@ namespace Vivo_Apps_API.Controllers
             {
                 var Carteira = CD.Carteira_NEs.Where(x => x.ANOMES == CD.Carteira_NEs.Max(y => y.ANOMES));
                 var Sap = CD.CNS_BASE_TERCEIROS_SAP_GTs.AsQueryable();
-                var Dados_Fila = Demanda_BD.DEMANDA_SUB_FILA.Select(x => new Option<int>(x.ID_SUB_FILA, x.NOME_SUB_FILA)).Distinct().AsEnumerable();
+                var Dados_Fila = Demanda_BD.DEMANDA_SUB_FILA.Select(x => new OptionFilas(x.ID_SUB_FILA,x.NOME_SUB_FILA, x.DESCRICAO)).Distinct().AsEnumerable();
 
                 return new JsonResult(new Response<object>
                 {
