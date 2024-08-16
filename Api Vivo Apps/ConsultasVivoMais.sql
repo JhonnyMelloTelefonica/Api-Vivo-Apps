@@ -3,10 +3,74 @@
 INSERÇÃO DE USUÁRIO NO VIVO +
 
 -----------------------------------------------------------**/
-select * from ACESSO WHERE Login = '163661'
+select * FROM [Vivo_MAIS].[Cardapio].[PRODUTOS_CARDAPIO]
+select * FROM Cardapio.PRODUTOS_CARDAPIO_FICHA_TECNICA
+
+select * from JORNADA_BD_QUESTION_HISTORICO WHERE caderno = 40 and TP_FORMS = 'Jornada'
+select ANOMES from CARTEIRA_NE WHERE REDE like '%MY%' 
+    
+select * from Demandas.DEMANDA_CHAMADO where ID = 43
+select * from Demandas.DEMANDA_RELACAO_CHAMADO where Sequence = 43
+SELECT * FROM Demandas.DEMANDA_STATUS_CHAMADO where ID_RELACAO = '735220B7-CB05-4191-8BE2-08DC741E41DD'
+SELECT * FROM Demandas.DEMANDA_CHAMADO_RESPOSTA where ID_RELACAO = '735220B7-CB05-4191-8BE2-08DC741E41DD'
+select * from CONTROLE_DE_DEMANDAS_RESPONSAVEL_FILA where FILA like '%retenção%'
+
+--insert into CONTROLE_DE_DEMANDAS_RESPONSAVEL_FILA
+--select '143940',ID from CONTROLE_DE_DEMANDAS_FILA WHERE TIPO_CHAMADO = 'Prioriza Fixa'
+
+--update ACESSO 
+--set REGIONAL = 'NE'
+--WHERE Email = 'marco.guerra@telefonica.com'
+
+SELECT * from ACESSO WHERE Login = '143940'
+
+--select * from ACESSO_PERMISSAO_MENU WHERE IdAcesso =  
+
 select * from ACESSO_PERMISSAO_MENU WHERE idAcesso = '4536'
-	Insert into ACESSO VALUES('163661','GEANE SOUZA PANCHO DIAS','GEANE.DIAS@TELEFONICA.COM','NE',null,null,'ATIVO',0)
-Insert into ACESSO_PERMISSAO_MENU VALUES ((SELECT IdAcesso from ACESSO WHERE Login = '163661'),  'GERENTE GERAL - LLPP','LOJA')
+
+--Insert into ACESSO VALUES('143940','LENIZE MARIA DE OLIVEIRA','LENIZE.OLIVEIRA@TELEFONICA.COM','NE',null,null,'ATIVO',0)
+--Insert into ACESSO_PERMISSAO_MENU VALUES ((SELECT IdAcesso from ACESSO WHERE Login = '143940'),  'SUPORTE','ADMINISTRATIVO')
+
+--insert into CONTROLE_DE_DEMANDAS_RESPONSAVEL_FILA
+--select '162551',ID from CONTROLE_DE_DEMANDAS_FILA WHERE REGIONAL = 'MG' and FILA <> '-' and FILA NOT LIKE '%FILA DESATIVADA%'
+
+--insert into CONTROLE_DE_DEMANDAS_OPERADORES
+--values ('143940','LENIZE MARIA DE OLIVEIRA','Analista','`NE')
+
+
+select * from CARTEIRA_NE WHERE ANOMES =  (select MAX(ANOMES) from CARTEIRA_NE)
+select * from CARTEIRA_NE WHERE RE_GA = '163864' 
+OR RE_GGP = '163864' 
+OR RE_GV = '163864' 
+
+select * from CARTEIRA_NE WHERE ANOMES = '202408'
+and (RE_GA = '163864' 
+OR RE_GGP = '163864' 
+OR RE_GV = '163864' )
+
+SELECT * FROM CASO_NAO WHERE Login = '163864' 
+
+select * from carteira_demais_canais_rede_colaborador 
+where 
+MATRICULA_1 = '163864' OR
+MATRICULA_2 = '163864' OR
+MATRICULA_3 = '163864' OR
+MATRICULA_4 = '163864' OR
+MATRICULA_5 = '163864' OR
+MATRICULA_6 = '163864' OR
+MATRICULA_7 = '163864' OR
+MATRICULA_8 = '163864' OR
+MATRICULA_9 = '163864' OR
+MATRICULA_10 = '163864' OR
+MATRICULA_11 = '163864' OR
+MATRICULA_12 = '163864' OR
+MATRICULA_13 = '163864' OR
+MATRICULA_14 = '163864' OR
+MATRICULA_15 = '163864' 
+
+
+
+
 
 /*-----------------------------------------------------------
 
@@ -232,7 +296,7 @@ select
 [SEGMENTAÇÃO],
 [Estrelagem],
 [MT],
-'202405',
+'202408',
 [NO_VIVO360],
 [NO_VIVONEXT],
 [NO_GSS],
@@ -260,8 +324,8 @@ select
 [Area],
 Ixos
 from CARTEIRA_NE
-
-where ANOMES = '202404'
+where ANOMES = '202407'
+and REDE like '%MY%'
 /* Insert na carteira baseado nos dados da carteira anterior*/
 
 

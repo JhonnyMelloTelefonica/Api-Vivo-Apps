@@ -1101,6 +1101,7 @@ namespace Vivo_Apps_API.Controllers
                 var Carteira = CD.Carteira_NEs.Where(x => x.ANOMES == CD.Carteira_NEs.Max(y => y.ANOMES));
                 var Sap = CD.CNS_BASE_TERCEIROS_SAP_GTs.AsQueryable();
                 var Dados_Fila = Demanda_BD.DEMANDA_SUB_FILA.Select(x => new OptionFilas(x.ID_SUB_FILA,x.NOME_SUB_FILA, x.DESCRICAO)).Distinct().AsEnumerable();
+                string Descricao = Demanda_BD.DEMANDA_TIPO_FILA.Find(id_fila).DESCRICAO ?? string.Empty;
 
                 return new JsonResult(new Response<object>
                 {
@@ -1111,7 +1112,8 @@ namespace Vivo_Apps_API.Controllers
                             Carteira = Carteira,
                             Sap = Sap
                         },
-                        sub_fila = Dados_Fila
+                        sub_fila = Dados_Fila,
+                        descricao = Descricao
                     },
                     Succeeded = true,
                     Errors = null,
@@ -2188,8 +2190,8 @@ namespace Vivo_Apps_API.Controllers
 
                 var saida = dataBeforeFilter
                     .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider);
-
-                return saida.ToList();
+                var result = saida.ToList();
+                return result;
             }
             catch (Exception ex)
             {
@@ -2237,7 +2239,7 @@ namespace Vivo_Apps_API.Controllers
                 var data = Demanda_BD.DEMANDA_OBSERVACOES_ANALISTAS
                     .Where(x => x.ID_RELACAO == idChamado && x.MAT_ANALISTA == matricula)
                     .IgnoreAutoIncludes()
-                    .AsNoTracking();
+                    .AsNoTracking().ToList();
 
                 if (takeall)
                     return data;
