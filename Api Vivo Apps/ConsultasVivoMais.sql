@@ -3,6 +3,8 @@
 INSERÇÃO DE USUÁRIO NO VIVO +
 
 -----------------------------------------------------------**/
+
+select * from ACESSO where Nome like '%Maria Clara %'
 select * FROM [Vivo_MAIS].[Cardapio].[PRODUTOS_CARDAPIO]
 select * FROM Cardapio.PRODUTOS_CARDAPIO_FICHA_TECNICA
 
@@ -24,12 +26,10 @@ select * from CONTROLE_DE_DEMANDAS_RESPONSAVEL_FILA where FILA like '%retenção%'
 
 SELECT * from ACESSO WHERE Login = '143940'
 
---select * from ACESSO_PERMISSAO_MENU WHERE IdAcesso =  
-
 select * from ACESSO_PERMISSAO_MENU WHERE idAcesso = '4536'
 
---Insert into ACESSO VALUES('143940','LENIZE MARIA DE OLIVEIRA','LENIZE.OLIVEIRA@TELEFONICA.COM','NE',null,null,'ATIVO',0)
---Insert into ACESSO_PERMISSAO_MENU VALUES ((SELECT IdAcesso from ACESSO WHERE Login = '143940'),  'SUPORTE','ADMINISTRATIVO')
+--Insert into ACESSO VALUES('40418413','Pedro Henrique Amorim Da Silva','pedro.asilva@TELEFONICA.COM','NE',null,null,'ATIVO',0)
+--Insert into ACESSO_PERMISSAO_MENU VALUES ((SELECT IdAcesso from ACESSO WHERE Login = '40418413'),  'SUPORTE','ADMINISTRATIVO')
 
 --insert into CONTROLE_DE_DEMANDAS_RESPONSAVEL_FILA
 --select '162551',ID from CONTROLE_DE_DEMANDAS_FILA WHERE REGIONAL = 'MG' and FILA <> '-' and FILA NOT LIKE '%FILA DESATIVADA%'

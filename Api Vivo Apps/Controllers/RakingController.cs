@@ -11,7 +11,6 @@ using Shared_Static_Class.Models;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
-using System.Data.Entity.Core.Metadata.Edm;
 using System.Text;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using AutoMapper;

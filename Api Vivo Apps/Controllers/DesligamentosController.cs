@@ -13,7 +13,6 @@ using Shared_Static_Class.Data;
 using Shared_Static_Class.DB_Context_Vivo_MAIS;
 using Shared_Static_Class.Models;
 using System;
-using System.Data.Entity;
 using System.Drawing;
 using System.Runtime.ConstrainedExecution;
 using System.Text;

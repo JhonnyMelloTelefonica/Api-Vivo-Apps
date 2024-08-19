@@ -170,7 +170,7 @@ app.MapGet("/AnalistaSuporte/Get/IsSuporte={IsSuporte}/IsAcessoLogico={IsAcessoL
      [FromRoute] int SubFila,
      [FromRoute] string regional,
      [FromRoute] int matricula,
-     [FromServices] Vivo_MaisContext CD) =>
+     [FromServices] Vivo_MaisContext CD) => 
 {
     IMapper _mapper;
     var config = new MapperConfiguration(cfg =>

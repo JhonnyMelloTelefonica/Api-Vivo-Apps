@@ -6,7 +6,6 @@ using Shared_Static_Class.Data;
 using Vivo_Apps_API.Hubs;
 using Shared_Static_Class.DB_Context_Vivo_MAIS;
 using TableDependency.SqlClient.Base;
-using System.Data.Entity;
 using DocumentFormat.OpenXml.Spreadsheet;
 using System.Timers;
 using Timer = System.Timers.Timer;

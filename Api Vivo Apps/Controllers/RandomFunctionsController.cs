@@ -22,7 +22,6 @@ using System.Text.Json.Serialization;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using static Vivo_Apps_API.Models.Converters.Converters;
 using System.Linq;
-using Oracle.ManagedDataAccess.Client;
 using Microsoft.EntityFrameworkCore.Internal;
 using Blazorise;
 using DocumentFormat.OpenXml.Drawing.Charts;
@@ -32,7 +31,6 @@ using DocumentFormat.OpenXml.Office2013.Drawing.ChartStyle;
 using DocumentFormat.OpenXml.Vml.Spreadsheet;
 using System.Runtime.Intrinsics.X86;
 using StackExchange.Redis;
-using System.Data.Entity;
 using CoreHtmlToImage;
 using Microsoft.AspNetCore.StaticFiles;
 using Microsoft.AspNetCore.Components.Web;
@@ -66,6 +64,7 @@ namespace Vivo_Apps_API.Controllers
             public required string content { get; set; }
         }
 
+        /*
         [HttpGet("Update_Cliente_alto_Valor")]
         public async Task<IActionResult> Update_Cliente_alto_Valor(string telefone)
         {
@@ -130,6 +129,7 @@ namespace Vivo_Apps_API.Controllers
                 return BadRequest(ex.Message);
             }
         }
+         */
 
         [HttpGet("Att_Visao_Cargos_VivoTask")]
         public async Task<string> Att_Visao_Cargos_VivoTask()

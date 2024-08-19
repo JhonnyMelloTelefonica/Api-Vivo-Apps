@@ -46,7 +46,7 @@ namespace Vivo_Apps_API.Controllers
         private readonly ILogger<AcessoTerceirosController> _logger;
         private readonly IOutputCacheStore _cache;
         private readonly ISuporteDemandaHub _hubContext;
-        private readonly string _sharedFilesPath = @"..\Shared_Razor_Components\wwwroot\";
+        private readonly string _sharedFilesPath = @"_content\Shared_Razor_Components\wwwroot\";
         private readonly IMapper _mapper;
 
         private IDbContextFactory<DemandasContext> DbFactory;

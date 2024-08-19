@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ApiController = System.Web.Http.ApiController;
 using Shared_Static_Class.DB_Context_Vivo_MAIS;
-using Oracle.ManagedDataAccess.Client;
 using Shared_Static_Class.Models;
 
 namespace Vivo_Apps_API.Controllers
@@ -27,6 +26,7 @@ namespace Vivo_Apps_API.Controllers
             _logger = logger;
         }
 
+        /*
         [HttpPost("UpdatePainelRota_SQL")]
         public async Task<JsonResult> UpdatePainelRota_SQL()
         { 
@@ -114,6 +114,7 @@ namespace Vivo_Apps_API.Controllers
                 });
             }
         }
+         */
 
         [HttpGet("Get_Fixa_View")]
         public async Task<string> Get_Fixa_View()
@@ -275,6 +276,7 @@ namespace Vivo_Apps_API.Controllers
                 CAIXA = CAIXA,
             });
         }
+        /*
         private DataTable ExecutarCommandRetornaDataTable(string comando)
         {
             DataTable dt = new DataTable();
@@ -295,6 +297,7 @@ namespace Vivo_Apps_API.Controllers
             }
             return dt;
         }
+         */
         private async Task<int> GetSomaAVGCOLUMN(PaginationPainelRotaModel filter, string column)
         {
             try
@@ -627,7 +630,7 @@ namespace Vivo_Apps_API.Controllers
                 throw ex;
             }
         }
-
+        /*
         [HttpGet("Update_Fixa_View")]
         public async Task<string> Update_Fixa_View()
         {
@@ -740,5 +743,6 @@ namespace Vivo_Apps_API.Controllers
                 return $"500 --> {ex.Message} ------- {ex}";
             }
         }
+         */
     }
 }
