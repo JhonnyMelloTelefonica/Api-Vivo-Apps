@@ -26,7 +26,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.AddServiceDefaults();
+//builder.AddServiceDefaults();
 
 builder.WebHost.ConfigureKestrel(serverOptions =>
 {
@@ -119,7 +119,7 @@ builder.Services.AddOutputCache(options =>
 
 var app = builder.Build();
 
-app.MapDefaultEndpoints();
+//app.MapDefaultEndpoints();
 
 app.Lifetime.ApplicationStarted.Register(async () =>
 {

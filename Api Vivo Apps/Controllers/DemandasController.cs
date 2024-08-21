@@ -37,6 +37,7 @@ using Microsoft.AspNetCore.OutputCaching;
 using Microsoft.Build.Framework;
 using Microsoft.AspNetCore.Http.HttpResults;
 using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.Wordprocessing;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -1056,11 +1057,11 @@ namespace Vivo_Apps_API.Controllers
         [HttpGet("GetFilas")]
         [ProducesResponseType(typeof(Response<IEnumerable<OptionFilas>>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult GetFilas()
+        public JsonResult GetFilas(string regional)
         {
             try
             {
-                var Dados_Fila = Demanda_BD.DEMANDA_TIPO_FILA.Select(x => new OptionFilas(x.ID_TIPO_FILA, x.NOME_TIPO_FILA, x.DESCRICAO)).Distinct().AsEnumerable();
+                var Dados_Fila = Demanda_BD.DEMANDA_TIPO_FILA.Where(x=> x.STATUS_TIPO_FILA == true && x.REGIONAL == regional).Select(x => new OptionFilas(x.ID_TIPO_FILA, x.NOME_TIPO_FILA, x.DESCRICAO)).Distinct().AsEnumerable();
 
                 var options = new JsonSerializerOptions
                 {
@@ -1100,7 +1101,7 @@ namespace Vivo_Apps_API.Controllers
             {
                 var Carteira = CD.Carteira_NEs.Where(x => x.ANOMES == CD.Carteira_NEs.Max(y => y.ANOMES));
                 var Sap = CD.CNS_BASE_TERCEIROS_SAP_GTs.AsQueryable();
-                var Dados_Fila = Demanda_BD.DEMANDA_SUB_FILA.Select(x => new OptionFilas(x.ID_SUB_FILA,x.NOME_SUB_FILA, x.DESCRICAO)).Distinct().AsEnumerable();
+                var Dados_Fila = Demanda_BD.DEMANDA_SUB_FILA.Where(x => x.STATUS_SUB_FILA == true && x.ID_TIPO_FILA == id_fila).Select(x => new OptionFilas(x.ID_SUB_FILA,x.NOME_SUB_FILA, x.DESCRICAO)).Distinct().AsEnumerable();
                 string Descricao = Demanda_BD.DEMANDA_TIPO_FILA.Find(id_fila).DESCRICAO ?? string.Empty;
 
                 return new JsonResult(new Response<object>
@@ -1365,6 +1366,7 @@ namespace Vivo_Apps_API.Controllers
                     MATRICULA_SOLICITANTE = int.Parse(data.MAT_SOLICITANTE),
                     MATRICULA_RESPONSAVEL = responsavel,
                     LastStatus = STATUS_ACESSOS_PENDENTES.ABERTO.Value,
+                    REGIONAL = data.REGIONAL,
                     ChamadoRelacao = new DEMANDA_CHAMADO
                     {
                         ID_FILA_CHAMADO = data.FILA_DTO.ID_SUB_FILA,
@@ -2191,6 +2193,7 @@ namespace Vivo_Apps_API.Controllers
                 var saida = dataBeforeFilter
                     .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider);
                 var result = saida.ToList();
+
                 return result;
             }
             catch (Exception ex)
@@ -2200,14 +2203,14 @@ namespace Vivo_Apps_API.Controllers
         }
 
         [HttpGet("GetAllIndexChamado")]
-        public IEnumerable<DEMANDA_DTO> GetAllIndexChamado(int MATRICULA, Controle_Demanda_role role)
+        public IEnumerable<DEMANDA_DTO> GetAllIndexChamado(int MATRICULA, Controle_Demanda_role role, string regional)
         {
             try
             {
                 /*** Sempre utilizamos apenas os chamados do último ano ***/
                 var dataBeforeFilter = Demanda_BD.DEMANDA_RELACAO_CHAMADO
                    .Where(x => x.Respostas.First().DATA_RESPOSTA >= DateTime.Now.AddYears(-1)
-                       && x.Respostas.First().DATA_RESPOSTA <= DateTime.Now)
+                       && x.Respostas.First().DATA_RESPOSTA <= DateTime.Now && x.REGIONAL == regional)
                    .AsNoTracking();
 
                 var first20 = dataBeforeFilter
@@ -2223,7 +2226,7 @@ namespace Vivo_Apps_API.Controllers
 
                 var data = dataresp.UnionBy(first20, x => x.ID_RELACAO);
 
-                return data.Take(40).ToList();
+                return data.Take(40);
             }
             catch (Exception ex)
             {

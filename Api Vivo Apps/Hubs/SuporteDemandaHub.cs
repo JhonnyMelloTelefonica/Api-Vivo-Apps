@@ -187,11 +187,12 @@ namespace Vivo_Apps_API.Hubs
                         /** Consulta para usuários básicos **/
                         case Controle_Demanda_role.BASICO:
 
-                            var first20 = data.OrderByDescending(x => x.PRIORIDADE)
-                            .ThenByDescending(x => x.PRIORIDADE_SEGMENTO)
-                            .ThenBy(x => x.Sequence).Take(20);
+                            var first20 = data.Where(x=> x.REGIONAL == user.REGIONAL)
+                                .OrderByDescending(x => x.PRIORIDADE)
+                                .ThenByDescending(x => x.PRIORIDADE_SEGMENTO)
+                                .ThenBy(x => x.Sequence).Take(20);
 
-                            var dataresp = data.Where(x => x.MATRICULA_SOLICITANTE == user.MATRICULA);
+                            var dataresp = data.Where(x => x.MATRICULA_SOLICITANTE == user.MATRICULA && x.REGIONAL == user.REGIONAL);
 
                             var datatotalbasico = dataresp.UnionBy(first20, x => x.ID_RELACAO);
 
@@ -202,12 +203,12 @@ namespace Vivo_Apps_API.Hubs
                         /** Consulta para analistas do suporte que não tratam solicitação de acessos terceiro **/
                         case Controle_Demanda_role.ANALISTA:
 
-                            var list_ids = Demanda_BD.DEMANDA_RESPONSAVEL_FILA.Where(x => x.MATRICULA_RESPONSAVEL == user.MATRICULA).Select(x => x.ID_SUB_FILA);
+                            var list_ids = Demanda_BD.DEMANDA_RESPONSAVEL_FILA.Where(x => x.MATRICULA_RESPONSAVEL == user.MATRICULA ).Select(x => x.ID_SUB_FILA);
 
                             await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}")
                                 .SendAsync("TableDemandas",
                                 data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
-                                && list_ids.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA)));
+                                && list_ids.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA) && x.REGIONAL == user.REGIONAL));
                             break;
 
                         /** Consulta para analistas do suporte que tratam solicitação de acessos terceiro **/
@@ -216,7 +217,7 @@ namespace Vivo_Apps_API.Hubs
                             var list_ids_user = Demanda_BD.DEMANDA_RESPONSAVEL_FILA.Where(x => x.MATRICULA_RESPONSAVEL == user.MATRICULA).Select(x => x.ID_SUB_FILA);
 
                             var datademandaanalistaacesso = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
-                                && list_ids_user.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA));
+                                && list_ids_user.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA) && x.REGIONAL == user.REGIONAL);
 
                             var dataacessoanalistaacesso = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.AcessoRelacao);
 
@@ -228,7 +229,7 @@ namespace Vivo_Apps_API.Hubs
                         /** Consulta para gerente do suporte **/
                         case Controle_Demanda_role.GERENTE:
 
-                            await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}").SendAsync("TableDemandas", data);
+                            await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}").SendAsync("TableDemandas", data.Where(x=> x.REGIONAL == user.REGIONAL));
                             break;
                     }
                 }

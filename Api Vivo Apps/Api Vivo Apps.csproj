@@ -97,7 +97,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\..\source\repos\Vivo Apps\Vivo Apps.ServiceDefaults\Vivo Apps.ServiceDefaults.csproj" />
+	  <!--<ProjectReference Include="..\..\..\source\repos\Vivo Apps\Vivo Apps.ServiceDefaults\Vivo Apps.ServiceDefaults.csproj" />-->
 	  <ProjectReference Include="..\..\Shared_Static_Class\Shared_Static_Class.csproj" />
 	</ItemGroup>
 

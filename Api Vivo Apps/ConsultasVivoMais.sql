@@ -3,8 +3,44 @@
 INSERÇÃO DE USUÁRIO NO VIVO +
 
 -----------------------------------------------------------**/
+--select ID,CARGO from JORNADA_BD_CARGOS_CANAL
+--GROUP BY ID,CARGO
+--select ID_CANAL, CANAL from JORNADA_BD_CARGOS_CANAL
+--GROUP BY ID_CANAL,CANAL
 
-select * from ACESSO where Nome like '%Maria Clara %'
+select * from DEMANDA_SUB_FILA WHERE ID_SUB_FILA = 386
+select * from DEMANDA_CAMPOS_FILA WHERE ID_SUB_FILA = 386
+select * from CONTROLE_DE_DEMANDAS_CAMPOS_FILA WHERE ID_FILA = 481
+select * from CONTROLE_DE_DEMANDAS_CAMPO_COMBOBOX_FILA WHERE ID_FILA = 481
+select * from PERFIL_USUARIO where MATRICULA = 16279
+select * from ACESSOS_MOBILE WHERE NOME LIKE '%Luciana%'
+
+--insert into PERFIL_USUARIO values 
+--(16279, 10, '2023-10-06 00:00:00.000',151191)
+--select * from PERFIL_PLATAFORMAS_VIVO
+
+--update Demandas.DEMANDA_RELACAO_CHAMADO set REGIONAL = 'NE'
+--update Demandas.DEMANDA_RELACAO_CHAMADO set REGIONAL = 'MG' where MATRICULA_SOLICITANTE = '155251'
+
+--select * from DEMANDA_CAMPOS_FILA where CAMPO_SUSPENSO = true
+--select * from CONTROLE_DE_DEMANDAS_FILA
+--SELECT top 100 * FROM CONTROLE_DE_DEMANDAS_RELACAO_ITENS_CAMPO_COMBOBOX_FILA
+--SELECT top 100 * FROM CONTROLE_DE_DEMANDAS_CAMPO_COMBOBOX_FILA
+--SELECT top  100 * FROM CONTROLE_DE_DEMANDAS_CAMPOS_FILA
+
+
+select * from Demandas.DEMANDA_RELACAO_CHAMADO where MATRICULA_SOLICITANTE = 155251
+select * from Demandas.DEMANDA_CHAMADO where MATRICULA_SOLICITANTE = 155251
+select * from DEMANDA_SUB_FILA where REGIONAL = 'MG'
+
+--delete DEMANDA_TIPO_FILA where REGIONAL = 'MG'
+
+--delete DEMANDA_SUB_FILA where REGIONAL = 'MG'
+
+--delete DEMANDA_RESPONSAVEL_FILA where ID_SUB_FILA IN (select ID_SUB_FILA from DEMANDA_SUB_FILA where REGIONAL = 'MG')
+
+select * from ACESSO where REGIONAL = 'MG' 
+select TOP 1 * from ACESSOS_MOBILE
 select * FROM [Vivo_MAIS].[Cardapio].[PRODUTOS_CARDAPIO]
 select * FROM Cardapio.PRODUTOS_CARDAPIO_FICHA_TECNICA
 
@@ -26,8 +62,12 @@ select * from CONTROLE_DE_DEMANDAS_RESPONSAVEL_FILA where FILA like '%retenção%'
 
 SELECT * from ACESSO WHERE Login = '143940'
 
-select * from ACESSO_PERMISSAO_MENU WHERE idAcesso = '4536'
-
+select * from ACESSO where Login = '89082'
+select * from ACESSO_PERMISSAO_MENU WHERE idAcesso = '3953'
+select * from ACESSO_PERMISSAO_MENU WHERE idAcesso = '1274'
+--update ACESSO_PERMISSAO_MENU 
+--SET DescricaoMenu = 'GERENTE DE CONTAS', TipoAcesso = 'VENDAS'
+--WHERE idAcesso = '3953'
 --Insert into ACESSO VALUES('40418413','Pedro Henrique Amorim Da Silva','pedro.asilva@TELEFONICA.COM','NE',null,null,'ATIVO',0)
 --Insert into ACESSO_PERMISSAO_MENU VALUES ((SELECT IdAcesso from ACESSO WHERE Login = '40418413'),  'SUPORTE','ADMINISTRATIVO')
 

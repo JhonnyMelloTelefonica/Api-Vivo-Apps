@@ -35,6 +35,7 @@ using System;
 using DocumentFormat.OpenXml.Drawing.ChartDrawing;
 using System.Globalization;
 using DocumentFormat.OpenXml.ExtendedProperties;
+using System.Drawing;
 
 
 namespace Vivo_Apps_API.Controllers
@@ -228,6 +229,7 @@ namespace Vivo_Apps_API.Controllers
                     PRIORIDADE = false,
                     PRIORIDADE_SEGMENTO = false,
                     LastStatus = STATUS_ACESSOS_PENDENTES.ABERTO.Value,
+                    REGIONAL = body.REGIONAL,
                     AcessoRelacao = body,
                     ID_CHAMADO = body.ID
                 };

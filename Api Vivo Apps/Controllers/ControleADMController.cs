@@ -256,7 +256,7 @@ namespace Vivo_Apps_API.Controllers
                     {
                         users = users.Where(x => filter.Value.REGIONAL.Contains(x.REGIONAL));
                     }
-                    else 
+                    else
                     {
                         users = users.Where(x => filter.Value.LOGIN_SOLICITANTE.Contains(x.LOGIN_SOLICITANTE.Value));
                     }
@@ -447,28 +447,13 @@ namespace Vivo_Apps_API.Controllers
         {
             var pagedData = CD.ACESSOS_MOBILEs.AsQueryable();
 
-            if (filter.IsSuporte is not null)
+            if (filter.IsSuporte == false)
             {
-                if (filter.IsSuporte == false)
-                {
-                    var listaPerfisADM = new List<int>{
-                        1,
-                        2,
-                        3,
-                        4,
-                        5,
-                        6,
-                        7,
-                        8,
-                        9,
-                        10
-                    };
-                    var listaMatricula = CD.ACESSOS_MOBILEs.Where(x => listaPerfisADM.Contains(x.CARGO)).Select(x => x.MATRICULA);
+                var listaOperadores = CD.DEMANDA_BD_OPERADOREs.Select(x => x.MATRICULA);
+                var listaMatricula = CD.ACESSOS_MOBILEs.Where(x => listaOperadores.Contains(x.MATRICULA)).Select(x => x.MATRICULA);
 
-                    // Busca as matriculas que não pertencem a este perfil
-                    pagedData = pagedData.Where(x => listaMatricula.Contains(x.MATRICULA));
-
-                }
+                // Busca as matriculas que não são operadores
+                pagedData = pagedData.Where(x => !listaMatricula.Contains(x.MATRICULA));
             }
 
             if (filter.Uf.Count() > 0)
@@ -1580,7 +1565,7 @@ namespace Vivo_Apps_API.Controllers
                 IEnumerable<PERFIL_USUARIO> perfisNovos = perfilbymatricula.UnionBy(perfissolicitados, x => x.id_Perfil).ToList();
                 /** Une os perfis que estão no banco e os inseridos pelo usuário em uma lista, dá o distinct automaticamente **/
 
-                IEnumerable<PERFIL_USUARIO> perfisExcluidos = perfilbymatricula.ExceptBy(perfissolicitados.Select(x=> x.id_Perfil), x=> x.id_Perfil).ToList();
+                IEnumerable<PERFIL_USUARIO> perfisExcluidos = perfilbymatricula.ExceptBy(perfissolicitados.Select(x => x.id_Perfil), x => x.id_Perfil).ToList();
                 /** Perfis que estão no banco e que não estão na união entre as 2 listas **/
 
                 foreach (var perfil in perfisNovos)
