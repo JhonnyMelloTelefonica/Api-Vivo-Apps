@@ -208,7 +208,7 @@ namespace Vivo_Apps_API.Hubs
                             await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}")
                                 .SendAsync("TableDemandas",
                                 data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
-                                && list_ids.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA) && x.REGIONAL == user.REGIONAL));
+                                && x.ChamadoRelacao != null && list_ids.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA) && x.REGIONAL == user.REGIONAL));
                             break;
 
                         /** Consulta para analistas do suporte que tratam solicitação de acessos terceiro **/
@@ -217,7 +217,7 @@ namespace Vivo_Apps_API.Hubs
                             var list_ids_user = Demanda_BD.DEMANDA_RESPONSAVEL_FILA.Where(x => x.MATRICULA_RESPONSAVEL == user.MATRICULA).Select(x => x.ID_SUB_FILA);
 
                             var datademandaanalistaacesso = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
-                                && list_ids_user.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA) && x.REGIONAL == user.REGIONAL);
+                                && x.ChamadoRelacao != null && list_ids_user.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA) && x.REGIONAL == user.REGIONAL);
 
                             var dataacessoanalistaacesso = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.AcessoRelacao);
 

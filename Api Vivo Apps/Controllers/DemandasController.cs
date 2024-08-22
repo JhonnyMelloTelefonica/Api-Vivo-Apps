@@ -2191,10 +2191,12 @@ namespace Vivo_Apps_API.Controllers
                     .AsNoTracking();
 
                 var saida = dataBeforeFilter
+                    .Include(x=> x.AcessoRelacao)
+                    .Include(x=> x.ChamadoRelacao)
+                    .Include(x=> x.DesligamentoRelacao)
                     .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider);
-                var result = saida.ToList();
 
-                return result;
+                return saida.ToList();
             }
             catch (Exception ex)
             {
