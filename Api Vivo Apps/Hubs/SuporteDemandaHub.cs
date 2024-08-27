@@ -37,6 +37,7 @@ namespace Vivo_Apps_API.Hubs
          * Caso seja passado o paramêtro de alguma matrícula, o HUB apenas notifica a matrícula em questão se ela estiver conectada 
         **/
         Task UpdateDemanda(DEMANDAS_CHAMADO_DTO data);
+        Task UpdateStatusChamado(DEMANDA_RELACAO_CHAMADO macro);
     }
 
     public class SuporteDemandaHub : Hub<ISuporteDemandaHub>, ISuporteDemandaHub
@@ -187,7 +188,7 @@ namespace Vivo_Apps_API.Hubs
                         /** Consulta para usuários básicos **/
                         case Controle_Demanda_role.BASICO:
 
-                            var first20 = data.Where(x=> x.REGIONAL == user.REGIONAL)
+                            var first20 = data.Where(x => x.REGIONAL == user.REGIONAL)
                                 .OrderByDescending(x => x.PRIORIDADE)
                                 .ThenByDescending(x => x.PRIORIDADE_SEGMENTO)
                                 .ThenBy(x => x.Sequence).Take(20);
@@ -203,7 +204,7 @@ namespace Vivo_Apps_API.Hubs
                         /** Consulta para analistas do suporte que não tratam solicitação de acessos terceiro **/
                         case Controle_Demanda_role.ANALISTA:
 
-                            var list_ids = Demanda_BD.DEMANDA_RESPONSAVEL_FILA.Where(x => x.MATRICULA_RESPONSAVEL == user.MATRICULA ).Select(x => x.ID_SUB_FILA);
+                            var list_ids = Demanda_BD.DEMANDA_RESPONSAVEL_FILA.Where(x => x.MATRICULA_RESPONSAVEL == user.MATRICULA).Select(x => x.ID_SUB_FILA);
 
                             await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}")
                                 .SendAsync("TableDemandas",
@@ -229,7 +230,7 @@ namespace Vivo_Apps_API.Hubs
                         /** Consulta para gerente do suporte **/
                         case Controle_Demanda_role.GERENTE:
 
-                            await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}").SendAsync("TableDemandas", data.Where(x=> x.REGIONAL == user.REGIONAL));
+                            await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}").SendAsync("TableDemandas", data.Where(x => x.REGIONAL == user.REGIONAL));
                             break;
                     }
                 }
@@ -363,6 +364,23 @@ namespace Vivo_Apps_API.Hubs
             await _context.Groups.RemoveFromGroupAsync(Context?.ConnectionId, "NE");
             await _context.Clients.All.SendAsync("CurrentUsers", CurrentUsers);
             await base.OnDisconnectedAsync(exception);
+        }
+
+        public async Task UpdateStatusChamado(DEMANDA_RELACAO_CHAMADO macro)
+        {
+            var saida = data.Where(x => x.ID_RELACAO == macro.ID_RELACAO).First();
+            saida.LastStatus = macro.LastStatus;
+            saida.Respostas = macro.Respostas;
+
+            if (macro.Responsavel is not null)
+            {
+                saida.Responsavel = macro.Responsavel;
+            }
+
+            foreach (var item in CurrentUsers)
+            {
+                await GetTable(item.Key);
+            }
         }
     }
 }

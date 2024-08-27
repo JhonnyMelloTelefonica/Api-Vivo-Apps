@@ -38,6 +38,7 @@ using Microsoft.Build.Framework;
 using Microsoft.AspNetCore.Http.HttpResults;
 using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
+using System.Runtime.InteropServices;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -969,7 +970,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpGet("GetFiltersFilas")]
         [ProducesResponseType(typeof(Response<FilterFilaDemandasModel>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult GetFiltersFilas(string regional)
+        public JsonResult GetFiltersFilas(string regional, [Optional][FromBody] int[] Filas)
         {
             try
             {
@@ -979,11 +980,23 @@ namespace Vivo_Apps_API.Controllers
                     .Where(x => x.REGIONAL == regional)
                     .ProjectTo<DEMANDA_TIPO_FILA_DTO>(_mapper.ConfigurationProvider);
 
-                datafilters.AnalistaSuporte = Demanda_BD.ACESSOS_MOBILE.Where(x =>
-                    Demanda_BD.DEMANDA_RESPONSAVEL_FILA
+                var parcial_result = Demanda_BD.DEMANDA_RESPONSAVEL_FILA;
+
+
+                if (Filas.Any())
+                {
+                    parcial_result.Where(x => Filas.Contains(x.ID_SUB_FILA.Value));
+                }
+
+                var list_matriculas = parcial_result
                             .Select(x => x.MATRICULA_RESPONSAVEL)
-                            .Distinct().Contains(x.MATRICULA)
-                ).ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider);
+                            .Distinct();
+
+                var resultanalista = Demanda_BD.ACESSOS_MOBILE
+                    .Where(x => list_matriculas.Contains(x.MATRICULA));
+
+
+                datafilters.AnalistaSuporte = resultanalista.ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider).Where(x => x.REGIONAL == regional);
 
                 return new JsonResult(new Response<FilterFilaDemandasModel>
                 {
@@ -1061,7 +1074,7 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var Dados_Fila = Demanda_BD.DEMANDA_TIPO_FILA.Where(x=> x.STATUS_TIPO_FILA == true && x.REGIONAL == regional).Select(x => new OptionFilas(x.ID_TIPO_FILA, x.NOME_TIPO_FILA, x.DESCRICAO)).Distinct().AsEnumerable();
+                var Dados_Fila = Demanda_BD.DEMANDA_TIPO_FILA.Where(x => x.STATUS_TIPO_FILA == true && x.REGIONAL == regional && x.DEMANDA_SUB_FILAs.Any(x => x.STATUS_SUB_FILA == true)).Select(x => new OptionFilas(x.ID_TIPO_FILA, x.NOME_TIPO_FILA, x.DESCRICAO)).Distinct().AsEnumerable();
 
                 var options = new JsonSerializerOptions
                 {
@@ -1101,7 +1114,7 @@ namespace Vivo_Apps_API.Controllers
             {
                 var Carteira = CD.Carteira_NEs.Where(x => x.ANOMES == CD.Carteira_NEs.Max(y => y.ANOMES));
                 var Sap = CD.CNS_BASE_TERCEIROS_SAP_GTs.AsQueryable();
-                var Dados_Fila = Demanda_BD.DEMANDA_SUB_FILA.Where(x => x.STATUS_SUB_FILA == true && x.ID_TIPO_FILA == id_fila).Select(x => new OptionFilas(x.ID_SUB_FILA,x.NOME_SUB_FILA, x.DESCRICAO)).Distinct().AsEnumerable();
+                var Dados_Fila = Demanda_BD.DEMANDA_SUB_FILA.Where(x => x.STATUS_SUB_FILA == true && x.ID_TIPO_FILA == id_fila).Select(x => new OptionFilas(x.ID_SUB_FILA, x.NOME_SUB_FILA, x.DESCRICAO)).Distinct().AsEnumerable();
                 string Descricao = Demanda_BD.DEMANDA_TIPO_FILA.Find(id_fila).DESCRICAO ?? string.Empty;
 
                 return new JsonResult(new Response<object>
@@ -1183,6 +1196,7 @@ namespace Vivo_Apps_API.Controllers
 
                 var chamado_relacao = Demanda_BD.DEMANDA_RELACAO_CHAMADO.Find(data.ID_RELACAO);
                 chamado_relacao.LastStatus = data.Status;
+                Demanda_BD.SaveChanges();
                 object demanda = null;
 
                 switch (tabela)
@@ -1204,6 +1218,7 @@ namespace Vivo_Apps_API.Controllers
                         {
                             chamado.DATA_FECHAMENTO = null;
                         }
+
                         demanda = GetDemandaByID(data.IdChamado);
                         Task.Run(() => _hubContext.UpdateDemanda(demanda as DEMANDAS_CHAMADO_DTO));
                         break;
@@ -1229,6 +1244,7 @@ namespace Vivo_Apps_API.Controllers
 
                 await _cache.EvictByTagAsync("AllDemandas", default);
                 await _hubContext.SendTableDemandas();
+                Task.Run(() => _hubContext.UpdateStatusChamado(chamado_relacao));
 
                 var options = new JsonSerializerOptions
                 {
@@ -1716,7 +1732,6 @@ namespace Vivo_Apps_API.Controllers
                     .Where(x => !OperadoresAtuais.Contains(x.MATRICULA))
                     .Where(x => x.REGIONAL == regional)
                     .Where(x => x.STATUS == true)
-                    .Where(x => x.CANAL == 2)
                     .AsNoTracking()
                     .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
                     .ToList();
@@ -2191,9 +2206,9 @@ namespace Vivo_Apps_API.Controllers
                     .AsNoTracking();
 
                 var saida = dataBeforeFilter
-                    .Include(x=> x.AcessoRelacao)
-                    .Include(x=> x.ChamadoRelacao)
-                    .Include(x=> x.DesligamentoRelacao)
+                    .Include(x => x.AcessoRelacao)
+                    .Include(x => x.ChamadoRelacao)
+                    .Include(x => x.DesligamentoRelacao)
                     .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider);
 
                 return saida.ToList();

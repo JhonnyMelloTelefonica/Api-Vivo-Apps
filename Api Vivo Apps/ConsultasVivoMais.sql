@@ -1,4 +1,4 @@
-/**-----------------------------------------------------------
+/**----------------------------------------------------------
 
 INSERÇÃO DE USUÁRIO NO VIVO +
 
@@ -8,10 +8,54 @@ INSERÇÃO DE USUÁRIO NO VIVO +
 --select ID_CANAL, CANAL from JORNADA_BD_CARGOS_CANAL
 --GROUP BY ID_CANAL,CANAL
 
+select * from Demandas.DEMANDA_RELACAO_CHAMADO WHERE REGIONAL = 'MG'
+
+select * from PERFIL_USUARIO WHERE MATRICULA = '427700'
+--insert into PERFIL_USUARIO values
+--(427700,10,'2023-10-06 00:00:00.000',151191),
+--(427700,14,'2023-10-06 00:00:00.000',151191),
+--(427700,16,'2023-10-06 00:00:00.000',151191)
+
+select * from ACESSOS_mobile WHERE MATRICULA = '427700'
+
+select * from carteira_ne where Vendedor = 'BAD0465-090'
+
+select * from ACESSOS_MOBILE where EMAIL = 'kenya.costa@telefonica.com'
+select COUNT(*) from ACESSOS_MOBILE WHERE REGIONAL = 'MG'
+select * from ACESSOS_MOBILE WHERE REGIONAL = 'MG'
+
+select * from CONTROLE_DE_DEMANDAS_OPERADORES
+--insert into CONTROLE_DE_DEMANDAS_OPERADORES 
+--values ('40418413','Pedro Henrique Amorim Da Silva','Analista','NE') 
+--insert into DEMANDA_BD_OPERADORES
+--values (40418413,'NE',1,'2024-01-02 18:55:47.580',151191) 
 select * from DEMANDA_SUB_FILA WHERE ID_SUB_FILA = 386
 select * from DEMANDA_CAMPOS_FILA WHERE ID_SUB_FILA = 386
 select * from CONTROLE_DE_DEMANDAS_CAMPOS_FILA WHERE ID_FILA = 481
 select * from CONTROLE_DE_DEMANDAS_CAMPO_COMBOBOX_FILA WHERE ID_FILA = 481
+
+--delete JORNADA_BD_AVALIACAO_RETORNO where RE_AVALIADO = 22121 and CADERNO = 41
+--delete JORNADA_BD_ANSWER_AVALIACAO where RE_AVALIADO = 22121  and CADERNO = 41
+
+
+select * from PERFIL_PLATAFORMAS_VIVO
+select * from JORNADA_BD_CARGOS_CANAL
+
+--UPDATE PERFIL_PLATAFORMAS_VIVO 
+--SET CARGO = '13;14;15'
+--where ID_PERFIL = 20
+/*
+1	Vendedor PAP ; 2	Gerente Parceiros ; 3	Gerente Geral ; 4	Supervisor PAP ;
+5	Vendedor de Revenda ; 6	Gerente de Revenda ; 7	Gerente de Área ; 8	Gerente de Operações ;
+9	Consultor de Negócios ; 10	Consultor Tecnológico ; 11	Gerente Vendas B2C ;
+12	Gerente Senior Territorial ; 13	Coordenador Suporte Vendas ; 14	Gerente Suporte Vendas ;
+15	Diretora ; 16	Consultor Gestão Vendas ; 17	Analista Suporte Vendas Senior ;
+18	Analista Suporte Vendas Pleno ; 19	Analista Suporte Vendas Junior ; 20	Estagiário ;
+21	Gerente Senior Gestão Vendas ; 22	Analista de Suporte Comercial ; 
+*/
+
+select * from PERFIL_USUARIO
+
 select * from PERFIL_USUARIO where MATRICULA = 16279
 select * from ACESSOS_MOBILE WHERE NOME LIKE '%Luciana%'
 
@@ -365,7 +409,7 @@ select
 Ixos
 from CARTEIRA_NE
 where ANOMES = '202407'
-and REDE like '%MY%'
+and Vendedor = 'BAD0465-090'
 /* Insert na carteira baseado nos dados da carteira anterior*/
 
 
