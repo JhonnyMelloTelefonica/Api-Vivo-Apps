@@ -8,7 +8,15 @@ INSERÇÃO DE USUÁRIO NO VIVO +
 --select ID_CANAL, CANAL from JORNADA_BD_CARGOS_CANAL
 --GROUP BY ID_CANAL,CANAL
 
-select * from Demandas.DEMANDA_RELACAO_CHAMADO WHERE REGIONAL = 'MG'
+--delete Demandas.DEMANDA_CHAMADO_RESPOSTA where ID_RELACAO in (select ID_RELACAO from Demandas.DEMANDA_RELACAO_CHAMADO where Sequence in  (99,100,102,103))
+--delete Demandas.DEMANDA_RELACAO_CHAMADO where Sequence in  (99,100,102,103)
+
+select * from ACESSO WHERE Login = '165691'
+select * from JORNADA_BD_QUESTION_HISTORICO WHERE TP_FORMS = 'Jornada' and CADERNO = 42
+
+select NOME_SUB_FILA,NOME_TIPO_FILA from DEMANDA_SUB_FILA A 
+INNER JOIN DEMANDA_TIPO_FILA B ON A.ID_TIPO_FILA = B.ID_TIPO_FILA
+WHERE A.REGIONAL = 'MG'
 
 select * from PERFIL_USUARIO WHERE MATRICULA = '427700'
 --insert into PERFIL_USUARIO values
@@ -18,7 +26,7 @@ select * from PERFIL_USUARIO WHERE MATRICULA = '427700'
 
 select * from ACESSOS_mobile WHERE MATRICULA = '427700'
 
-select * from carteira_ne where Vendedor = 'BAD0465-090'
+select * from carteira_ne where Vendedor = 'BAD0622-005'
 
 select * from ACESSOS_MOBILE where EMAIL = 'kenya.costa@telefonica.com'
 select COUNT(*) from ACESSOS_MOBILE WHERE REGIONAL = 'MG'
@@ -106,14 +114,25 @@ select * from CONTROLE_DE_DEMANDAS_RESPONSAVEL_FILA where FILA like '%retenção%'
 
 SELECT * from ACESSO WHERE Login = '143940'
 
+--update ACESSO_TERCEIROS set IdAcesso = '4541'
+--where Id in (
+--20039,
+--20040,
+--20041,
+--20047,
+--20048
+--)
+
+SELECT * from ACESSO_TERCEIROS where IdAcesso = '0'
+
 select * from ACESSO where Login = '89082'
-select * from ACESSO_PERMISSAO_MENU WHERE idAcesso = '3953'
+select * from ACESSO_PERMISSAO_MENU WHERE idAcesso = 'o'
 select * from ACESSO_PERMISSAO_MENU WHERE idAcesso = '1274'
 --update ACESSO_PERMISSAO_MENU 
---SET DescricaoMenu = 'GERENTE DE CONTAS', TipoAcesso = 'VENDAS'
+--SET DescricaoMenu = '', TipoAcesso = ''
 --WHERE idAcesso = '3953'
---Insert into ACESSO VALUES('40418413','Pedro Henrique Amorim Da Silva','pedro.asilva@TELEFONICA.COM','NE',null,null,'ATIVO',0)
---Insert into ACESSO_PERMISSAO_MENU VALUES ((SELECT IdAcesso from ACESSO WHERE Login = '40418413'),  'SUPORTE','ADMINISTRATIVO')
+Insert into ACESSO VALUES('165691','Hitalo Teixeira Duarte','hitalo.duarte@telefonica.com','NE',null,null,'ATIVO',0)
+Insert into ACESSO_PERMISSAO_MENU VALUES ((SELECT IdAcesso from ACESSO WHERE Login = '165691'),  'GERENTE GERAL - LLPP','LOJA')
 
 --insert into CONTROLE_DE_DEMANDAS_RESPONSAVEL_FILA
 --select '162551',ID from CONTROLE_DE_DEMANDAS_FILA WHERE REGIONAL = 'MG' and FILA <> '-' and FILA NOT LIKE '%FILA DESATIVADA%'
@@ -409,7 +428,7 @@ select
 Ixos
 from CARTEIRA_NE
 where ANOMES = '202407'
-and Vendedor = 'BAD0465-090'
+and Vendedor = 'BAD0622-005'
 /* Insert na carteira baseado nos dados da carteira anterior*/
 
 

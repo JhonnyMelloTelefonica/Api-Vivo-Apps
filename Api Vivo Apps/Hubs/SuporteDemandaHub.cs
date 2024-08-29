@@ -24,7 +24,7 @@ using Azure.Core;
 using Microsoft.AspNetCore.Http;
 using System.Security.Policy;
 
-namespace Vivo_Apps_API.Hubs
+namespace Vivo_Apps_API.Hubs 
 {
     public interface ISuporteDemandaHub
     {

@@ -970,7 +970,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpGet("GetFiltersFilas")]
         [ProducesResponseType(typeof(Response<FilterFilaDemandasModel>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult GetFiltersFilas(string regional, [Optional][FromBody] int[] Filas)
+        public JsonResult GetFiltersFilas(string regional, [FromQuery] int[] Filas, [FromQuery] int[] SubFilas)
         {
             try
             {
@@ -980,12 +980,17 @@ namespace Vivo_Apps_API.Controllers
                     .Where(x => x.REGIONAL == regional)
                     .ProjectTo<DEMANDA_TIPO_FILA_DTO>(_mapper.ConfigurationProvider);
 
-                var parcial_result = Demanda_BD.DEMANDA_RESPONSAVEL_FILA;
-
+                IQueryable<DEMANDA_RESPONSAVEL_FILA> parcial_result = Demanda_BD.DEMANDA_RESPONSAVEL_FILA;
 
                 if (Filas.Any())
                 {
-                    parcial_result.Where(x => Filas.Contains(x.ID_SUB_FILA.Value));
+                    var sub_from_macro = Demanda_BD.DEMANDA_SUB_FILA.Where(x => Filas.Contains(x.ID_TIPO_FILA)).Select(x => x.ID_SUB_FILA);
+                    parcial_result = parcial_result.Where(x => sub_from_macro.Contains(x.ID_SUB_FILA.Value));
+
+                    if (SubFilas.Any())
+                    {
+                        parcial_result  = parcial_result.Where(x => SubFilas.Contains(x.ID_SUB_FILA.Value));
+                    }
                 }
 
                 var list_matriculas = parcial_result
