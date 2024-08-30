@@ -1,4 +1,4 @@
-/**----------------------------------------------------------
+acesso/**----------------------------------------------------------
 
 INSERÇÃO DE USUÁRIO NO VIVO +
 
@@ -14,9 +14,23 @@ INSERÇÃO DE USUÁRIO NO VIVO +
 select * from ACESSO WHERE Login = '165691'
 select * from JORNADA_BD_QUESTION_HISTORICO WHERE TP_FORMS = 'Jornada' and CADERNO = 42
 
-select NOME_SUB_FILA,NOME_TIPO_FILA from DEMANDA_SUB_FILA A 
-INNER JOIN DEMANDA_TIPO_FILA B ON A.ID_TIPO_FILA = B.ID_TIPO_FILA
-WHERE A.REGIONAL = 'MG'
+SELECT * FROM CARTEIRA_NE WHERE ANOMES = '202407'
+AND Vendedor in 
+(
+'CED0623-022',  
+'CED0623-023', 
+'CED0623-024', 
+'CED0623-025', 
+'CED0623-027', 
+'CED0623-028', 
+'CED0623-030', 
+'CED0623-033', 
+'CED0623-034'
+)
+
+--select NOME_SUB_FILA,NOME_TIPO_FILA from DEMANDA_SUB_FILA A 
+--INNER JOIN DEMANDA_TIPO_FILA B ON A.ID_TIPO_FILA = B.ID_TIPO_FILA
+--WHERE A.REGIONAL = 'MG'
 
 select * from PERFIL_USUARIO WHERE MATRICULA = '427700'
 --insert into PERFIL_USUARIO values
@@ -131,8 +145,9 @@ select * from ACESSO_PERMISSAO_MENU WHERE idAcesso = '1274'
 --update ACESSO_PERMISSAO_MENU 
 --SET DescricaoMenu = '', TipoAcesso = ''
 --WHERE idAcesso = '3953'
-Insert into ACESSO VALUES('165691','Hitalo Teixeira Duarte','hitalo.duarte@telefonica.com','NE',null,null,'ATIVO',0)
-Insert into ACESSO_PERMISSAO_MENU VALUES ((SELECT IdAcesso from ACESSO WHERE Login = '165691'),  'GERENTE GERAL - LLPP','LOJA')
+
+Insert into ACESSO VALUES('160181','Jessica Luiza Josefa Camila da Silva','jessical.silva@telefonica.com','NE',null,null,'ATIVO',0)
+Insert into ACESSO_PERMISSAO_MENU VALUES ((SELECT IdAcesso from ACESSO WHERE Login = '160181'),  'GERENTE GERAL - LLPP','LOJA')
 
 --insert into CONTROLE_DE_DEMANDAS_RESPONSAVEL_FILA
 --select '162551',ID from CONTROLE_DE_DEMANDAS_FILA WHERE REGIONAL = 'MG' and FILA <> '-' and FILA NOT LIKE '%FILA DESATIVADA%'
@@ -427,8 +442,19 @@ select
 [Area],
 Ixos
 from CARTEIRA_NE
-where ANOMES = '202407'
-and Vendedor = 'BAD0622-005'
+WHERE ANOMES = '202407'
+AND Vendedor in 
+(
+'CED0623-022',  
+'CED0623-023', 
+'CED0623-024', 
+'CED0623-025', 
+'CED0623-027', 
+'CED0623-028', 
+'CED0623-030', 
+'CED0623-033', 
+'CED0623-034'
+)
 /* Insert na carteira baseado nos dados da carteira anterior*/
 
 

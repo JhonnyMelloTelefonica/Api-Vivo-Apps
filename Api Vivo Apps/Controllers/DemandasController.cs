@@ -970,15 +970,17 @@ namespace Vivo_Apps_API.Controllers
         [HttpGet("GetFiltersFilas")]
         [ProducesResponseType(typeof(Response<FilterFilaDemandasModel>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult GetFiltersFilas(string regional, [FromQuery] int[] Filas, [FromQuery] int[] SubFilas)
+        public JsonResult GetFiltersFilas(string regional, [FromQuery] int[] Filas, [FromQuery] int[] SubFilas, bool RefreshFilas = true)
         {
             try
             {
                 var datafilters = new FilterFilaDemandasModel();
-
-                datafilters.filas = Demanda_BD.DEMANDA_TIPO_FILA
-                    .Where(x => x.REGIONAL == regional)
-                    .ProjectTo<DEMANDA_TIPO_FILA_DTO>(_mapper.ConfigurationProvider);
+                if (RefreshFilas)
+                {
+                    datafilters.filas = Demanda_BD.DEMANDA_TIPO_FILA
+                        .Where(x => x.REGIONAL == regional)
+                        .ProjectTo<DEMANDA_TIPO_FILA_DTO>(_mapper.ConfigurationProvider);
+                }
 
                 IQueryable<DEMANDA_RESPONSAVEL_FILA> parcial_result = Demanda_BD.DEMANDA_RESPONSAVEL_FILA;
 
@@ -989,7 +991,7 @@ namespace Vivo_Apps_API.Controllers
 
                     if (SubFilas.Any())
                     {
-                        parcial_result  = parcial_result.Where(x => SubFilas.Contains(x.ID_SUB_FILA.Value));
+                        parcial_result = parcial_result.Where(x => SubFilas.Contains(x.ID_SUB_FILA.Value));
                     }
                 }
 
@@ -1896,6 +1898,7 @@ namespace Vivo_Apps_API.Controllers
             {
                 var id = Demanda_BD.DEMANDA_RELACAO_CHAMADO.Find(IdDemanda);
                 var demanda = GetDemandaByID(id.ID_CHAMADO);
+
                 var options = new JsonSerializerOptions
                 {
                     ReferenceHandler = ReferenceHandler.IgnoreCycles
@@ -2216,7 +2219,7 @@ namespace Vivo_Apps_API.Controllers
                     .Include(x => x.DesligamentoRelacao)
                     .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider);
 
-                return saida.ToList();
+                return saida;
             }
             catch (Exception ex)
             {
