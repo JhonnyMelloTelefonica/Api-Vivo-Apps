@@ -1,4 +1,4 @@
-acesso/**----------------------------------------------------------
+/**----------------------------------------------------------
 
 INSERÇÃO DE USUÁRIO NO VIVO +
 
@@ -11,22 +11,33 @@ INSERÇÃO DE USUÁRIO NO VIVO +
 --delete Demandas.DEMANDA_CHAMADO_RESPOSTA where ID_RELACAO in (select ID_RELACAO from Demandas.DEMANDA_RELACAO_CHAMADO where Sequence in  (99,100,102,103))
 --delete Demandas.DEMANDA_RELACAO_CHAMADO where Sequence in  (99,100,102,103)
 
-select * from ACESSO WHERE Login = '165691'
+--delete DEMANDA_RESPONSAVEL_FILA WHERE MATRICULA_RESPONSAVEL NOT IN 
+--(
+--select DISTINCT(MATRICULA) from DEMANDA_BD_OPERADORES 
+--)
+--insert into DEMANDA_BD_OPERADORES 
+select * from DEMANDA_SUB_FILA  where regional = 'MG' order by Nome_sub_fila asc
+
 select * from JORNADA_BD_QUESTION_HISTORICO WHERE TP_FORMS = 'Jornada' and CADERNO = 42
 
-SELECT * FROM CARTEIRA_NE WHERE ANOMES = '202407'
-AND Vendedor in 
-(
-'CED0623-022',  
-'CED0623-023', 
-'CED0623-024', 
-'CED0623-025', 
-'CED0623-027', 
-'CED0623-028', 
-'CED0623-030', 
-'CED0623-033', 
-'CED0623-034'
-)
+select * from ACESSOS_MOBILE WHERE MATRICULA = 89082
+
+select * from Demandas.DEMANDA_RELACAO_CHAMADO where ID_RELACAO = 'bfedf1b8-b320-4ffa-4bb4-08dcc8f06bcb'
+select * from Demandas.DEMANDA_CHAMADO where ID_RELACAO = 'bfedf1b8-b320-4ffa-4bb4-08dcc8f06bcb'
+
+--SELECT * FROM CARTEIRA_NE WHERE ANOMES = '202407'
+--AND Vendedor in 
+--(
+--'CED0623-022',  
+--'CED0623-023', 
+--'CED0623-024', 
+--'CED0623-025', 
+--'CED0623-027', 
+--'CED0623-028', 
+--'CED0623-030', 
+--'CED0623-033', 
+--'CED0623-034'
+--)
 
 --select NOME_SUB_FILA,NOME_TIPO_FILA from DEMANDA_SUB_FILA A 
 --INNER JOIN DEMANDA_TIPO_FILA B ON A.ID_TIPO_FILA = B.ID_TIPO_FILA

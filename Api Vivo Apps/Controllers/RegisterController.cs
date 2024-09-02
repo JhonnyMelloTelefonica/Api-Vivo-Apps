@@ -55,14 +55,17 @@ namespace Vivo_Apps_API.Controllers
                     .Where(x => x.MATRICULA == matricula).OrderByDescending(x => x.ID).FirstOrDefault();
                 // Busco a última solicitação para esta matrícula
 
-                if (UltimaSolicitacao is not null)
+                if (UltimaSolicitacao is not null && UltimaSolicitacao.TIPO != "ALTERAÇÃO")
                 {
-                    var solicitacaoAndamento = (!string.Equals(UltimaSolicitacao.STATUS, STATUS_ACESSOS_PENDENTES.APROVADO.Value)
-                                                && !string.Equals(UltimaSolicitacao.STATUS, STATUS_ACESSOS_PENDENTES.REPROVADO.Value)
-                                                && !string.Equals(UltimaSolicitacao.STATUS, STATUS_ACESSOS_PENDENTES.CANCELADO.Value));
-                    // verifico se possui os Status não é finalizado nem reprovado, caso não seja nenhum dos 2 siginifica que ainda está em andamento
+                    var solicitacaoAndamento = (string.Equals(UltimaSolicitacao.STATUS, STATUS_ACESSOS_PENDENTES.REPROVADO.Value)
+                                                || string.Equals(UltimaSolicitacao.STATUS, STATUS_ACESSOS_PENDENTES.CANCELADO.Value)
+                                                || string.Equals(UltimaSolicitacao.STATUS, STATUS_ACESSOS_PENDENTES.APROVADO.Value));
+                    // verifico se possui o último status é finalizado ou reprovado ou aprovado,
+                    // caso não seja nenhum dos 2 siginifica que ainda está em andamento
 
-                    if (solicitacaoAndamento)
+                    if (!solicitacaoAndamento ) 
+                        //Caso a ultima solicitação não tenha nenhum destes status 
+                        //significa que ainda está em andamento
                     {
                         var user = CD.ACESSOS_MOBILE_PENDENTEs.Where(x => x.MATRICULA == matricula).First();
 

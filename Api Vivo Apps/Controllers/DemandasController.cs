@@ -1203,6 +1203,24 @@ namespace Vivo_Apps_API.Controllers
 
                 var chamado_relacao = Demanda_BD.DEMANDA_RELACAO_CHAMADO.Find(data.ID_RELACAO);
                 chamado_relacao.LastStatus = data.Status;
+
+                if (data.MATRICULA_REDIRECIONADO.HasValue)
+                {
+                    chamado_relacao.MATRICULA_RESPONSAVEL = data.MATRICULA_REDIRECIONADO.Value;
+                    switch (tabela)
+                    {
+                        case Tabela_Demanda.ChamadoRelacao:
+                            Demanda_BD.DEMANDA_CHAMADO.Find(data.IdChamado).MATRICULA_RESPONSAVEL = data.MATRICULA_REDIRECIONADO.Value;
+                            break;
+                        case Tabela_Demanda.AcessoRelacao:
+                            Demanda_BD.DEMANDA_ACESSOS.Find(data.IdChamado).MATRICULA_RESPONSAVEL = data.MATRICULA_REDIRECIONADO.Value;
+                            break;
+                        case Tabela_Demanda.DesligamentoRelacao:
+                            Demanda_BD.DEMANDA_DESLIGAMENTOS.Find(data.IdChamado).MATRICULA_RESPONSAVEL = data.MATRICULA_REDIRECIONADO.Value;
+                            break;
+                    }
+                }
+
                 Demanda_BD.SaveChanges();
                 object demanda = null;
 
@@ -2428,6 +2446,10 @@ namespace Vivo_Apps_API.Controllers
             new DateTime(ano, 11, 2), // Finados
             new DateTime(ano, 11, 15), // Proclamação da República
             new DateTime(ano, 12, 25), // Natal
+            /* Feriados de Recife */
+            new DateTime(ano, 6, 24), // São João
+            new DateTime(ano, 7, 16), // Nossa senhora do Carmo
+            new DateTime(ano, 12, 8), // Nosa Senhora da Conceição
 
             // Feriados móveis
             CalcularCarnaval(ano),
