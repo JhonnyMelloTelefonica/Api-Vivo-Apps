@@ -1,4 +1,5 @@
 using AutoMapper;
+using Shared_Class_Vivo_Apps.Services;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.SignalR;
@@ -106,6 +107,7 @@ builder.Services.AddDbContextFactory<CardapioDigitalContext>(opt =>
 }, ServiceLifetime.Singleton);
 
 builder.Services.AddSingleton<ISuporteDemandaHub, SuporteDemandaHub>();
+builder.Services.AddSingleton<IPWService, PWService>();
 
 builder.Services.AddOutputCache(options =>
 {

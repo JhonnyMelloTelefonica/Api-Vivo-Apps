@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Vivo_Apps_API.Models;
 using Vivo_Apps_API.Hubs;
+using Shared_Class_Vivo_Apps.Services;
 using Microsoft.AspNetCore.Mvc;
 using Shared_Static_Class.Data;
 using Shared_Static_Class.Model_DTO;
@@ -39,6 +40,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.Runtime.InteropServices;
+using DocumentFormat.OpenXml.Drawing.Charts;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -50,11 +52,13 @@ namespace Vivo_Apps_API.Controllers
         private readonly IMapper _mapper;
         private readonly ISuporteDemandaHub _hubContext;
         private readonly IOutputCacheStore _cache;
+        private readonly IPWService _service;
         private static Vivo_MaisContext CD;
         private static HttpClient _httpclient;
         private IDbContextFactory<DemandasContext> DbFactory;
         private DemandasContext Demanda_BD;
         public DemandasController(
+            IPWService service,
             ILogger<DemandasController> logger
             , ISuporteDemandaHub hubContext
             , Vivo_MaisContext bd_context
@@ -62,6 +66,7 @@ namespace Vivo_Apps_API.Controllers
             , HttpClient httpclient
             , IOutputCacheStore cache)
         {
+            _service = service;
             _cache = cache;
             _httpclient = httpclient;
             DbFactory = dbContextFactory;
@@ -1379,7 +1384,10 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var fila = Demanda_BD.DEMANDA_SUB_FILA.Include(x => x.DEMANDA_RESPONSAVEL_FILAs).First(x => x.ID_SUB_FILA == data.FILA_DTO.ID_SUB_FILA);
+                var opera_disp = CD.DEMANDA_BD_OPERADOREs.Where(x => x.STATUS == true && x.REGIONAL == data.REGIONAL).Select(x => x.MATRICULA);
+
+                var fila = Demanda_BD.DEMANDA_SUB_FILA.Include(x => x.DEMANDA_RESPONSAVEL_FILAs.Where(y=> opera_disp.Contains(y.MATRICULA_RESPONSAVEL)))
+                    .First(x => x.ID_SUB_FILA == data.FILA_DTO.ID_SUB_FILA);
                 int responsavel;
 
                 if (fila.DEMANDA_RESPONSAVEL_FILAs.Count > 1)
@@ -1492,6 +1500,10 @@ namespace Vivo_Apps_API.Controllers
                     .Where(x => x.MATRICULA == demanda.ChamadoRelacao.MATRICULA_RESPONSAVEL)
                     .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
                     .First();
+                var solicitante = Demanda_BD.ACESSOS_MOBILE
+                    .Where(x => x.MATRICULA == demanda.ChamadoRelacao.MATRICULA_SOLICITANTE)
+                    .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
+                    .First();
 
                 var options = new JsonSerializerOptions
                 {
@@ -1505,6 +1517,13 @@ namespace Vivo_Apps_API.Controllers
 
                 var demandaCompleta = GetDemandaByID(demanda.ChamadoRelacao.ID);
 
+                SendEmailModel email = new SendEmailModel( new string[]{ retorno.EMAIL,solicitante.EMAIL},null, $"Nova demanda N {demandaCompleta.Relacao.Sequence}",
+                    $"Nova demanda aberta por {solicitante.DISPLAY_NOME}",
+                    $"Uma demanda demanda do tipo {demandaCompleta.Fila.ID_TIPO_FILANavigation.NOME_TIPO_FILA} e sub-fila {demandaCompleta.Fila.NOME_SUB_FILA} acaba de ser criada" +
+                    $" com o responsável principal {retorno.DISPLAY_NOME}, o sla para esta fila é de {demandaCompleta.Fila.SLA} dias.",null,
+                    new string[] { "ne_automacao.br@telefonica.com" });
+
+                Task.Run(() => _service.SendEmail(email));
                 /*string jsonContent = JsonConvert.SerializeObject(new
                 {
                     matricula = demandaCompleta.Solicitante.MATRICULA,

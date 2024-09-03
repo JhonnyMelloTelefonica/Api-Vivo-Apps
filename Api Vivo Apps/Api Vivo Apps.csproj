@@ -15,6 +15,7 @@
 		<Content Include="FilesTemplates\**" CopyToPublishDirectory="PreserveNewest" />
 	</ItemGroup>
 	<ItemGroup>
+	  <None Remove="FilesTemplates\5g.png" />
 	  <None Remove="FilesTemplates\AcessosTerceiro_Matricula_Massivo_Model.html" />
 	  <None Remove="FilesTemplates\CardapioDigital\A541.jpg" />
 	  <None Remove="FilesTemplates\CardapioDigital\A542.jpg" />
@@ -22,9 +23,11 @@
 	  <None Remove="FilesTemplates\CardapioDigital\A544.jPG" />
 	  <None Remove="FilesTemplates\CardapioDigital\A545.jpg" />
 	  <None Remove="FilesTemplates\Extract_Matricula_Model.XLSX" />
+	  <None Remove="FilesTemplates\htmlEmailModel.html" />
 	  <None Remove="FilesTemplates\Imagem1.gif" />
 	  <None Remove="FilesTemplates\Imagem2.gif" />
 	  <None Remove="FilesTemplates\Layout-Externo-Novo.xlsx" />
+	  <None Remove="FilesTemplates\tdne.png" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -99,6 +102,24 @@
 	<ItemGroup>
 	  <!--<ProjectReference Include="..\..\..\source\repos\Vivo Apps\Vivo Apps.ServiceDefaults\Vivo Apps.ServiceDefaults.csproj" />-->
 	  <ProjectReference Include="..\..\Shared_Static_Class\Shared_Static_Class.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Update="FilesTemplates\5g.png">
+	    <CopyAlways>true</CopyAlways>
+	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Update="FilesTemplates\htmlEmailModel.html">
+	    <CopyAlways>true</CopyAlways>
+	  </Content>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <Content Update="FilesTemplates\tdne.png">
+	    <CopyAlways>true</CopyAlways>
+	  </Content>
 	</ItemGroup>
 
 	<Import Project="..\..\Shared_Class_Vivo_Apps\Shared_Class_Vivo_Apps.projitems" Label="Shared" />

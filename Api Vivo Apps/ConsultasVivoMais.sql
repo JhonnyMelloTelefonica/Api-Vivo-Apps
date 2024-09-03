@@ -43,11 +43,11 @@ select * from Demandas.DEMANDA_CHAMADO where ID_RELACAO = 'bfedf1b8-b320-4ffa-4b
 --INNER JOIN DEMANDA_TIPO_FILA B ON A.ID_TIPO_FILA = B.ID_TIPO_FILA
 --WHERE A.REGIONAL = 'MG'
 
-select * from PERFIL_USUARIO WHERE MATRICULA = '427700'
+select * from PERFIL_USUARIO WHERE MATRICULA = '43812'
 --insert into PERFIL_USUARIO values
---(427700,10,'2023-10-06 00:00:00.000',151191),
---(427700,14,'2023-10-06 00:00:00.000',151191),
---(427700,16,'2023-10-06 00:00:00.000',151191)
+--(43812,10,'2023-10-06 00:00:00.000',151191),
+--(43812,14,'2023-10-06 00:00:00.000',151191),
+--(43812,16,'2023-10-06 00:00:00.000',151191)
 
 select * from ACESSOS_mobile WHERE MATRICULA = '427700'
 
@@ -388,84 +388,73 @@ GROUP BY A.ID, F.FILA, C.STATUS, D.Nome, A.DATA_ABERTURA, E.DATA_RESPOSTA,E.RESP
 --'MG',
 --'Não')
 /* Insert na carteira baseado nos dados da carteira anterior*/
-insert into CARTEIRA_NE
-select 
-[Cnpj],
-[RazaoSocial],
-[NomeFantasia],
-[Uf],
-[GA / GG],
-[RE_GA],
-[GGP],
-[RE_GGP],
-[StatusCallidus],
-[Vendedor],
-[REDE],
-[Canal],
-[DDD_LOCALIDADE_PDV],
-[Atividade],
-[AREA ATUAÇÃO DDD],
-[GV],
-[RE_GV],
-[LoginSiebel],
-[Cidade],
-[Bairro],
-[Cep],
-[Endereco],
-[Numero],
-[Complemento],
-[Data Credenciamento],
-[Data Descredenciamento],
-[Modelo Loja],
-[Tipo Loja],
-[Local Loja],
-[GSS],
-[Qt de PA],
-[Metragem],
-[SEGMENTAÇÃO],
-[Estrelagem],
-[MT],
-'202408',
-[NO_VIVO360],
-[NO_VIVONEXT],
-[NO_GSS],
-[DT_MOD_CAD],
-[LOGIN_MOD_CAD],
-[DataInicioContrato],
-[DataFimContrato],
-[InscriçãoEstadual],
-[OptanteSimples],
-[Contato],
-[Telefone],
-[EmailFinanceiro],
-[EmailComercial],
-[EmailDivulgação],
-[CodigoBanco],
-[Banco],
-[Agencia],
-[NumeroConta],
-[DigitoVerificador],
-[SetorAtividade],
-[PontoVenda],
-[Genero],
-[CodigoCliente],
-[CodigoFornecedor],
-[Area],
-Ixos
-from CARTEIRA_NE
-WHERE ANOMES = '202407'
-AND Vendedor in 
-(
-'CED0623-022',  
-'CED0623-023', 
-'CED0623-024', 
-'CED0623-025', 
-'CED0623-027', 
-'CED0623-028', 
-'CED0623-030', 
-'CED0623-033', 
-'CED0623-034'
-)
+--insert into CARTEIRA_NE
+--select 
+--[Cnpj],
+--[RazaoSocial],
+--[NomeFantasia],
+--[Uf],
+--[GA / GG],
+--[RE_GA],
+--[GGP],
+--[RE_GGP],
+--[StatusCallidus],
+--[Vendedor],
+--[REDE],
+--[Canal],
+--[DDD_LOCALIDADE_PDV],
+--[Atividade],
+--[AREA ATUAÇÃO DDD],
+--[GV],
+--[RE_GV],
+--[LoginSiebel],
+--[Cidade],
+--[Bairro],
+--[Cep],
+--[Endereco],
+--[Numero],
+--[Complemento],
+--[Data Credenciamento],
+--[Data Descredenciamento],
+--[Modelo Loja],
+--[Tipo Loja],
+--[Local Loja],
+--[GSS],
+--[Qt de PA],
+--[Metragem],
+--[SEGMENTAÇÃO],
+--[Estrelagem],
+--[MT],
+--'202408',
+--[NO_VIVO360],
+--[NO_VIVONEXT],
+--[NO_GSS],
+--[DT_MOD_CAD],
+--[LOGIN_MOD_CAD],
+--[DataInicioContrato],
+--[DataFimContrato],
+--[InscriçãoEstadual],
+--[OptanteSimples],
+--[Contato],
+--[Telefone],
+--[EmailFinanceiro],
+--[EmailComercial],
+--[EmailDivulgação],
+--[CodigoBanco],
+--[Banco],
+--[Agencia],
+--[NumeroConta],
+--[DigitoVerificador],
+--[SetorAtividade],
+--[PontoVenda],
+--[Genero],
+--[CodigoCliente],
+--[CodigoFornecedor],
+--[Area],
+--Ixos
+--from CARTEIRA_NE
+--WHERE ANOMES = '202407'
+
 /* Insert na carteira baseado nos dados da carteira anterior*/
 
 

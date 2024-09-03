@@ -24,7 +24,7 @@ using Azure.Core;
 using Microsoft.AspNetCore.Http;
 using System.Security.Policy;
 
-namespace Vivo_Apps_API.Hubs 
+namespace Vivo_Apps_API.Hubs
 {
     public interface ISuporteDemandaHub
     {
@@ -197,7 +197,9 @@ namespace Vivo_Apps_API.Hubs
 
                             var datatotalbasico = dataresp.UnionBy(first20, x => x.ID_RELACAO);
 
-                            await _context.Clients.Client(connectionId)
+                            //await _context.Clients.Client(connectionId)
+                            //    .SendAsync("TableDemandas", datatotalbasico);
+                            await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}")
                                 .SendAsync("TableDemandas", datatotalbasico);
                             break;
 
@@ -225,12 +227,14 @@ namespace Vivo_Apps_API.Hubs
                             var datatotalanalistaacesso = datademandaanalistaacesso.UnionBy(dataacessoanalistaacesso, x => x.ID_RELACAO);
 
                             await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}").SendAsync("TableDemandas", datatotalanalistaacesso);
+                            await _context.Clients.Client(connectionId).SendAsync("TableDemandas", datatotalanalistaacesso);
                             break;
 
                         /** Consulta para gerente do suporte **/
                         case Controle_Demanda_role.GERENTE:
 
-                            await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}").SendAsync("TableDemandas", data.Where(x => x.REGIONAL == user.REGIONAL));
+                            //await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}").SendAsync("TableDemandas", data.Where(x => x.REGIONAL == user.REGIONAL));
+                            await _context.Clients.Client(connectionId).SendAsync("TableDemandas", data.Where(x => x.REGIONAL == user.REGIONAL));
                             break;
                     }
                 }
@@ -346,8 +350,8 @@ namespace Vivo_Apps_API.Hubs
 
                     CurrentUsers.Add(Context?.ConnectionId, user);
                 }
-
-                await SendTableDemandas(null);
+                if (data is null || !data.Any())
+                    await SendTableDemandas(null);
 
                 await _context.Clients.All.SendAsync("CurrentUsers", CurrentUsers);
 
