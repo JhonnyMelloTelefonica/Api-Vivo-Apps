@@ -36,6 +36,7 @@ using DocumentFormat.OpenXml.Drawing.ChartDrawing;
 using System.Globalization;
 using DocumentFormat.OpenXml.ExtendedProperties;
 using System.Drawing;
+using Shared_Class_Vivo_Apps.Services;
 
 
 namespace Vivo_Apps_API.Controllers
@@ -49,6 +50,7 @@ namespace Vivo_Apps_API.Controllers
         private readonly ISuporteDemandaHub _hubContext;
         private readonly string _sharedFilesPath = @"_content\Shared_Razor_Components\wwwroot\";
         private readonly IMapper _mapper;
+        private readonly IPWService _service;
 
         private IDbContextFactory<DemandasContext> DbFactory;
         private DemandasContext DB;
@@ -56,8 +58,9 @@ namespace Vivo_Apps_API.Controllers
 
         public AcessoTerceirosController(ILogger<AcessoTerceirosController> logger,
             IOutputCacheStore cache, IDbContextFactory<DemandasContext> dbContextFactory,
-            ISuporteDemandaHub hubContext, Vivo_MaisContext cD)
+            ISuporteDemandaHub hubContext, Vivo_MaisContext cD, IPWService service)
         {
+            _service = service;
             CD = cD;
             _logger = logger;
             _cache = cache;
@@ -168,6 +171,15 @@ namespace Vivo_Apps_API.Controllers
             try
             {
                 //body.Solicitante = DB.ACESSOS_MOBILE.First(x => x.MATRICULA == body.MATRICULA_SOLICITANTE);]
+                if (DB.DEMANDA_ACESSOS.Where(x=> id.Select(y=> y.Item2).Contains(x.ID)).Any(x=> !x.DataExtracao.HasValue))
+                {
+                    return Ok(new Response<string>
+                    {
+                        Data = $"A solicitação não foi concluída pois existe alguma solicitação aguarando a extração",
+                        Succeeded = false,
+                        Message = $"A solicitação não foi concluída pois existe alguma solicitação aguarando a extração",
+                    });
+                }
                 foreach (Tuple<Guid, int> singleid in id)
                 {
                     var mat_Desligada = DB.DEMANDA_RELACAO_TREINAMENTO_FINALIZADO.FirstOrDefault(x => x.MATRICULA == singleid.Item2);
@@ -182,6 +194,7 @@ namespace Vivo_Apps_API.Controllers
                         });
                     }
 
+                   
                     await ExecuteChangeMatriculaTerceiro(singleid.Item1, singleid.Item2, matricula_resp, mensagem, out DEMANDA_ACESSOS? demanda);
                 }
 
@@ -234,7 +247,7 @@ namespace Vivo_Apps_API.Controllers
                     ID_CHAMADO = body.ID
                 };
 
-                DB.DEMANDA_RELACAO_CHAMADO.Add(demanda);
+                var demandaCompleta = DB.DEMANDA_RELACAO_CHAMADO.Add(demanda).Entity;
                 await DB.SaveChangesAsync();
 
                 demanda.ID_CHAMADO = demanda.AcessoRelacao.ID;
@@ -259,6 +272,25 @@ namespace Vivo_Apps_API.Controllers
                 });
 
                 await DB.SaveChangesAsync();
+
+                var retorno = DB.ACESSOS_MOBILE
+                    .Where(x => x.MATRICULA == demanda.AcessoRelacao.MATRICULA_RESPONSAVEL)
+                    .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
+                    .First();
+                var solicitante = DB.ACESSOS_MOBILE
+                    .Where(x => x.MATRICULA == demanda.AcessoRelacao.MATRICULA_SOLICITANTE)
+                    .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
+                    .First();
+
+                SendEmailModel email = new SendEmailModel(new string[] { retorno.EMAIL, solicitante.EMAIL }, null, $"Nova solicitação de acesso N {demandaCompleta.Sequence}",
+                    $"Nova solicitação de acesso do tipo {demanda.AcessoRelacao.Acao.GetDisplayName()} foi aberta por {solicitante.DISPLAY_NOME}",
+                    $"Uma solicitação para o time de acessos do tipo {demanda.AcessoRelacao.Acao.GetDisplayName()} acaba de ser criada" +
+                    $"com o responsável principal {retorno.DISPLAY_NOME}, por favor aguarde o retorno do time de acessos.", null,
+                    new string[] { "ne_automacao.br@telefonica.com", "ne_acesso.br@telefonica.com" });
+
+                Task.Run(() => _service.SendEmail(email));
+                email.Footer = "<div></div>";
+                Task.Run(() => _service.SendTeams(email));
                 //await _hubContext.SendTableDemandas();
                 await _cache.EvictByTagAsync("AllDemandas", default);
 

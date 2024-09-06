@@ -41,6 +41,7 @@
 			<VersionMinor>9</VersionMinor>
 		</COMReference>
 	</ItemGroup>
+	
 	<ItemGroup>
 		<PackageReference Include="AutoMapper" Version="13.0.1" />
 		<PackageReference Include="BlazorDownloadFile" Version="2.4.0.2" />

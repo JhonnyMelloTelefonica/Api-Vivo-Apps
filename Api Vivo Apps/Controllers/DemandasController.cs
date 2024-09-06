@@ -1383,8 +1383,9 @@ namespace Vivo_Apps_API.Controllers
         public async Task<JsonResult> AbrirDemanda([FromBody] DEMANDAS_FILA data)
         {
             try
-            {
-                var opera_disp = CD.DEMANDA_BD_OPERADOREs.Where(x => x.STATUS == true && x.REGIONAL == data.REGIONAL).Select(x => x.MATRICULA);
+            { 
+                /* Necessário o ToList() para que os dois contextos do banco não tent<em executar consultas juntos e gerem erro */
+                var opera_disp = CD.DEMANDA_BD_OPERADOREs.Where(x => x.STATUS == true && x.REGIONAL == data.REGIONAL).Select(x => x.MATRICULA).ToList();
 
                 var fila = Demanda_BD.DEMANDA_SUB_FILA.Include(x => x.DEMANDA_RESPONSAVEL_FILAs.Where(y=> opera_disp.Contains(y.MATRICULA_RESPONSAVEL)))
                     .First(x => x.ID_SUB_FILA == data.FILA_DTO.ID_SUB_FILA);
@@ -1511,7 +1512,7 @@ namespace Vivo_Apps_API.Controllers
                 };
 
                 await _cache.EvictByTagAsync("AllDemandas", default);
-                await _hubContext.SendTableDemandas();
+                Task.Run(() => _hubContext.SendTableDemandas());
                 await _hubContext.NewNotificationByUser(responsavel, demanda.ChamadoRelacao);
                 await _hubContext.NewNotificationByUser(int.Parse(data.MAT_SOLICITANTE), demanda.ChamadoRelacao);
 
@@ -1520,10 +1521,13 @@ namespace Vivo_Apps_API.Controllers
                 SendEmailModel email = new SendEmailModel( new string[]{ retorno.EMAIL,solicitante.EMAIL},null, $"Nova demanda N {demandaCompleta.Relacao.Sequence}",
                     $"Nova demanda aberta por {solicitante.DISPLAY_NOME}",
                     $"Uma demanda demanda do tipo {demandaCompleta.Fila.ID_TIPO_FILANavigation.NOME_TIPO_FILA} e sub-fila {demandaCompleta.Fila.NOME_SUB_FILA} acaba de ser criada" +
-                    $" com o responsável principal {retorno.DISPLAY_NOME}, o sla para esta fila é de {demandaCompleta.Fila.SLA} dias.",null,
+                    $" com o responsável principal {retorno.DISPLAY_NOME}, o sla para esta fila é de {demandaCompleta.Fila.SLA} dias.","<div></div>",
                     new string[] { "ne_automacao.br@telefonica.com" });
 
                 Task.Run(() => _service.SendEmail(email));
+                email.Footer = "<div></div>";
+                Task.Run(() => _service.SendTeams(email));
+
                 /*string jsonContent = JsonConvert.SerializeObject(new
                 {
                     matricula = demandaCompleta.Solicitante.MATRICULA,
@@ -2351,8 +2355,8 @@ namespace Vivo_Apps_API.Controllers
                     .Include(x => x.Relacao)
                         .ThenInclude(x => x.Respostas)
                             .ThenInclude(x => x.Responsavel)
-                                .ThenInclude(x => x.DemandasResponsavel)
-                                .Include(x => x.Relacao)
+                                .ThenInclude(x => x.DemandasResponsavel.Take(5))
+                        .Include(x => x.Relacao)
                         .ThenInclude(x => x.Respostas)
                             .ThenInclude(x => x.Status)
                                 .ThenInclude(x => x.Quem_redirecionou)

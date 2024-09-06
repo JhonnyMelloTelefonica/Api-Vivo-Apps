@@ -138,19 +138,18 @@ namespace Vivo_Apps_API.Controllers
         [HttpPost("UpdateAvatarImage")]
         [ProducesResponseType(typeof(bool), 200)]
         [ProducesResponseType(typeof(Exception), 500)]
-        public bool UpdateAvatarImage([FromBody] AvatarImageModel data)
+        public byte[] UpdateAvatarImage([FromBody] AvatarImageModel data)
         {
             try
             {
                 var user = CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == data.matricula);
                 user.UserAvatar = data.bytes;
                 CD.SaveChanges();
-
-                return true;
+                return user.UserAvatar;
             }
             catch (Exception ex)
             {
-                return false;
+                return new byte[0];
             }
         }
 

@@ -17,10 +17,13 @@ INSERÇÃO DE USUÁRIO NO VIVO +
 --)
 --insert into DEMANDA_BD_OPERADORES 
 select * from DEMANDA_SUB_FILA  where regional = 'MG' order by Nome_sub_fila asc
-
 select * from JORNADA_BD_QUESTION_HISTORICO WHERE TP_FORMS = 'Jornada' and CADERNO = 42
 
-select * from ACESSOS_MOBILE WHERE MATRICULA = 89082
+select UserAvatar from ACESSOS_MOBILE WHERE MATRICULA = 151191
+select * from ACESSO WHERE Login = '165372'
+select TOP 1 Imagem from Cardapio.PRODUTOS_CARDAPIO_IMAGENS 
+
+select * from CNS_BASE_TERCEIROS_SAP_GT
 
 select * from Demandas.DEMANDA_RELACAO_CHAMADO where ID_RELACAO = 'bfedf1b8-b320-4ffa-4bb4-08dcc8f06bcb'
 select * from Demandas.DEMANDA_CHAMADO where ID_RELACAO = 'bfedf1b8-b320-4ffa-4bb4-08dcc8f06bcb'
@@ -150,15 +153,15 @@ SELECT * from ACESSO WHERE Login = '143940'
 
 SELECT * from ACESSO_TERCEIROS where IdAcesso = '0'
 
-select * from ACESSO where Login = '89082'
+select * from ACESSO where Login = '160835'
 select * from ACESSO_PERMISSAO_MENU WHERE idAcesso = 'o'
 select * from ACESSO_PERMISSAO_MENU WHERE idAcesso = '1274'
 --update ACESSO_PERMISSAO_MENU 
 --SET DescricaoMenu = '', TipoAcesso = ''
 --WHERE idAcesso = '3953'
 
-Insert into ACESSO VALUES('160181','Jessica Luiza Josefa Camila da Silva','jessical.silva@telefonica.com','NE',null,null,'ATIVO',0)
-Insert into ACESSO_PERMISSAO_MENU VALUES ((SELECT IdAcesso from ACESSO WHERE Login = '160181'),  'GERENTE GERAL - LLPP','LOJA')
+Insert into ACESSO VALUES('160835','Kamilla Maria Castelo Branco Da Cruz','kamilla.cruz@telefonica.com','NE',null,null,'ATIVO',0)
+Insert into ACESSO_PERMISSAO_MENU VALUES ((SELECT IdAcesso from ACESSO WHERE Login = '160835'),  'GERENTE GERAL - LLPP','LOJA')
 
 --insert into CONTROLE_DE_DEMANDAS_RESPONSAVEL_FILA
 --select '162551',ID from CONTROLE_DE_DEMANDAS_FILA WHERE REGIONAL = 'MG' and FILA <> '-' and FILA NOT LIKE '%FILA DESATIVADA%'

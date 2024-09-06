@@ -227,7 +227,7 @@ namespace Vivo_Apps_API.Hubs
                             var datatotalanalistaacesso = datademandaanalistaacesso.UnionBy(dataacessoanalistaacesso, x => x.ID_RELACAO);
 
                             await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}").SendAsync("TableDemandas", datatotalanalistaacesso);
-                            await _context.Clients.Client(connectionId).SendAsync("TableDemandas", datatotalanalistaacesso);
+                            //await _context.Clients.Client(connectionId).SendAsync("TableDemandas", datatotalanalistaacesso);
                             break;
 
                         /** Consulta para gerente do suporte **/
