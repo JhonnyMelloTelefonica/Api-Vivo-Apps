@@ -20,8 +20,19 @@ select * from DEMANDA_SUB_FILA  where regional = 'MG' order by Nome_sub_fila asc
 select * from JORNADA_BD_QUESTION_HISTORICO WHERE TP_FORMS = 'Jornada' and CADERNO = 42
 
 select UserAvatar from ACESSOS_MOBILE WHERE MATRICULA = 151191
-select * from ACESSO WHERE Login = '165372'
-select TOP 1 Imagem from Cardapio.PRODUTOS_CARDAPIO_IMAGENS 
+
+select * from ACESSO WHERE Login = '118549'
+
+select * from CASO_NAO
+
+--insert into CASO_NAO
+--select B.Vendedor,'118549' from carteira_demais_canais_rede_colaborador A
+--LEFT JOIN ( SELECT * FROM CARTEIRA_NE WHERE ANOMES = (SELECT MAX(ANOMES) FROM CARTEIRA_NE)) B
+--ON A.REDE = b.REDE 
+--where b.Vendedor IS NOT NULL
+
+
+select TOP 1 Imagem from Cardapio.PRODUTOS_CARDAPIO_IMAGENS
 
 select * from CNS_BASE_TERCEIROS_SAP_GT
 

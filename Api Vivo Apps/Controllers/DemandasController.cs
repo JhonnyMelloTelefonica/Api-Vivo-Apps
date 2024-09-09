@@ -84,10 +84,16 @@ namespace Vivo_Apps_API.Controllers
                     dest => dest.Responsaveis,
                     opt => opt.MapFrom(src => Demanda_BD.ACESSOS_MOBILE.Where(y =>
                         Demanda_BD.DEMANDA_RESPONSAVEL_FILA
+                                .Where(x=> 
+                                    Demanda_BD.DEMANDA_BD_OPERADORES
+                                    .Where(y=> y.STATUS == true)
+                                    .Select(y=> y.MATRICULA)
+                                    .Contains(x.MATRICULA_RESPONSAVEL))
                                 .Where(x => x.ID_SUB_FILA == src.ID_SUB_FILA)
                                 .Select(x => x.MATRICULA_RESPONSAVEL)
                                 .Distinct()
-                                .Contains(y.MATRICULA)))
+                                .Contains(y.MATRICULA))
+                        )
                     );
                 cfg.CreateMap<DEMANDA_CAMPOS_FILA, DEMANDA_CAMPOS_FILA_DTO>();
 
@@ -1406,6 +1412,7 @@ namespace Vivo_Apps_API.Controllers
                 {
                     responsavel = fila.DEMANDA_RESPONSAVEL_FILAs.First().MATRICULA_RESPONSAVEL.Value;
                 }
+
                 var demanda = new DEMANDA_RELACAO_CHAMADO
                 {
                     Sequence = Demanda_BD.DEMANDA_RELACAO_CHAMADO.Count() + 1,
@@ -2215,7 +2222,7 @@ namespace Vivo_Apps_API.Controllers
                 //    .Distinct().AsEnumerable();
 
                 var matanalistas = CD.DEMANDA_BD_OPERADOREs
-                    .Where(x => x.REGIONAL == regional)
+                    .Where(x => x.REGIONAL == regional && x.STATUS == true)
                     .Select(x => x.MATRICULA).ToArray()
                     .Distinct();
 
