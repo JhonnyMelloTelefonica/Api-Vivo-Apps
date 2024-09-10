@@ -1,5 +1,5 @@
 using AutoMapper;
-using Shared_Class_Vivo_Apps.Services;
+using Shared_Razor_Components.Services;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.SignalR;
@@ -165,90 +165,7 @@ app.UseEndpoints(endpoints =>
 });
 
 //app.Services.GetRequiredService<TableDependencyService>();
-
-app.MapGet("/AnalistaSuporte/Get/IsSuporte={IsSuporte}/IsAcessoLogico={IsAcessoLogico}/SubFila={SubFila}/regional={regional}/matricula={matricula}"
-    , async Task<Results<Ok<IEnumerable<ACESSOS_MOBILE_DTO>>, BadRequest<Exception>>> ([FromRoute] bool IsSuporte,
-     [FromRoute] bool IsAcessoLogico,
-     [FromRoute] int SubFila,
-     [FromRoute] string regional,
-     [FromRoute] int matricula,
-     [FromServices] Vivo_MaisContext CD) => 
-{
-    IMapper _mapper;
-    var config = new MapperConfiguration(cfg =>
-    {
-        cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_DTO>()
-        .ForMember(
-            dest => dest.CARGO,
-            opt => opt.MapFrom(src => (Cargos)src.CARGO)
-            )
-        .ForMember(
-            dest => dest.CANAL,
-            opt => opt.MapFrom(src => (Canal)src.CANAL)
-            )
-        .ForMember(
-            dest => dest.DemandasResponsavel,
-            opt => opt.MapFrom(src => src.DemandasResponsavel.AsEnumerable())
-            );
-    });
-    _mapper = config.CreateMapper();
-
-    try
-    {
-        IQueryable<ACESSOS_MOBILE> query = null;
-        if (IsSuporte)
-        // Caso sim filtra por todos os analistas da regional
-        {
-            var matanalistas = CD.DEMANDA_BD_OPERADOREs
-                .Where(x => x.REGIONAL == regional)
-                .Select(x => x.MATRICULA).ToArray()
-                .Distinct();
-
-            query = CD.ACESSOS_MOBILEs
-                .Where(x => matanalistas.Contains(x.MATRICULA));
-
-            if (SubFila != 0)
-            // Caso sim filtra pela fila 
-            {
-                var filter_by_filas = CD.DEMANDA_RESPONSAVEL_FILAs
-                    .Where(x => x.ID_SUB_FILA == SubFila);
-
-                query = query.Where(x => filter_by_filas.Select(x => x.MATRICULA_RESPONSAVEL).Contains(x.MATRICULA));
-            }
-        }
-        else
-        {
-            if (IsAcessoLogico)
-            {
-                query = CD.ACESSOS_MOBILEs
-                    .Where(x => x.REGIONAL == regional)
-                    .Where(x => CD.PERFIL_USUARIOs
-                                    .Where(y => y.id_Perfil == 15)
-                                    .Select(y => y.MATRICULA)
-                                    .Contains(x.MATRICULA))
-                    .Distinct();
-
-
-            }
-        }
-
-        var saida = query
-        .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
-        .AsEnumerable();
-        //var demandas = Demanda_BD.DEMANDA_RELACAO_CHAMADO.ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider).ToList();
-
-        var options = new JsonSerializerOptions
-        {
-            ReferenceHandler = ReferenceHandler.IgnoreCycles
-        };
-
-        return TypedResults.Ok(saida);
-    }
-    catch (Exception ex)
-    {
-        return TypedResults.BadRequest(ex);
-    }
-}).CacheOutput(x => x.Expire(TimeSpan.FromMinutes(1))).WithTags("analistas-suporte");
+await app.Services.GetRequiredService<ISuporteDemandaHub>().GetAllAsync(null);
 
 app.Run();
 

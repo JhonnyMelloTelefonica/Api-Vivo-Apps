@@ -7,7 +7,7 @@ using Shared_Static_Class.DB_Context_Vivo_MAIS;
 using Shared_Static_Class.Enums;
 using Shared_Static_Class.Converters;
 using Shared_Static_Class.Model_DTO;
-using Shared_Static_Class.Models;
+using Shared_Razor_Components.FundamentalModels;
 using System;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;

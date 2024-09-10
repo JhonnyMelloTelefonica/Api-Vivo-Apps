@@ -6,7 +6,7 @@ using Shared_Static_Class.Enums;
 using Vivo_Apps_API.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using Shared_Static_Class.DB_Context_Vivo_MAIS;
-using Shared_Static_Class.Models;
+using Shared_Razor_Components.FundamentalModels;
 using Shared_Static_Class.Converters;
 
 namespace Vivo_Apps_API.Controllers

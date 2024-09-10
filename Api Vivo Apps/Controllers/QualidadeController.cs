@@ -21,7 +21,7 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using System.Linq;
 using Microsoft.AspNetCore.StaticFiles;
 using static Vivo_Apps_API.Models.Converters.Converters;
-using Shared_Static_Class.Models;
+using Shared_Razor_Components.FundamentalModels;
 
 
 namespace Vivo_Apps_API.Controllers

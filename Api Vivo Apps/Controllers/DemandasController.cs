@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Vivo_Apps_API.Models;
 using Vivo_Apps_API.Hubs;
-using Shared_Class_Vivo_Apps.Services;
+using Shared_Razor_Components.Services;
 using Microsoft.AspNetCore.Mvc;
 using Shared_Static_Class.Data;
 using Shared_Static_Class.Model_DTO;
@@ -15,7 +15,7 @@ using System.Drawing;
 using Shared_Static_Class.Enums;
 using System.Data;
 using Shared_Static_Class.DB_Context_Vivo_MAIS;
-using Shared_Static_Class.Models;
+
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Collections.Generic;
 using System.IO.Compression;
@@ -41,6 +41,7 @@ using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
 using System.Runtime.InteropServices;
 using DocumentFormat.OpenXml.Drawing.Charts;
+using Shared_Razor_Components.FundamentalModels;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -84,10 +85,10 @@ namespace Vivo_Apps_API.Controllers
                     dest => dest.Responsaveis,
                     opt => opt.MapFrom(src => Demanda_BD.ACESSOS_MOBILE.Where(y =>
                         Demanda_BD.DEMANDA_RESPONSAVEL_FILA
-                                .Where(x=> 
+                                .Where(x =>
                                     Demanda_BD.DEMANDA_BD_OPERADORES
-                                    .Where(y=> y.STATUS == true)
-                                    .Select(y=> y.MATRICULA)
+                                    .Where(y => y.STATUS == true)
+                                    .Select(y => y.MATRICULA)
                                     .Contains(x.MATRICULA_RESPONSAVEL))
                                 .Where(x => x.ID_SUB_FILA == src.ID_SUB_FILA)
                                 .Select(x => x.MATRICULA_RESPONSAVEL)
@@ -1389,11 +1390,11 @@ namespace Vivo_Apps_API.Controllers
         public async Task<JsonResult> AbrirDemanda([FromBody] DEMANDAS_FILA data)
         {
             try
-            { 
+            {
                 /* Necessário o ToList() para que os dois contextos do banco não tent<em executar consultas juntos e gerem erro */
                 var opera_disp = CD.DEMANDA_BD_OPERADOREs.Where(x => x.STATUS == true && x.REGIONAL == data.REGIONAL).Select(x => x.MATRICULA).ToList();
 
-                var fila = Demanda_BD.DEMANDA_SUB_FILA.Include(x => x.DEMANDA_RESPONSAVEL_FILAs.Where(y=> opera_disp.Contains(y.MATRICULA_RESPONSAVEL)))
+                var fila = Demanda_BD.DEMANDA_SUB_FILA.Include(x => x.DEMANDA_RESPONSAVEL_FILAs.Where(y => opera_disp.Contains(y.MATRICULA_RESPONSAVEL)))
                     .First(x => x.ID_SUB_FILA == data.FILA_DTO.ID_SUB_FILA);
                 int responsavel;
 
@@ -1525,10 +1526,10 @@ namespace Vivo_Apps_API.Controllers
 
                 var demandaCompleta = GetDemandaByID(demanda.ChamadoRelacao.ID);
 
-                SendEmailModel email = new SendEmailModel( new string[]{ retorno.EMAIL,solicitante.EMAIL},null, $"Nova demanda N {demandaCompleta.Relacao.Sequence}",
+                SendEmailModel email = new SendEmailModel(new string[] { retorno.EMAIL, solicitante.EMAIL }, null, $"Nova demanda N {demandaCompleta.Relacao.Sequence}",
                     $"Nova demanda aberta por {solicitante.DISPLAY_NOME}",
                     $"Uma demanda demanda do tipo {demandaCompleta.Fila.ID_TIPO_FILANavigation.NOME_TIPO_FILA} e sub-fila {demandaCompleta.Fila.NOME_SUB_FILA} acaba de ser criada" +
-                    $" com o responsável principal {retorno.DISPLAY_NOME}, o sla para esta fila é de {demandaCompleta.Fila.SLA} dias.","<div></div>",
+                    $" com o responsável principal {retorno.DISPLAY_NOME}, o sla para esta fila é de {demandaCompleta.Fila.SLA} dias.", "<div></div>",
                     new string[] { "ne_automacao.br@telefonica.com" });
 
                 Task.Run(() => _service.SendEmail(email));
@@ -2276,10 +2277,12 @@ namespace Vivo_Apps_API.Controllers
         }
 
         [HttpGet("GetAllIndexChamado")]
-        public IEnumerable<DEMANDA_DTO> GetAllIndexChamado(int MATRICULA, Controle_Demanda_role role, string regional)
+        public async Task<IActionResult> GetAllIndexChamado(int MATRICULA, Controle_Demanda_role role, string regional)
         {
             try
             {
+                IEnumerable<DEMANDA_DTO> data = new DEMANDA_DTO[0];
+
                 /*** Sempre utilizamos apenas os chamados do último ano ***/
                 var dataBeforeFilter = Demanda_BD.DEMANDA_RELACAO_CHAMADO
                    .Where(x => x.Respostas.First().DATA_RESPOSTA >= DateTime.Now.AddYears(-1)
@@ -2295,15 +2298,15 @@ namespace Vivo_Apps_API.Controllers
                 var dataresp = dataBeforeFilter
                     .Where(x => x.MATRICULA_SOLICITANTE == MATRICULA)
                     .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider)
-                    .ToList();
+                    .Take(20).ToList();
 
-                var data = dataresp.UnionBy(first20, x => x.ID_RELACAO);
+                data = dataresp.UnionBy(first20, x => x.ID_RELACAO);
 
-                return data.Take(40);
+                return Ok(data);
             }
             catch (Exception ex)
             {
-                return [];
+                return BadRequest(new DEMANDA_DTO[0]);
             }
         }
 

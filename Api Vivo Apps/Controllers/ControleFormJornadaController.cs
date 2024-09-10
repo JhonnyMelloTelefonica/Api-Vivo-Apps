@@ -20,11 +20,12 @@ using AutoMapper.QueryableExtensions;
 using Shared_Static_Class.Converters;
 using Shared_Static_Class.DB_Context_Vivo_MAIS;
 using static Vivo_Apps_API.Models.Converters.Converters;
-using Shared_Static_Class.Models;
+
 using Shared_Class_Vivo_Apps.ModelDTO;
 using Microsoft.Extensions.Caching.Distributed;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using Blazorise;
+using Shared_Razor_Components.FundamentalModels;
 
 namespace Vivo_Apps_API.Controllers
 {

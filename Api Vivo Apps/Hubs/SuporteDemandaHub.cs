@@ -23,11 +23,15 @@ using Microsoft.AspNetCore.OutputCaching;
 using Azure.Core;
 using Microsoft.AspNetCore.Http;
 using System.Security.Policy;
+using BootstrapBlazor.Components;
+using DocumentFormat.OpenXml.InkML;
+using System.Diagnostics;
 
 namespace Vivo_Apps_API.Hubs
 {
     public interface ISuporteDemandaHub
     {
+        Task GetAllAsync(int? matricula = null);
         Task GetTable(string? connectionId = null);
         Task NewNotification(string senderName, string title, string message, string link, string regional);
         Task NewNotificationByUser(int matricula, DEMANDA_CHAMADO content);
@@ -138,20 +142,30 @@ namespace Vivo_Apps_API.Hubs
         //    var scheme = request.Host.Host.Contains("localhost") ? request.Scheme : "https";
         //    return $"{scheme}://{request.Host}{request.PathBase}";
         //}
-        protected async Task GetAllAsync(int? matricula = null)
+
+        public async Task GetAllAsync(int? matricula = null)
         {
-            var response = await _client.GetAsync((!_envirionment.IsDevelopment() ? api_host_production : api_host_dev) + "api/Demandas/GetAllChamados");
-            if (response.IsSuccessStatusCode)
+            try
             {
-                response.EnsureSuccessStatusCode();
-                var responseString = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
-                var listAnalistas = JsonConvert.DeserializeObject<IEnumerable<DEMANDA_DTO>>(responseString);
-                if (listAnalistas != null)
-                {
-                    data = listAnalistas;
-                    await Task.CompletedTask;
-                }
+                /*** Sempre utilizamos apenas os chamados do último ano ***/
+                var dataBeforeFilter = Demanda_BD.DEMANDA_RELACAO_CHAMADO
+                    .Where(x => x.Respostas.First().DATA_RESPOSTA >= DateTime.Now.AddYears(-1)
+                        && x.Respostas.First().DATA_RESPOSTA <= DateTime.Now)
+                    .AsNoTracking();
+
+                var saida = dataBeforeFilter
+                    .Include(x => x.AcessoRelacao)
+                    .Include(x => x.ChamadoRelacao)
+                    .Include(x => x.DesligamentoRelacao)
+                    .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider);
+
+                data = saida;
             }
+            catch (Exception ex)
+            {
+                data = [];
+            }
+
             await Task.CompletedTask;
         }
 
@@ -178,67 +192,74 @@ namespace Vivo_Apps_API.Hubs
         /** Neste método é onde enviamos para cada usuário online os novos valores da tabela  **/
         public async Task GetTable(string? connectionId = null)
         {
-            if (connectionId != null)
+            try
             {
-                CurrentUsers.TryGetValue(connectionId, out var user);
-                if (user != null)
+                if (connectionId != null)
                 {
-                    switch (user.role)
+                    CurrentUsers.TryGetValue(connectionId, out var user);
+                    if (user != null)
                     {
-                        /** Consulta para usuários básicos **/
-                        case Controle_Demanda_role.BASICO:
+                        switch (user.role)
+                        {
+                            /** Consulta para usuários básicos **/
+                            case Controle_Demanda_role.BASICO:
 
-                            var first20 = data.Where(x => x.REGIONAL == user.REGIONAL)
-                                .OrderByDescending(x => x.PRIORIDADE)
-                                .ThenByDescending(x => x.PRIORIDADE_SEGMENTO)
-                                .ThenBy(x => x.Sequence).Take(20);
+                                var first20 = data.Where(x => x.REGIONAL == user.REGIONAL)
+                                    .OrderByDescending(x => x.PRIORIDADE)
+                                    .ThenByDescending(x => x.PRIORIDADE_SEGMENTO)
+                                    .ThenBy(x => x.Sequence).Take(20);
 
-                            var dataresp = data.Where(x => x.MATRICULA_SOLICITANTE == user.MATRICULA && x.REGIONAL == user.REGIONAL);
+                                var dataresp = data.Where(x => x.MATRICULA_SOLICITANTE == user.MATRICULA && x.REGIONAL == user.REGIONAL);
 
-                            var datatotalbasico = dataresp.UnionBy(first20, x => x.ID_RELACAO);
+                                var datatotalbasico = dataresp.UnionBy(first20, x => x.ID_RELACAO);
 
-                            //await _context.Clients.Client(connectionId)
-                            //    .SendAsync("TableDemandas", datatotalbasico);
-                            await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}")
-                                .SendAsync("TableDemandas", datatotalbasico);
-                            break;
+                                //await _context.Clients.Client(connectionId)
+                                //    .SendAsync("TableDemandas", datatotalbasico);
+                                await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}")
+                                    .SendAsync("TableDemandas", datatotalbasico);
+                                break;
 
-                        /** Consulta para analistas do suporte que não tratam solicitação de acessos terceiro **/
-                        case Controle_Demanda_role.ANALISTA:
+                            /** Consulta para analistas do suporte que não tratam solicitação de acessos terceiro **/
+                            case Controle_Demanda_role.ANALISTA:
 
-                            var list_ids = Demanda_BD.DEMANDA_RESPONSAVEL_FILA.Where(x => x.MATRICULA_RESPONSAVEL == user.MATRICULA).Select(x => x.ID_SUB_FILA);
+                                var list_ids = Demanda_BD.DEMANDA_RESPONSAVEL_FILA.Where(x => x.MATRICULA_RESPONSAVEL == user.MATRICULA).Select(x => x.ID_SUB_FILA);
 
-                            await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}")
-                                .SendAsync("TableDemandas",
-                                data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
-                                && x.ChamadoRelacao != null && list_ids.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA) && x.REGIONAL == user.REGIONAL));
-                            break;
+                                await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}")
+                                    .SendAsync("TableDemandas",
+                                    data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
+                                    && x.ChamadoRelacao != null && list_ids.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA) && x.REGIONAL == user.REGIONAL));
+                                break;
 
-                        /** Consulta para analistas do suporte que tratam solicitação de acessos terceiro **/
-                        case Controle_Demanda_role.ANALISTA_ACESSO:
+                            /** Consulta para analistas do suporte que tratam solicitação de acessos terceiro **/
+                            case Controle_Demanda_role.ANALISTA_ACESSO:
 
-                            var list_ids_user = Demanda_BD.DEMANDA_RESPONSAVEL_FILA.Where(x => x.MATRICULA_RESPONSAVEL == user.MATRICULA).Select(x => x.ID_SUB_FILA);
+                                var list_ids_user = Demanda_BD.DEMANDA_RESPONSAVEL_FILA.Where(x => x.MATRICULA_RESPONSAVEL == user.MATRICULA).Select(x => x.ID_SUB_FILA);
 
-                            var datademandaanalistaacesso = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
-                                && x.ChamadoRelacao != null && list_ids_user.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA) && x.REGIONAL == user.REGIONAL);
+                                var datademandaanalistaacesso = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
+                                    && x.ChamadoRelacao != null && list_ids_user.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA) && x.REGIONAL == user.REGIONAL);
 
-                            var dataacessoanalistaacesso = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.AcessoRelacao);
+                                var dataacessoanalistaacesso = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.AcessoRelacao);
 
-                            var datatotalanalistaacesso = datademandaanalistaacesso.UnionBy(dataacessoanalistaacesso, x => x.ID_RELACAO);
+                                var datatotalanalistaacesso = datademandaanalistaacesso.UnionBy(dataacessoanalistaacesso, x => x.ID_RELACAO);
 
-                            await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}").SendAsync("TableDemandas", datatotalanalistaacesso);
-                            //await _context.Clients.Client(connectionId).SendAsync("TableDemandas", datatotalanalistaacesso);
-                            break;
+                                await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}").SendAsync("TableDemandas", datatotalanalistaacesso);
+                                //await _context.Clients.Client(connectionId).SendAsync("TableDemandas", datatotalanalistaacesso);
+                                break;
 
-                        /** Consulta para gerente do suporte **/
-                        case Controle_Demanda_role.GERENTE:
+                            /** Consulta para gerente do suporte **/
+                            case Controle_Demanda_role.GERENTE:
 
-                            //await _context.Clients.Group($"{user.REGIONAL}-{(int)user.role}").SendAsync("TableDemandas", data.Where(x => x.REGIONAL == user.REGIONAL));
-                            await _context.Clients.Client(connectionId).SendAsync("TableDemandas", data.Where(x => x.REGIONAL == user.REGIONAL));
-                            break;
+                                await _context.Clients.Client(connectionId).SendAsync("TableDemandas", data.Where(x => x.REGIONAL == user.REGIONAL));
+                                break;
+                        }
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                Debug.Write(ex.ToString());
+            }
+
         }
 
         public async Task UpdateDemanda(DEMANDAS_CHAMADO_DTO data)
@@ -313,60 +334,52 @@ namespace Vivo_Apps_API.Hubs
 
         public override async Task OnConnectedAsync()
         {
-            try
+            var matricula = Context?.GetHttpContext()?.GetRouteValue("matricula") as string;
+
+            if (matricula != string.Empty)
             {
-                var matricula = Context?.GetHttpContext()?.GetRouteValue("matricula") as string;
+                var saida = Demanda_BD.ACESSOS_MOBILE
+                    .Include(x => x.DemandasResponsavel)
+                    .First(x => x.MATRICULA == int.Parse(matricula));
 
-                if (matricula != string.Empty)
+                var user = _mapper.Map<ACESSOS_MOBILE_DTO>(saida);
+
+                var demandaid = Context?.GetHttpContext()?.GetRouteValue("demandaid") as string;
+
+                if (demandaid != string.Empty && demandaid != null)
                 {
-                    var saida = Demanda_BD.ACESSOS_MOBILE
-                        .Include(x => x.DemandasResponsavel)
-                        .First(x => x.MATRICULA == int.Parse(matricula));
-
-                    var user = _mapper.Map<ACESSOS_MOBILE_DTO>(saida);
-
-
-                    var demandaid = Context?.GetHttpContext()?.GetRouteValue("demandaid") as string;
-
-                    if (demandaid != string.Empty && demandaid != null)
+                    await Groups.AddToGroupAsync(Context?.ConnectionId, $"{demandaid}");
+                }
+                else
+                {
+                    var regional = Context?.GetHttpContext()?.GetRouteValue("regional") as string;
+                    var rolestring = Context?.GetHttpContext()?.GetRouteValue("role") as string;
+                    if (rolestring != string.Empty && regional != string.Empty)
                     {
-                        await Groups.AddToGroupAsync(Context?.ConnectionId, $"{demandaid}");
-                    }
-                    else
-                    {
-
-                        var regional = Context?.GetHttpContext()?.GetRouteValue("regional") as string;
-                        var rolestring = Context?.GetHttpContext()?.GetRouteValue("role") as string;
-                        if (rolestring != string.Empty && regional != string.Empty)
+                        var role = (Controle_Demanda_role)int.Parse(rolestring);
+                        user.role = role;
+                        if (user.role != Controle_Demanda_role.BASICO)
                         {
-                            var role = (Controle_Demanda_role)int.Parse(rolestring);
-                            user.role = role;
-                            if (user.role != Controle_Demanda_role.BASICO)
-                            {
-                                await Groups.AddToGroupAsync(Context?.ConnectionId, $"{regional}-{rolestring}");
-                            }
+                            await Groups.AddToGroupAsync(Context?.ConnectionId, $"{regional}-{rolestring}");
                         }
                     }
-
-                    CurrentUsers.Add(Context?.ConnectionId, user);
                 }
-                if (data is null || !data.Any())
-                    await SendTableDemandas(null);
 
-                await _context.Clients.All.SendAsync("CurrentUsers", CurrentUsers);
-
-                await base.OnConnectedAsync();
+                CurrentUsers.Add(Context?.ConnectionId, user);
             }
-            catch (Exception ex)
-            {
 
-            }
+            //if (data is null || !data.Any())
+            //    await SendTableDemandas(null);
+
+            //await _context.Clients.All.SendAsync("CurrentUsers", CurrentUsers);
+
+            await base.OnConnectedAsync();
         }
         public override async Task OnDisconnectedAsync(Exception exception)
         {
             CurrentUsers.Remove(Context.ConnectionId);
             await _context.Groups.RemoveFromGroupAsync(Context?.ConnectionId, "NE");
-            await _context.Clients.All.SendAsync("CurrentUsers", CurrentUsers);
+            //await _context.Clients.All.SendAsync("CurrentUsers", CurrentUsers);
             await base.OnDisconnectedAsync(exception);
         }
 

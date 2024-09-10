@@ -12,13 +12,14 @@ using Shared_Static_Class.Enums;
 using Shared_Static_Class.DB_Context_Vivo_MAIS;
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
-using Shared_Static_Class.Models;
+
 using Shared_Static_Class.Converters;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Drawing;
 using NuGet.Versioning;
 using Microsoft.AspNetCore.OutputCaching;
+using Shared_Razor_Components.FundamentalModels;
 
 namespace Vivo_Apps_API.Controllers
 {

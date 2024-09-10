@@ -7,7 +7,7 @@ using Shared_Static_Class.Converters;
 using Shared_Static_Class.Enums;
 using System.Linq;
 using Shared_Static_Class.DB_Context_Vivo_MAIS;
-using Shared_Static_Class.Models;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.StaticFiles;
 using static Vivo_Apps_API.Models.Converters.Converters;
@@ -18,6 +18,7 @@ using System.Text.Json.Serialization;
 using System.Text.Json;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using System.Drawing;
+using Shared_Razor_Components.FundamentalModels;
 
 
 namespace Vivo_Apps_API.Controllers

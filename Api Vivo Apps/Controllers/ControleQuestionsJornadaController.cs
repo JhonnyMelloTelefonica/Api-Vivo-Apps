@@ -3,6 +3,7 @@ using System.Data;
 using System.Text;
 using Vivo_Apps_API.Models;
 using Shared_Static_Class.Data;
+using Shared_Razor_Components.FundamentalModels;
 using System.Drawing;
 using Newtonsoft.Json;
 using Shared_Static_Class.Enums;
@@ -12,7 +13,7 @@ using System.Linq;
 using Shared_Static_Class.DB_Context_Vivo_MAIS;
 using static Shared_Static_Class.Model_DTO.JORNADA_DTO;
 using static Vivo_Apps_API.Models.Converters.Converters;
-using Shared_Static_Class.Models;
+
 using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Shared_Static_Class.Model_DTO;

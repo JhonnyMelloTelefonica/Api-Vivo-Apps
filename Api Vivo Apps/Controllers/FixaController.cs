@@ -9,7 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ApiController = System.Web.Http.ApiController;
 using Shared_Static_Class.DB_Context_Vivo_MAIS;
-using Shared_Static_Class.Models;
+using Shared_Razor_Components.FundamentalModels;
 
 namespace Vivo_Apps_API.Controllers
 {

@@ -46,17 +46,17 @@
 		<PackageReference Include="AutoMapper" Version="13.0.1" />
 		<PackageReference Include="BlazorDownloadFile" Version="2.4.0.2" />
 		<PackageReference Include="Blazored.TextEditor" Version="1.1.0" />
-		<PackageReference Include="Blazorise.Bootstrap" Version="1.5.1" />
-		<PackageReference Include="Blazorise.LoadingIndicator" Version="1.5.1" />
+		<PackageReference Include="Blazorise.Bootstrap" Version="1.6.1" />
+		<PackageReference Include="Blazorise.LoadingIndicator" Version="1.6.1" />
 		<PackageReference Include="CoreHtmlToImage" Version="1.0.6" />
-		<PackageReference Include="CurrieTechnologies.Razor.SweetAlert2" Version="5.5.0" />
-		<PackageReference Include="DocumentFormat.OpenXml" Version="3.0.0" />
-		<PackageReference Include="EfCore.SchemaCompare" Version="8.0.1" />
-		<PackageReference Include="EPPlus" Version="7.0.6" />
-		<PackageReference Include="HtmlAgilityPack" Version="1.11.57" />
+		<PackageReference Include="CurrieTechnologies.Razor.SweetAlert2" Version="5.6.0" />
+		<PackageReference Include="DocumentFormat.OpenXml" Version="3.1.0" />
+		<PackageReference Include="EfCore.SchemaCompare" Version="8.0.4" />
+		<PackageReference Include="EPPlus" Version="7.3.1" />
+		<PackageReference Include="HtmlAgilityPack" Version="1.11.65" />
 		<PackageReference Include="Microsoft.AspNet.WebApi" Version="5.3.0" />
-		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.5" />
-		<PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="8.0.4" />
+		<PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="8.0.8" />
+		<PackageReference Include="Microsoft.AspNetCore.SignalR.Common" Version="8.0.8" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.8" />
 		<PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.8">
 			<IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -70,18 +70,18 @@
 			<TreatAsUsed>true</TreatAsUsed>
 		</PackageReference>
 		<PackageReference Include="Microsoft.Extensions.Caching.SqlServer" Version="8.0.8" />
-		<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.4" />
-		<PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="4.7.2" />
+		<PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.8" />
+		<PackageReference Include="Microsoft.FluentUI.AspNetCore.Components" Version="4.10.0" />
 		<PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="8.0.4" />
 		<PackageReference Include="MicrosoftOfficeCore" Version="15.0.0" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3">
 			<TreatAsUsed>true</TreatAsUsed>
 		</PackageReference>
-		<PackageReference Include="Radzen.Blazor" Version="4.24.0" />
+		<PackageReference Include="Radzen.Blazor" Version="5.1.10" />
 		<PackageReference Include="SqlTableDependency" Version="8.5.8" />
-		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
+		<PackageReference Include="Swashbuckle.AspNetCore" Version="6.7.3" />
 		<PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
-		<PackageReference Include="Z.EntityFramework.Extensions.EFCore" Version="8.102.2.2" />
+		<PackageReference Include="Z.EntityFramework.Extensions.EFCore" Version="8.103.3" />
 		<PublishFile Include="FilesTemplates" />
 	</ItemGroup>
 
@@ -102,6 +102,7 @@
 
 	<ItemGroup>
 	  <!--<ProjectReference Include="..\..\..\source\repos\Vivo Apps\Vivo Apps.ServiceDefaults\Vivo Apps.ServiceDefaults.csproj" />-->
+	  <ProjectReference Include="..\..\Shared_Razor_Components\Shared_Razor_Components.csproj" />
 	  <ProjectReference Include="..\..\Shared_Static_Class\Shared_Static_Class.csproj" />
 	</ItemGroup>
 
@@ -122,6 +123,4 @@
 	    <CopyAlways>true</CopyAlways>
 	  </Content>
 	</ItemGroup>
-
-	<Import Project="..\..\Shared_Class_Vivo_Apps\Shared_Class_Vivo_Apps.projitems" Label="Shared" />
 </Project>

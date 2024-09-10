@@ -6,7 +6,7 @@ using Microsoft.Extensions.Caching.Distributed;
 using Shared_Static_Class.Converters;
 using Shared_Static_Class.Data;
 using Shared_Static_Class.DB_Context_Vivo_MAIS;
-using Shared_Static_Class.Models;
+using Shared_Razor_Components.FundamentalModels;
 using Vivo_Apps_API.Hubs;
 using Path = System.IO.Path;
 using System.Data;
@@ -36,7 +36,7 @@ using DocumentFormat.OpenXml.Drawing.ChartDrawing;
 using System.Globalization;
 using DocumentFormat.OpenXml.ExtendedProperties;
 using System.Drawing;
-using Shared_Class_Vivo_Apps.Services;
+using Shared_Razor_Components.Services;
 
 
 namespace Vivo_Apps_API.Controllers

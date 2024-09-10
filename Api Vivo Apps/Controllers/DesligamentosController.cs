@@ -11,7 +11,7 @@ using Pipelines.Sockets.Unofficial.Arenas;
 using Shared_Static_Class.Converters;
 using Shared_Static_Class.Data;
 using Shared_Static_Class.DB_Context_Vivo_MAIS;
-using Shared_Static_Class.Models;
+using Shared_Razor_Components.FundamentalModels;
 using System;
 using System.Drawing;
 using System.Runtime.ConstrainedExecution;
@@ -32,7 +32,7 @@ using DocumentFormat.OpenXml.ExtendedProperties;
 using Microsoft.AspNetCore.StaticFiles;
 using AutoMapper;
 using Microsoft.AspNetCore.OutputCaching;
-using Shared_Class_Vivo_Apps.Services;
+using Shared_Razor_Components.Services;
 using Shared_Static_Class.Model_DTO;
 using AutoMapper.QueryableExtensions;
 
