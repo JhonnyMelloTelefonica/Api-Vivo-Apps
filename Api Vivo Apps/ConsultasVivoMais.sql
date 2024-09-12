@@ -16,12 +16,22 @@ INSERÇÃO DE USUÁRIO NO VIVO +
 --select DISTINCT(MATRICULA) from DEMANDA_BD_OPERADORES 
 --)
 --insert into DEMANDA_BD_OPERADORES 
+
 select * from DEMANDA_SUB_FILA  where regional = 'MG' order by Nome_sub_fila asc
 select * from JORNADA_BD_QUESTION_HISTORICO WHERE TP_FORMS = 'Jornada' and CADERNO = 42
+
+select SLA * 24 from DEMANDA_SUB_FILA
+--UPDATE DEMANDA_SUB_FILA SET SLA = SLA * 24
 
 select UserAvatar from ACESSOS_MOBILE WHERE MATRICULA = 151191
 
 select * from ACESSO WHERE Login = '118549'
+
+select * from ACESSOS_MOBILE  WHERE MATRICULA = 165088
+
+--insert into PERFIL_USUARIO 
+
+--select 165088,id_perfil, DT_MOD,LOGIN_MOD from PERFIL_USUARIO WHERE MATRICULA = 151191
 
 select * from CASO_NAO
 

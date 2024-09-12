@@ -26,6 +26,9 @@ using System.Security.Policy;
 using BootstrapBlazor.Components;
 using DocumentFormat.OpenXml.InkML;
 using System.Diagnostics;
+using DocumentFormat.OpenXml.Office2010.Excel;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
+using KGySoft.CoreLibraries;
 
 namespace Vivo_Apps_API.Hubs
 {
@@ -41,6 +44,7 @@ namespace Vivo_Apps_API.Hubs
          * Caso seja passado o paramêtro de alguma matrícula, o HUB apenas notifica a matrícula em questão se ela estiver conectada 
         **/
         Task UpdateDemanda(DEMANDAS_CHAMADO_DTO data);
+        Task NewDemanda(Guid id);
         Task UpdateStatusChamado(DEMANDA_RELACAO_CHAMADO macro);
     }
 
@@ -71,9 +75,6 @@ namespace Vivo_Apps_API.Hubs
             _context = context;
             var config = new MapperConfiguration(cfg =>
             {
-                cfg.CreateMap<DEMANDA_RELACAO_CHAMADO, DEMANDA_DTO>();
-                cfg.CreateMap<DEMANDA_CHAMADO, PAINEL_DEMANDAS_CHAMADO_DTO>();
-
                 cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_DTO>()
                 .ForMember(
                     dest => dest.CARGO,
@@ -88,6 +89,14 @@ namespace Vivo_Apps_API.Hubs
                     opt => opt.MapFrom(src => Demanda_BD.PERFIL_USUARIO.Where(x => x.MATRICULA == src.MATRICULA))
                     );
 
+                cfg.CreateMap<DEMANDA_RELACAO_CHAMADO, DEMANDA_DTO>()
+                   .ForMember(x => x.Respostas, opt => opt.Ignore())
+                   .ForMember(x => x.Status, opt => opt.Ignore());
+
+                cfg.CreateMap<DEMANDA_CHAMADO, PAINEL_DEMANDAS_CHAMADO_DTO>();
+                cfg.CreateMap<DEMANDA_ACESSOS, DEMANDA_ACESSOS_PAINEL>();
+                cfg.CreateMap<DEMANDA_DESLIGAMENTOS, DEMANDA_DESLIGAMENTOS_PAINEL>();
+
                 cfg.CreateMap<DEMANDA_TIPO_FILA, DEMANDA_TIPO_FILA_DTO>();
                 cfg.CreateMap<DEMANDA_SUB_FILA, PAINEL_DEMANDA_SUB_FILA_DTO>();
                 cfg.CreateMap<DEMANDA_SUB_FILA, DEMANDA_SUB_FILA_DTO>()
@@ -95,16 +104,29 @@ namespace Vivo_Apps_API.Hubs
                     dest => dest.Responsaveis,
                     opt => opt.MapFrom(src => Demanda_BD.ACESSOS_MOBILE.Where(y =>
                         Demanda_BD.DEMANDA_RESPONSAVEL_FILA
+                                .Where(x =>
+                                    Demanda_BD.DEMANDA_BD_OPERADORES
+                                    .Where(y => y.STATUS == true)
+                                    .Select(y => y.MATRICULA)
+                                    .Contains(x.MATRICULA_RESPONSAVEL))
                                 .Where(x => x.ID_SUB_FILA == src.ID_SUB_FILA)
                                 .Select(x => x.MATRICULA_RESPONSAVEL)
                                 .Distinct()
-                                .Contains(y.MATRICULA)))
+                                .Contains(y.MATRICULA))
+                        )
                     );
+
                 cfg.CreateMap<DEMANDA_CAMPOS_FILA, DEMANDA_CAMPOS_FILA_DTO>();
 
                 cfg.CreateMap<DEMANDA_VALORES_CAMPOS_SUSPENSO, DEMANDA_VALORES_CAMPOS_SUSPENSO_DTO>();
 
-                cfg.CreateMap<ACESSO, ACESSO_DTO>();
+                cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_NO_RELATIONS>()
+               .ForMember(
+                   dest => dest.CARGO,
+                   opt => opt.MapFrom(src => (Cargos)src.CARGO))
+               .ForMember(
+                   dest => dest.CANAL,
+                   opt => opt.MapFrom(src => (Canal)src.CANAL));
 
                 cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_DTO>()
                 .ForMember(
@@ -114,7 +136,12 @@ namespace Vivo_Apps_API.Hubs
                 .ForMember(
                     dest => dest.CANAL,
                     opt => opt.MapFrom(src => (Canal)src.CANAL)
+                    )
+                .ForMember(
+                    dest => dest.DemandasResponsavel,
+                    opt => opt.MapFrom(src => src.DemandasResponsavel.AsEnumerable())
                     );
+
 
                 cfg.CreateMap<DEMANDA_BD_OPERADORE, DEMANDA_BD_OPERADORES_DTO>()
                 .ForMember(
@@ -127,6 +154,40 @@ namespace Vivo_Apps_API.Hubs
                     opt => opt.MapFrom(src => Demanda_BD.ACESSOS_MOBILE
                                 .Where(x => x.MATRICULA == src.MATRICULA_MOD)
                                 .FirstOrDefault())
+                    );
+
+                cfg.CreateMap<DEMANDA_CHAMADO, DEMANDAS_CHAMADO_DTO>()
+                .ForMember(
+                    dest => dest.Respostas,
+                    opt => opt.MapFrom(src => src.Relacao.Respostas)
+                    );
+
+                cfg.CreateMap<DEMANDA_ACESSOS, ACESSO_TERCEIROS_DTO>()
+                .ForMember(
+                    dest => dest.Respostas,
+                    opt => opt.MapFrom(src => src.Relacao.Respostas)
+                    );
+
+                cfg.CreateMap<DEMANDA_DESLIGAMENTOS, DESLIGAMENTO_DTO>()
+                .ForMember(
+                    dest => dest.Respostas,
+                    opt => opt.MapFrom(src => src.Relacao.Respostas)
+                    )
+                .ForMember(
+                    dest => dest.Solicitante,
+                    opt => opt.MapFrom(src => src.Relacao.Solicitante)
+                    );
+
+                cfg.CreateMap<DEMANDA_CHAMADO_RESPOSTA, DEMANDA_CHAMADO_RESPOSTA_DTO>();
+
+                cfg.CreateMap<DEMANDA_STATUS_CHAMADO, DEMANDA_STATUS_CHAMADO_DTO>()
+                .ForMember(
+                    dest => dest.Quem_redirecionou,
+                    opt => opt.MapFrom(src => Demanda_BD.ACESSOS_MOBILE.First(x => x.MATRICULA == src.MAT_QUEM_REDIRECIONOU))
+                    )
+                .ForMember(
+                    dest => dest.Para_Quem_redirecionou,
+                    opt => opt.MapFrom(src => Demanda_BD.ACESSOS_MOBILE.First(x => x.MATRICULA == src.MAT_DESTINATARIO))
                     );
             });
 
@@ -143,6 +204,22 @@ namespace Vivo_Apps_API.Hubs
         //    return $"{scheme}://{request.Host}{request.PathBase}";
         //}
 
+        public async Task NewDemanda(Guid id) 
+        {
+            var result = Demanda_BD.DEMANDA_RELACAO_CHAMADO
+                .Include(x => x.AcessoRelacao)
+                .Include(x => x.ChamadoRelacao)
+                .Include(x => x.DesligamentoRelacao)
+                .Where(x => x.ID_RELACAO == id)
+                .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider)
+                .First();
+
+            data.TryAdd(result);
+
+            SendTableDemandas();
+
+            await Task.CompletedTask;
+        }
         public async Task GetAllAsync(int? matricula = null)
         {
             try
@@ -159,7 +236,7 @@ namespace Vivo_Apps_API.Hubs
                     .Include(x => x.DesligamentoRelacao)
                     .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider);
 
-                data = saida;
+                data = saida.ToList();
             }
             catch (Exception ex)
             {
@@ -171,7 +248,7 @@ namespace Vivo_Apps_API.Hubs
 
         public async Task SendTableDemandas(int? matricula = null)
         {
-            await GetAllAsync(matricula);
+            //Task.Run(() => GetAllAsync(matricula));
 
             if (matricula != null)
             {
@@ -248,8 +325,7 @@ namespace Vivo_Apps_API.Hubs
 
                             /** Consulta para gerente do suporte **/
                             case Controle_Demanda_role.GERENTE:
-
-                                await _context.Clients.Client(connectionId).SendAsync("TableDemandas", data.Where(x => x.REGIONAL == user.REGIONAL));
+                                await _context.Clients.Client(connectionId).SendAsync("TableDemandas", data.Where(x => x.REGIONAL == user.REGIONAL).AsEnumerable());
                                 break;
                         }
                     }
@@ -391,7 +467,29 @@ namespace Vivo_Apps_API.Hubs
 
             if (macro.Responsavel is not null)
             {
-                saida.Responsavel = macro.Responsavel;
+                //saida.Responsavel = new ACESSOS_MOBILE_DTO
+                //{
+                //    ID = macro.Responsavel.ID,
+                //    EMAIL = macro.Responsavel.EMAIL,
+                //    MATRICULA = macro.Responsavel.MATRICULA,
+                //    REGIONAL = macro.Responsavel.REGIONAL,
+                //    CARGO = (Cargos)macro.Responsavel.CARGO,
+                //    CANAL = (Canal)macro.Responsavel.CANAL,
+                //    PDV = macro.Responsavel.PDV,
+                //    NOME = macro.Responsavel.NOME,
+                //};
+
+                saida.Responsavel = new ACESSOS_MOBILE_NO_RELATIONS
+                {
+                    EMAIL = macro.Responsavel.EMAIL,
+                    MATRICULA = macro.Responsavel.MATRICULA,
+                    REGIONAL = macro.Responsavel.REGIONAL,
+                    CARGO = (Cargos)macro.Responsavel.CARGO,
+                    CANAL = (Canal)macro.Responsavel.CANAL,
+                    PDV = macro.Responsavel.PDV,
+                    NOME = macro.Responsavel.NOME,
+                    UserAvatar = macro.Responsavel.UserAvatar,
+                };
             }
 
             foreach (var item in CurrentUsers)

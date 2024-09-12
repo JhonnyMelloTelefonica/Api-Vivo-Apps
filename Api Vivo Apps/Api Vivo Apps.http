@@ -58,10 +58,27 @@ Content-Type: application/json
 @SubFila=0
 @regional=NE
 @matricula=151191
+
 GET {{Api_Vivo_Apps_HostAddress}}/api/Demandas/AnalistaSuporte/Get/IsSuporte={{IsSuporte}}/IsAcessoLogico={{IsAcessoLogico}}/SubFila={{SubFila}}/regional={{regional}}/matricula={{matricula}} HTTP/2
 
 ###
 
 GET {{Api_Vivo_Apps_HostAddress}}/api/demandas/GetAllChamados
+
+###
+
+POST {{Api_Vivo_Apps_HostAddress}}/api/demandas/GetAllChamados
+Content-Type: application/json
+
+{
+  "PageNumber": 1,
+  "PageSize": 100,
+  "Value": {
+    "matricula": {{matricula}},
+    "regional": "{{regional}}",
+    "role": 3,
+    "filter": {}
+  }
+}
 
 ###

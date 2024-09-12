@@ -24,6 +24,13 @@ using Shared_Static_Class.Data;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Http.HttpResults;
+using DocumentFormat.OpenXml.Bibliography;
+using Microsoft.EntityFrameworkCore.Query.Internal;
+using Microsoft.EntityFrameworkCore.Query.SqlExpressions;
+using Microsoft.EntityFrameworkCore.Query;
+using Microsoft.EntityFrameworkCore.Storage;
+using System.Linq.Expressions;
+using System.Reflection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -133,8 +140,7 @@ app.Lifetime.ApplicationStarted.Register(async () =>
     //app.Services.GetService<IDistributedCache>()
     //.Set("cachedTimeUTC", encodedCurrentTimeUTC, options);
 
-    await app.Services.GetRequiredService<ISuporteDemandaHub>()
-    .SendTableDemandas();
+    await app.Services.GetRequiredService<ISuporteDemandaHub>().GetAllAsync(null);
 });
 
 app.UseSwagger();
@@ -165,7 +171,6 @@ app.UseEndpoints(endpoints =>
 });
 
 //app.Services.GetRequiredService<TableDependencyService>();
-await app.Services.GetRequiredService<ISuporteDemandaHub>().GetAllAsync(null);
 
 app.Run();
 

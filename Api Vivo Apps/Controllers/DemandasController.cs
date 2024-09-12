@@ -42,6 +42,9 @@ using DocumentFormat.OpenXml.Wordprocessing;
 using System.Runtime.InteropServices;
 using DocumentFormat.OpenXml.Drawing.Charts;
 using Shared_Razor_Components.FundamentalModels;
+using Shared_Static_Class.Model_DTO.FilterModels;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
+using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -77,7 +80,14 @@ namespace Vivo_Apps_API.Controllers
             _logger = logger;
             var config = new MapperConfiguration(cfg =>
             {
-                cfg.CreateMap<DEMANDA_RELACAO_CHAMADO, DEMANDA_DTO>();
+                cfg.CreateMap<DEMANDA_RELACAO_CHAMADO, DEMANDA_DTO>()
+                .ForMember(x => x.Respostas, opt => opt.Ignore())
+                .ForMember(x => x.Status, opt => opt.Ignore());
+
+                cfg.CreateMap<DEMANDA_CHAMADO, PAINEL_DEMANDAS_CHAMADO_DTO>();
+                cfg.CreateMap<DEMANDA_ACESSOS, DEMANDA_ACESSOS_PAINEL>();
+                cfg.CreateMap<DEMANDA_DESLIGAMENTOS, DEMANDA_DESLIGAMENTOS_PAINEL>();
+
                 cfg.CreateMap<DEMANDA_TIPO_FILA, DEMANDA_TIPO_FILA_DTO>();
                 cfg.CreateMap<DEMANDA_SUB_FILA, PAINEL_DEMANDA_SUB_FILA_DTO>();
                 cfg.CreateMap<DEMANDA_SUB_FILA, DEMANDA_SUB_FILA_DTO>()
@@ -96,19 +106,26 @@ namespace Vivo_Apps_API.Controllers
                                 .Contains(y.MATRICULA))
                         )
                     );
+
                 cfg.CreateMap<DEMANDA_CAMPOS_FILA, DEMANDA_CAMPOS_FILA_DTO>();
 
                 cfg.CreateMap<DEMANDA_VALORES_CAMPOS_SUSPENSO, DEMANDA_VALORES_CAMPOS_SUSPENSO_DTO>();
 
+                cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_NO_RELATIONS>()
+                .ForMember(
+                    dest => dest.CARGO,
+                    opt => opt.MapFrom(src => (Cargos)src.CARGO))
+                .ForMember(
+                    dest => dest.CANAL,
+                    opt => opt.MapFrom(src => (Canal)src.CANAL));
+
                 cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_DTO>()
                 .ForMember(
                     dest => dest.CARGO,
-                    opt => opt.MapFrom(src => (Cargos)src.CARGO)
-                    )
+                    opt => opt.MapFrom(src => (Cargos)src.CARGO))
                 .ForMember(
                     dest => dest.CANAL,
-                    opt => opt.MapFrom(src => (Canal)src.CANAL)
-                    )
+                    opt => opt.MapFrom(src => (Canal)src.CANAL))
                 .ForMember(
                     dest => dest.DemandasResponsavel,
                     opt => opt.MapFrom(src => src.DemandasResponsavel.AsEnumerable())
@@ -126,12 +143,6 @@ namespace Vivo_Apps_API.Controllers
                     opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs
                                 .Where(x => x.MATRICULA == src.MATRICULA_MOD)
                                 .FirstOrDefault())
-                    );
-
-                cfg.CreateMap<DEMANDA_CHAMADO, PAINEL_DEMANDAS_CHAMADO_DTO>()
-                .ForMember(
-                    dest => dest.Respostas,
-                    opt => opt.MapFrom(src => src.Relacao.Respostas)
                     );
 
                 cfg.CreateMap<DEMANDA_CHAMADO, DEMANDAS_CHAMADO_DTO>()
@@ -1176,6 +1187,17 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
+                object demanda = null;
+
+                ACESSOS_MOBILE responsavel_resposta = Demanda_BD.ACESSOS_MOBILE.First(x=> x.MATRICULA == data.MATRICULA);
+                ACESSOS_MOBILE_DTO solicitante = null;
+
+                ACESSOS_MOBILE_DTO? responsavel = null;
+
+                SendEmailModel email = null;
+
+                List<ACESSOS_MOBILE_DTO> emailsender = [];
+
                 var retorno = Demanda_BD.DEMANDA_CHAMADO_RESPOSTA.Add(new DEMANDA_CHAMADO_RESPOSTA
                 {
                     RESPOSTA = data.resposta,
@@ -1198,7 +1220,7 @@ namespace Vivo_Apps_API.Controllers
                         ARQUIVO = x.Bytes,
                         EXT_ARQUIVO = x.Extensao,
                     }).ToList() : null
-                });
+                }).Entity;
 
                 //Demanda_BD.SaveChanges();
                 Demanda_BD.SaveChanges();
@@ -1212,6 +1234,8 @@ namespace Vivo_Apps_API.Controllers
                 //    MAT_DESTINATARIO = data.MATRICULA_REDIRECIONADO,
                 //    ID_RESPOSTA = retorno.ID
                 //});
+                int MATRICULA_SOLICITANTE = 0;
+                int? MATRICULA_RESPONSAVEL = 0;
 
                 var chamado_relacao = Demanda_BD.DEMANDA_RELACAO_CHAMADO.Find(data.ID_RELACAO);
                 chamado_relacao.LastStatus = data.Status;
@@ -1222,19 +1246,59 @@ namespace Vivo_Apps_API.Controllers
                     switch (tabela)
                     {
                         case Tabela_Demanda.ChamadoRelacao:
-                            Demanda_BD.DEMANDA_CHAMADO.Find(data.IdChamado).MATRICULA_RESPONSAVEL = data.MATRICULA_REDIRECIONADO.Value;
+                            var chamadored = Demanda_BD.DEMANDA_CHAMADO.Find(data.IdChamado); 
+                            chamadored.MATRICULA_RESPONSAVEL = data.MATRICULA_REDIRECIONADO.Value;
+                            MATRICULA_SOLICITANTE = chamadored.MATRICULA_SOLICITANTE;
+                            MATRICULA_RESPONSAVEL = chamadored.MATRICULA_RESPONSAVEL;
                             break;
+
                         case Tabela_Demanda.AcessoRelacao:
-                            Demanda_BD.DEMANDA_ACESSOS.Find(data.IdChamado).MATRICULA_RESPONSAVEL = data.MATRICULA_REDIRECIONADO.Value;
+                            var acessored = Demanda_BD.DEMANDA_ACESSOS.Find(data.IdChamado);
+                            acessored.MATRICULA_RESPONSAVEL = data.MATRICULA_REDIRECIONADO.Value;
+                            MATRICULA_SOLICITANTE = acessored.MATRICULA_SOLICITANTE;
+                            MATRICULA_RESPONSAVEL = acessored.MATRICULA_RESPONSAVEL;
                             break;
+
                         case Tabela_Demanda.DesligamentoRelacao:
-                            Demanda_BD.DEMANDA_DESLIGAMENTOS.Find(data.IdChamado).MATRICULA_RESPONSAVEL = data.MATRICULA_REDIRECIONADO.Value;
+                            var desligared = Demanda_BD.DEMANDA_DESLIGAMENTOS.Find(data.IdChamado);
+                            desligared.MATRICULA_RESPONSAVEL = data.MATRICULA_REDIRECIONADO.Value;
+                            MATRICULA_SOLICITANTE = desligared.MATRICULA_SOLICITANTE;
+                            MATRICULA_RESPONSAVEL = desligared.MATRICULA_RESPONSAVEL;
                             break;
                     }
+
+                    Demanda_BD.SaveChanges();
+
+                    var antigo_solicitante = Demanda_BD.ACESSOS_MOBILE
+                        .Where(x => x.MATRICULA == data.MATRICULA)
+                        .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
+                        .First();
+
+                    emailsender.Add(antigo_solicitante);
+
+                    solicitante = Demanda_BD.ACESSOS_MOBILE
+                        .Where(x => x.MATRICULA == MATRICULA_RESPONSAVEL)
+                        .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
+                        .First();
+
+                    emailsender.Add(solicitante);
+
+                    if (MATRICULA_RESPONSAVEL.HasValue)
+                    {
+                        responsavel = Demanda_BD.ACESSOS_MOBILE
+                            .Where(x => x.MATRICULA == MATRICULA_SOLICITANTE)
+                            .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
+                            .First();
+                        emailsender.Add(responsavel);
+                    }
+
+                    email = new SendEmailModel( emailsender.Select(x => x.EMAIL), null, $"Seu chamado de N {chamado_relacao.Sequence} tem um novo resposável",
+                                $"O analista {responsavel_resposta.NOME} encaminhou o chamado para {responsavel.DISPLAY_NOME}",
+                                $"Todos os analistas responsáveis pela fila podem atuar na demanda, porém o principal responsável foi alterado.</p>" +
+                                $"<p>Acesse clicando <b><a href=\"http://brtdtbgs0090sl:8083/demandas/consultar/{retorno.ID_RELACAO}\">aqui<a/>.</b>", null,
+                                new string[] { "ne_automacao.br@telefonica.com" });
                 }
 
-                Demanda_BD.SaveChanges();
-                object demanda = null;
 
                 switch (tabela)
                 {
@@ -1257,11 +1321,150 @@ namespace Vivo_Apps_API.Controllers
                         }
 
                         demanda = GetDemandaByID(data.IdChamado);
+
+                        if (!data.MATRICULA_REDIRECIONADO.HasValue)
+                        {
+                            MATRICULA_SOLICITANTE = chamado_relacao.MATRICULA_SOLICITANTE;
+                            MATRICULA_RESPONSAVEL = chamado_relacao.MATRICULA_RESPONSAVEL;
+
+                            solicitante = Demanda_BD.ACESSOS_MOBILE
+                                .Where(x => x.MATRICULA == MATRICULA_SOLICITANTE)
+                                .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
+                                .First();
+
+                            if (MATRICULA_RESPONSAVEL.HasValue)
+                            {
+                                responsavel = Demanda_BD.ACESSOS_MOBILE
+                                    .Where(x => x.MATRICULA == MATRICULA_RESPONSAVEL)
+                                    .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
+                                    .First();
+                            }
+
+                            switch (data.Status)
+                            {
+                                case "ABERTO":
+                                    emailsender.Add(responsavel);
+                                    break;
+                                case "AGUARDANDO OUTRA ÁREA":
+                                    emailsender.Add(solicitante);
+                                    break;
+                                case "AGUARDANDO ANALISTA":
+                                    emailsender.Add(responsavel);
+                                    break;
+                                case "DEVOLVIDO PARA SOLICITANTE":
+                                    emailsender.Add(solicitante);
+                                    break;
+                                case "CANCELADO":
+                                    if (data.MATRICULA == MATRICULA_SOLICITANTE)
+                                    {
+                                        emailsender.Add(solicitante);
+                                    }
+                                    else
+                                    {
+                                        if (responsavel != null)
+                                        {
+                                            emailsender.Add(responsavel);
+                                        }
+                                    }
+                                    break;
+                                case "REPROVADO":
+                                    emailsender.Add(solicitante);
+                                    break;
+                                case "APROVADO":
+                                    emailsender.Add(solicitante);
+                                    break;
+                                case "REABERTO":
+                                    emailsender.Add(responsavel);
+                                    break;
+                                default:
+                                    break;
+                            }
+
+                            email = new SendEmailModel(emailsender.Select(x => x.EMAIL), null, $"Mudança na demanda N {chamado.Relacao.Sequence}",
+                                $"Status da demanda alterado por {responsavel_resposta.NOME}",
+                                $"A demanda teve seu status alterado para {data.Status}, com o responsável principal: {responsavel?.DISPLAY_NOME}.</p>" +
+                                $"<p>Acesse clicando <b><a href=\"http://brtdtbgs0090sl:8083/demandas/consultar/{retorno.ID_RELACAO}\">aqui<a/>.</b>", null,
+                                new string[] { "ne_automacao.br@telefonica.com" });
+                        }
+
                         Task.Run(() => _hubContext.UpdateDemanda(demanda as DEMANDAS_CHAMADO_DTO));
                         break;
+
                     case Tabela_Demanda.AcessoRelacao:
                         demanda = GetAcessoByID(data.IdChamado);
+
+                        if (!data.MATRICULA_REDIRECIONADO.HasValue)
+                        {
+                            var acesso = demanda as ACESSO_TERCEIROS_DTO;
+                            MATRICULA_SOLICITANTE = acesso.Solicitante.MATRICULA;
+                            MATRICULA_RESPONSAVEL = acesso.Responsavel.MATRICULA;
+
+                            solicitante = Demanda_BD.ACESSOS_MOBILE
+                                .Where(x => x.MATRICULA == MATRICULA_SOLICITANTE)
+                                .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
+                                .First();
+                            if (MATRICULA_RESPONSAVEL.HasValue)
+                            {
+                                responsavel = Demanda_BD.ACESSOS_MOBILE
+                                    .Where(x => x.MATRICULA == MATRICULA_RESPONSAVEL)
+                                    .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
+                                    .First();
+                            }
+
+                            switch (data.Status)
+                            {
+                                case "ABERTO":
+                                    emailsender.Add(responsavel);
+                                    break;
+                                case "AGUARDANDO OUTRA ÁREA":
+                                    emailsender.Add(solicitante);
+                                    break;
+                                case "AGUARDANDO ANALISTA":
+                                    emailsender.Add(responsavel);
+                                    break;
+                                case "DEVOLVIDO PARA SOLICITANTE":
+                                    emailsender.Add(solicitante);
+                                    break;
+                                case "CANCELADO":
+                                    if (data.MATRICULA == MATRICULA_SOLICITANTE)
+                                    {
+                                        emailsender.Add(solicitante);
+                                    }
+                                    else
+                                    {
+                                        if (responsavel != null)
+                                        {
+                                            emailsender.Add(responsavel);
+                                        }
+                                    }
+                                    break;
+                                case "AGUARDANDO TREINAMENTO":
+                                    emailsender.Add(solicitante);
+                                    break;
+                                case "AGUARDANDO CRIAÇÃO DE ACESSO":
+                                    emailsender.Add(solicitante);
+                                    break;
+                                case "REPROVADO":
+                                    emailsender.Add(solicitante);
+                                    break;
+                                case "APROVADO":
+                                    emailsender.Add(solicitante);
+                                    break;
+                                case "REABERTO":
+                                    emailsender.Add(responsavel);
+                                    break;
+                                default:
+                                    break;
+                            }
+
+                            email = new SendEmailModel(emailsender.Select(x => x.EMAIL), null, $"Mudança na solicitação de acesso N {acesso.Relacao.Sequence}",
+                                $"Status de solicitação de acesso alterado por {responsavel_resposta.NOME}",
+                                $"A solicitação de acesso teve seu status alterado para {data.Status}, com o responsável principal: {responsavel?.DISPLAY_NOME}.</p>" +
+                                $"<p>Acesse clicando <b><a href=\"http://brtdtbgs0090sl:8083/acessos/consultar/{retorno.ID_RELACAO}\">aqui<a/>.</b>", null,
+                                new string[] { "ne_automacao.br@telefonica.com" });
+                        }
                         break;
+
                     case Tabela_Demanda.DesligamentoRelacao:
                         var desligamento = Demanda_BD.DEMANDA_DESLIGAMENTOS.Find(data.IdChamado);
                         var mat_Desligada = Demanda_BD.DEMANDA_RELACAO_TREINAMENTO_FINALIZADO.FirstOrDefault(x => x.MATRICULA == desligamento.Matricula);
@@ -1273,6 +1476,76 @@ namespace Vivo_Apps_API.Controllers
                         }
 
                         demanda = GetDesligamentoByID(data.IdChamado);
+
+                        if (!data.MATRICULA_REDIRECIONADO.HasValue)
+                        {
+                            MATRICULA_SOLICITANTE = desligamento.Solicitante.MATRICULA;
+                            MATRICULA_RESPONSAVEL = desligamento.Responsavel.MATRICULA;
+
+                            solicitante = Demanda_BD.ACESSOS_MOBILE
+                                .Where(x => x.MATRICULA == MATRICULA_SOLICITANTE)
+                                .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
+                                .First();
+                            if (MATRICULA_RESPONSAVEL.HasValue)
+                            {
+                                responsavel = Demanda_BD.ACESSOS_MOBILE
+                                    .Where(x => x.MATRICULA == MATRICULA_RESPONSAVEL)
+                                    .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
+                                    .First();
+                            }
+
+                            switch (data.Status)
+                            {
+                                case "ABERTO":
+                                    emailsender.Add(responsavel);
+                                    break;
+                                case "AGUARDANDO OUTRA ÁREA":
+                                    emailsender.Add(solicitante);
+                                    break;
+                                case "AGUARDANDO ANALISTA":
+                                    emailsender.Add(responsavel);
+                                    break;
+                                case "DEVOLVIDO PARA SOLICITANTE":
+                                    emailsender.Add(solicitante);
+                                    break;
+                                case "CANCELADO":
+                                    if (data.MATRICULA == MATRICULA_SOLICITANTE)
+                                    {
+                                        emailsender.Add(solicitante);
+                                    }
+                                    else
+                                    {
+                                        if (responsavel != null)
+                                        {
+                                            emailsender.Add(responsavel);
+                                        }
+                                    }
+                                    break;
+                                case "AGUARDANDO TREINAMENTO":
+                                    emailsender.Add(solicitante);
+                                    break;
+                                case "AGUARDANDO CRIAÇÃO DE ACESSO":
+                                    emailsender.Add(solicitante);
+                                    break;
+                                case "REPROVADO":
+                                    emailsender.Add(solicitante);
+                                    break;
+                                case "APROVADO":
+                                    emailsender.Add(solicitante);
+                                    break;
+                                case "REABERTO":
+                                    emailsender.Add(responsavel);
+                                    break;
+                                default:
+                                    break;
+                            }
+
+                            email = new SendEmailModel(emailsender.Select(x => x.EMAIL), null, $"Mudança na solicitação de desligamento N {desligamento.Relacao.Sequence}",
+                                $"Status de solicitação de desligamento alterado por {responsavel_resposta.NOME}",
+                                $"A solicitação de desligamento teve seu status alterado para {data.Status}, com o responsável principal: {responsavel?.DISPLAY_NOME}.</p>" +
+                                $"<p>Acesse clicando <b><a href=\"http://brtdtbgs0090sl:8083/acessos/consultar/{retorno.ID_RELACAO}\">aqui<a/>.</b>", null,
+                                new string[] { "ne_automacao.br@telefonica.com" });
+                        }
                         break;
                     default:
                         demanda = null;
@@ -1280,8 +1553,15 @@ namespace Vivo_Apps_API.Controllers
                 }
 
                 await _cache.EvictByTagAsync("AllDemandas", default);
-                await _hubContext.SendTableDemandas();
+
+                Task.Run(() => _service.SendEmail(email));
+                email.Footer = "<div></div>";
+                Task.Run(() => _service.SendTeams(email));
+
                 Task.Run(() => _hubContext.UpdateStatusChamado(chamado_relacao));
+
+
+                //await _hubContext.SendTableDemandas();
 
                 var options = new JsonSerializerOptions
                 {
@@ -1519,18 +1799,22 @@ namespace Vivo_Apps_API.Controllers
                     ReferenceHandler = ReferenceHandler.IgnoreCycles
                 };
 
-                await _cache.EvictByTagAsync("AllDemandas", default);
-                Task.Run(() => _hubContext.SendTableDemandas());
+
+                await _hubContext.NewDemanda(demanda.ID_RELACAO);
+
                 await _hubContext.NewNotificationByUser(responsavel, demanda.ChamadoRelacao);
                 await _hubContext.NewNotificationByUser(int.Parse(data.MAT_SOLICITANTE), demanda.ChamadoRelacao);
 
                 var demandaCompleta = GetDemandaByID(demanda.ChamadoRelacao.ID);
 
-                SendEmailModel email = new SendEmailModel(new string[] { retorno.EMAIL, solicitante.EMAIL }, null, $"Nova demanda N {demandaCompleta.Relacao.Sequence}",
+                SendEmailModel email = new SendEmailModel(new string[] { /*retorno.EMAIL,*/ solicitante.EMAIL }, null, $"Nova demanda N {demandaCompleta.Relacao.Sequence}",
                     $"Nova demanda aberta por {solicitante.DISPLAY_NOME}",
                     $"Uma demanda demanda do tipo {demandaCompleta.Fila.ID_TIPO_FILANavigation.NOME_TIPO_FILA} e sub-fila {demandaCompleta.Fila.NOME_SUB_FILA} acaba de ser criada" +
-                    $" com o responsável principal {retorno.DISPLAY_NOME}, o sla para esta fila é de {demandaCompleta.Fila.SLA} dias.", "<div></div>",
+                    $" com o responsável principal {retorno.DISPLAY_NOME}, o sla para esta fila é de {demandaCompleta.Fila.SLA} dias.</p>" +
+                    $"<p>Acesse clicando <b><a href=\"http://brtdtbgs0090sl:8083/demandas/consultar/{demanda.ID_RELACAO}\">aqui<a/>.</b>", null,
                     new string[] { "ne_automacao.br@telefonica.com" });
+
+
 
                 Task.Run(() => _service.SendEmail(email));
                 email.Footer = "<div></div>";
@@ -2248,31 +2532,77 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
-        [HttpGet("GetAllChamados")]
-        [ResponseCache(VaryByHeader = "User-Agent", Duration = int.MaxValue, NoStore = false, Location = ResponseCacheLocation.Any)]
-        [OutputCache(Duration = int.MaxValue, Tags = new string[] { "AllDemandas" }, NoStore = false, VaryByHeaderNames = new string[] { "User-Agent" })]
-        public IEnumerable<DEMANDA_DTO> GetAllChamados(int? matricula)
+        [HttpPost("GetAllChamados")]
+        //[ResponseCache(VaryByHeader = "User-Agent", Duration = int.MaxValue, NoStore = false, Location = ResponseCacheLocation.Any)]
+        //[OutputCache(Duration = int.MaxValue, Tags = new string[] { "AllDemandas" }, NoStore = false, VaryByHeaderNames = new string[] { "User-Agent" })]
+        public IActionResult GetAllChamados([FromBody] GenericPaginationModel<PainelChamadosModel> filter)
         {
             try
             {
                 /*** Sempre utilizamos apenas os chamados do último ano ***/
 
                 var dataBeforeFilter = Demanda_BD.DEMANDA_RELACAO_CHAMADO
-                    .Where(x => x.Respostas.First().DATA_RESPOSTA >= DateTime.Now.AddYears(-1)
+                    .Where(x => x.REGIONAL == filter.Value.regional && x.Respostas.First().DATA_RESPOSTA >= DateTime.Now.AddYears(-1)
                         && x.Respostas.First().DATA_RESPOSTA <= DateTime.Now)
                     .AsNoTracking();
 
-                var saida = dataBeforeFilter
-                    .Include(x => x.AcessoRelacao)
-                    .Include(x => x.ChamadoRelacao)
-                    .Include(x => x.DesligamentoRelacao)
-                    .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider);
+                IQueryable<DEMANDA_RELACAO_CHAMADO> data = dataBeforeFilter
+                    .IgnoreAutoIncludes().AsNoTracking();
 
-                return saida;
+
+                var list_ids = Demanda_BD.DEMANDA_RESPONSAVEL_FILA
+                    .Where(x => x.MATRICULA_RESPONSAVEL == filter.Value.matricula)
+                    .Select(x => x.ID_SUB_FILA).ToList();
+
+                switch (filter.Value.role)
+                {
+                    /** Consulta para usuários básicos **/
+                    case Controle_Demanda_role.BASICO:
+
+                        data = data.Where(x => x.MATRICULA_SOLICITANTE == filter.Value.matricula && x.REGIONAL == filter.Value.regional);
+                        break;
+
+                    /** Consulta para analistas do suporte que não tratam solicitação de acessos terceiro **/
+                    case Controle_Demanda_role.ANALISTA:
+
+                        data = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
+                        && x.ChamadoRelacao != null && list_ids.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA)
+                        && x.REGIONAL == filter.Value.regional);
+                        break;
+
+                    /** Consulta para analistas do suporte que tratam solicitação de acessos terceiro **/
+                    case Controle_Demanda_role.ANALISTA_ACESSO:
+
+
+                        var datademandaanalistaacesso = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
+                            && x.ChamadoRelacao != null && list_ids.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA) && x.REGIONAL == filter.Value.regional);
+
+                        var dataacessoanalistaacesso = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.AcessoRelacao);
+
+                        data = datademandaanalistaacesso.UnionBy(dataacessoanalistaacesso, x => x.ID_RELACAO);
+
+                        break;
+
+                    /** Consulta para gerente do suporte **/
+                    case Controle_Demanda_role.GERENTE:
+
+                        break;
+                }
+
+                var lista = data.OrderBy(x => x.Sequence)
+                .Skip((filter.PageNumber - 1) * filter.PageSize)
+                .Take(filter.PageSize);
+
+                var totalRecords = data.Count();
+                var totalPages = ((double)totalRecords / (double)filter.PageSize);
+
+                var Data = data.ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider).AsQueryable();
+
+                return Ok(PagedResponse.CreatePagedReponse(Data, filter, totalRecords));
             }
             catch (Exception ex)
             {
-                return [];
+                return BadRequest(ex);
             }
         }
 
