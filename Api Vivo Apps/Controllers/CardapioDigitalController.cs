@@ -98,6 +98,8 @@ namespace Vivo_Apps_API.Controllers
                 //    .AsEnumerable();
 
                 var result = BD.PRODUTOS_CARDAPIO
+                    .Include(x => x.Avaliacao)
+                    .Include(x => x.Argumentacao)
                     .Include(x => x.Ficha)
                     .Include(x => x.Imagens.Take(1))
                     .Take(10)
@@ -138,6 +140,12 @@ namespace Vivo_Apps_API.Controllers
             {
                 var result = BD.PRODUTOS_CARDAPIO
                     .Include(x => x.Ficha)
+                    .Include(x => x.Avaliacao)
+                    .Include(x => x.Argumentacao.OrderByDescending(y=> y.DT_MODIFICACAO))
+                        .ThenInclude(x => x.Responsavel)
+                    .Include(x => x.Argumentacao)
+                        .ThenInclude(x => x.Avaliacoes)
+                    .IgnoreAutoIncludes()
                     .First(x => x.ID_PRODUTO == id);
 
                 var countimages = BD.PRODUTO_IMAGENS
@@ -307,11 +315,20 @@ namespace Vivo_Apps_API.Controllers
             try
             {
                 var result = BD.PRODUTOS_CARDAPIO
-                    .Include(x => x.Ficha).First(x => x.ID_PRODUTO == produto.ID_PRODUTO);
+                    .Include(x => x.Avaliacao)
+                    .Include(x => x.Argumentacao)
+                    .Include(x => x.Ficha)
+                    .First(x => x.ID_PRODUTO == produto.ID_PRODUTO);
 
+                #region Update Principais Info
                 result.Nome = produto.Nome;
                 result.Descrição = produto.Descrição;
                 result.Avaliacao = produto.Avaliacao;
+
+                result.Avaliacao.Avaliacao = produto.Avaliacao.Avaliacao;
+                result.Avaliacao.IsInHotSpot = produto.Avaliacao.IsInHotSpot;
+                result.Avaliacao.PositionInRank = produto.Avaliacao.PositionInRank;
+
                 result.Categoria_Produto = produto.Categoria_Produto;
                 result.Fabricante = produto.Fabricante;
                 result.Cor = produto.Cor;
@@ -319,7 +336,9 @@ namespace Vivo_Apps_API.Controllers
                 result.Valor = produto.Valor;
                 result.MaxParcelas = produto.MaxParcelas;
                 result.MaxParcelasSemJuros = produto.MaxParcelasSemJuros;
+                #endregion
 
+                #region Update Ficha Técina
                 IEnumerable<FICHA_TECNICA> NovaFicha = result.Ficha.Union(produto.Ficha).ToList();
                 /** Une os perfis que estão no banco e os inseridos pelo usuário em uma lista, dá o distinct automaticamente **/
                 IEnumerable<FICHA_TECNICA> FichaExcluida = result.Ficha.ExceptBy(produto.Ficha.Select(x => x.ID_FICHA), x => x.ID_FICHA).ToList();
@@ -348,6 +367,40 @@ namespace Vivo_Apps_API.Controllers
                     /* Caso Esteja na lista é uma imagem deletada*/
                     BD.FICHA_TECNICA.Remove(ficha);
                 }
+                #endregion
+
+                #region Update Argumentos
+
+                IEnumerable<ARGUMENTACAO_OURO> NovaArgumentos = result.Argumentacao.Union(produto.Argumentacao).ToList();
+                /** Une os perfis que estão no banco e os inseridos pelo usuário em uma lista, dá o distinct automaticamente **/
+                IEnumerable<ARGUMENTACAO_OURO> ArgumentosExcluidos = result.Argumentacao.ExceptBy(produto.Argumentacao.Select(x => x.ID_ARGUMENTACAO), x => x.ID_ARGUMENTACAO).ToList();
+                /** Perfis que estão no banco e que não estão na união entre as 2 listas **/
+
+                foreach (var argumentos in NovaArgumentos)
+                {
+                    if (argumentos.ID_ARGUMENTACAO == Guid.Empty)
+                    { /* Caso não haja Id Adicionamos*/
+                        argumentos.ID_PRODUTO = produto.ID_PRODUTO;
+                        BD.ARGUMENTACAO_OURO.Add(argumentos);
+                    }
+                    else
+                    {/* Caso haja Id Atualizamos sua propriedades*/
+                        var fichainDB = BD.ARGUMENTACAO_OURO.Find(argumentos.ID_ARGUMENTACAO);
+
+                        fichainDB.Argumentacao = argumentos.Argumentacao;
+                        fichainDB.MATRICULA_RESPONSAVEL = argumentos.MATRICULA_RESPONSAVEL;
+                        fichainDB.IsBadCaracter = argumentos.IsBadCaracter;
+                        fichainDB.DT_MODIFICACAO = argumentos.DT_MODIFICACAO;
+                        fichainDB.IsGold = argumentos.IsGold;
+                    }
+                }
+
+                foreach (var argumentos in ArgumentosExcluidos)
+                {
+                    /* Caso Esteja na lista é uma imagem deletada*/
+                    BD.ARGUMENTACAO_OURO.Remove(argumentos);
+                }
+                #endregion
 
                 var saida = BD.SaveChanges();
 

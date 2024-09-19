@@ -82,3 +82,8 @@ Content-Type: application/json
 }
 
 ###
+@Id = 74477084-49DF-4EBA-ABDC-08DCD7DF5A07
+
+GET {{Api_Vivo_Apps_HostAddress}}/api/cardapiodigital/Get/{{Id}}
+
+###

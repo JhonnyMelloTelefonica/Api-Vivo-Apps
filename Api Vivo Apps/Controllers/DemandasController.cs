@@ -15,7 +15,6 @@ using System.Drawing;
 using Shared_Static_Class.Enums;
 using System.Data;
 using Shared_Static_Class.DB_Context_Vivo_MAIS;
-
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Collections.Generic;
 using System.IO.Compression;
@@ -45,6 +44,7 @@ using Shared_Razor_Components.FundamentalModels;
 using Shared_Static_Class.Model_DTO.FilterModels;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
+using DocumentFormat.OpenXml.Office2010.CustomUI;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -1180,6 +1180,15 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
+        /// <summary>
+        /// Responde a demnanda alterando o status de alguma forma
+        /// </summary>
+        /// <param name="data"></param>
+        /// <param name="tabela"></param>
+        /// <returns>
+        /// Object que pode ser do tipo DEMANDAS_CHAMADO_DTO,ACESSO_TERCEIROS_DTO ou DESLIGAMENTO_DTO 
+        /// </returns>
+
         [HttpPost("InsertRespostaChangeStatus")]
         [ProducesResponseType(typeof(Response<object>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
@@ -1189,7 +1198,7 @@ namespace Vivo_Apps_API.Controllers
             {
                 object demanda = null;
 
-                ACESSOS_MOBILE responsavel_resposta = Demanda_BD.ACESSOS_MOBILE.First(x=> x.MATRICULA == data.MATRICULA);
+                ACESSOS_MOBILE responsavel_resposta = Demanda_BD.ACESSOS_MOBILE.First(x => x.MATRICULA == data.MATRICULA);
                 ACESSOS_MOBILE_DTO solicitante = null;
 
                 ACESSOS_MOBILE_DTO? responsavel = null;
@@ -1235,7 +1244,8 @@ namespace Vivo_Apps_API.Controllers
                 //    ID_RESPOSTA = retorno.ID
                 //});
                 int MATRICULA_SOLICITANTE = 0;
-                int? MATRICULA_RESPONSAVEL = 0;
+                int? MATRICULA_RESPONSAVEL = null;
+                int? MATRICULA_ANTIGO_RESPONSAVEL = null;
 
                 var chamado_relacao = Demanda_BD.DEMANDA_RELACAO_CHAMADO.Find(data.ID_RELACAO);
                 chamado_relacao.LastStatus = data.Status;
@@ -1246,7 +1256,8 @@ namespace Vivo_Apps_API.Controllers
                     switch (tabela)
                     {
                         case Tabela_Demanda.ChamadoRelacao:
-                            var chamadored = Demanda_BD.DEMANDA_CHAMADO.Find(data.IdChamado); 
+                            var chamadored = Demanda_BD.DEMANDA_CHAMADO.Find(data.IdChamado);
+                            MATRICULA_ANTIGO_RESPONSAVEL = chamadored.MATRICULA_RESPONSAVEL;
                             chamadored.MATRICULA_RESPONSAVEL = data.MATRICULA_REDIRECIONADO.Value;
                             MATRICULA_SOLICITANTE = chamadored.MATRICULA_SOLICITANTE;
                             MATRICULA_RESPONSAVEL = chamadored.MATRICULA_RESPONSAVEL;
@@ -1254,6 +1265,7 @@ namespace Vivo_Apps_API.Controllers
 
                         case Tabela_Demanda.AcessoRelacao:
                             var acessored = Demanda_BD.DEMANDA_ACESSOS.Find(data.IdChamado);
+                            MATRICULA_ANTIGO_RESPONSAVEL = acessored.MATRICULA_RESPONSAVEL;
                             acessored.MATRICULA_RESPONSAVEL = data.MATRICULA_REDIRECIONADO.Value;
                             MATRICULA_SOLICITANTE = acessored.MATRICULA_SOLICITANTE;
                             MATRICULA_RESPONSAVEL = acessored.MATRICULA_RESPONSAVEL;
@@ -1261,6 +1273,7 @@ namespace Vivo_Apps_API.Controllers
 
                         case Tabela_Demanda.DesligamentoRelacao:
                             var desligared = Demanda_BD.DEMANDA_DESLIGAMENTOS.Find(data.IdChamado);
+                            MATRICULA_ANTIGO_RESPONSAVEL = desligared.MATRICULA_RESPONSAVEL;
                             desligared.MATRICULA_RESPONSAVEL = data.MATRICULA_REDIRECIONADO.Value;
                             MATRICULA_SOLICITANTE = desligared.MATRICULA_SOLICITANTE;
                             MATRICULA_RESPONSAVEL = desligared.MATRICULA_RESPONSAVEL;
@@ -1268,16 +1281,18 @@ namespace Vivo_Apps_API.Controllers
                     }
 
                     Demanda_BD.SaveChanges();
+                    if (MATRICULA_ANTIGO_RESPONSAVEL.HasValue)
+                    {
+                        var antigo_responsavel = Demanda_BD.ACESSOS_MOBILE
+                            .Where(x => x.MATRICULA == MATRICULA_ANTIGO_RESPONSAVEL)
+                            .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
+                            .First();
+                        emailsender.Add(antigo_responsavel);
+                    }
 
-                    var antigo_solicitante = Demanda_BD.ACESSOS_MOBILE
-                        .Where(x => x.MATRICULA == data.MATRICULA)
-                        .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
-                        .First();
-
-                    emailsender.Add(antigo_solicitante);
 
                     solicitante = Demanda_BD.ACESSOS_MOBILE
-                        .Where(x => x.MATRICULA == MATRICULA_RESPONSAVEL)
+                        .Where(x => x.MATRICULA == MATRICULA_SOLICITANTE)
                         .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
                         .First();
 
@@ -1286,17 +1301,21 @@ namespace Vivo_Apps_API.Controllers
                     if (MATRICULA_RESPONSAVEL.HasValue)
                     {
                         responsavel = Demanda_BD.ACESSOS_MOBILE
-                            .Where(x => x.MATRICULA == MATRICULA_SOLICITANTE)
+                            .Where(x => x.MATRICULA == data.MATRICULA_REDIRECIONADO)
                             .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
                             .First();
                         emailsender.Add(responsavel);
                     }
 
-                    email = new SendEmailModel( emailsender.Select(x => x.EMAIL), null, $"Seu chamado de N {chamado_relacao.Sequence} tem um novo resposável",
-                                $"O analista {responsavel_resposta.NOME} encaminhou o chamado para {responsavel.DISPLAY_NOME}",
-                                $"Todos os analistas responsáveis pela fila podem atuar na demanda, porém o principal responsável foi alterado.</p>" +
-                                $"<p>Acesse clicando <b><a href=\"http://brtdtbgs0090sl:8083/demandas/consultar/{retorno.ID_RELACAO}\">aqui<a/>.</b>", null,
-                                new string[] { "ne_automacao.br@telefonica.com" });
+                    email = new SendEmailModel(emailsender.Select(x => x.EMAIL), null,
+                                $"Vivo X :: Controle de Demandas :: Sua demanda N {chamado_relacao.Sequence} foi encaminhada para outro analista", $"",
+                                $"Caro usuário,</p><br/><p>Sua demanda aberta no Vivo X (Módulo Controle de Demandas) sob o número <b>{chamado_relacao.Sequence}</b>" +
+                                $" foi encaminhada para {responsavel?.DISPLAY_NOME} em {DateTime.Now.Date.ToString("dd/MM/yyyy")} as {DateTime.Now.Hour}h.</p>" +
+                                $"<br/><p><b><u>Com a seguinte observação:</u></b></p><br/>" +
+                                $"{data.resposta}" +
+                                $"<p>Para maiores informações acessar chamado clicando <b><a href=\"http://brtdtbgs0090sl:8083/demandas/consultar/{retorno.ID_RELACAO}\">aqui<a/>.</b></p>" +
+                                $"<br/><p style=\"color:red\">Caso tenha algum problema com a ferramenta, contate nosso suporte via e-mail NE_AUTOMACAO (<a href=\"mailto:ne_automacao.br@telefonica.com\">ne_automacao.br@telefonica.com</a>).</p>" +
+                                $"<br/><p>Atenciosamente,</p>", null, new string[] { "ne_automacao.br@telefonica.com" });
                 }
 
 
@@ -1380,11 +1399,21 @@ namespace Vivo_Apps_API.Controllers
                                     break;
                             }
 
-                            email = new SendEmailModel(emailsender.Select(x => x.EMAIL), null, $"Mudança na demanda N {chamado.Relacao.Sequence}",
-                                $"Status da demanda alterado por {responsavel_resposta.NOME}",
-                                $"A demanda teve seu status alterado para {data.Status}, com o responsável principal: {responsavel?.DISPLAY_NOME}.</p>" +
-                                $"<p>Acesse clicando <b><a href=\"http://brtdtbgs0090sl:8083/demandas/consultar/{retorno.ID_RELACAO}\">aqui<a/>.</b>", null,
-                                new string[] { "ne_automacao.br@telefonica.com" });
+                            //email = new SendEmailModel(emailsender.Select(x => x.EMAIL), null, $"Mudança na demanda N {chamado.Relacao.Sequence}",
+                            //    $"Status da demanda alterado por {responsavel_resposta.NOME}",
+                            //    $"A demanda teve seu status alterado para {data.Status}, com o responsável principal: {responsavel?.DISPLAY_NOME}.</p>" +
+                            //    $"<p>Acesse clicando <b><a href=\"http://brtdtbgs0090sl:8083/demandas/consultar/{retorno.ID_RELACAO}\">aqui<a/>.</b>", null,
+                            //    new string[] { "ne_automacao.br@telefonica.com" });
+
+                            email = new SendEmailModel(emailsender.Select(x => x.EMAIL), null,
+                                    $"Vivo X :: Controle de Demandas :: Mudança na demanda N {chamado_relacao.Sequence}", $"",
+                                    $"Caro usuário,</p><br/><p>Sua demanda aberta no Vivo X (Módulo Controle de Demandas) sob o número <b>{chamado_relacao.Sequence}</b>" +
+                                    $" teve seu status alterado para {data.Status} em {DateTime.Now.Date.ToString("dd/MM/yyyy")} as {DateTime.Now.Hour}h.</p>" +
+                                    $"<br/><p><b><u>Com a seguinte observação:</u></b></p><br/>" +
+                                    $"{data.resposta}" +
+                                    $"<p>Para maiores informações acessar chamado clicando <b><a href=\"http://brtdtbgs0090sl:8083/demandas/consultar/{retorno.ID_RELACAO}\">aqui<a/>.</b></p>" +
+                                    $"<br/><p style=\"color:red\">Caso tenha algum problema com a ferramenta, contate nosso suporte via e-mail NE_AUTOMACAO (<a href=\"mailto:ne_automacao.br@telefonica.com\">ne_automacao.br@telefonica.com</a>).</p>" +
+                                    $"<br/><p>Atenciosamente,</p>", null, new string[] { "ne_automacao.br@telefonica.com" });
                         }
 
                         Task.Run(() => _hubContext.UpdateDemanda(demanda as DEMANDAS_CHAMADO_DTO));
@@ -1457,11 +1486,21 @@ namespace Vivo_Apps_API.Controllers
                                     break;
                             }
 
-                            email = new SendEmailModel(emailsender.Select(x => x.EMAIL), null, $"Mudança na solicitação de acesso N {acesso.Relacao.Sequence}",
-                                $"Status de solicitação de acesso alterado por {responsavel_resposta.NOME}",
-                                $"A solicitação de acesso teve seu status alterado para {data.Status}, com o responsável principal: {responsavel?.DISPLAY_NOME}.</p>" +
-                                $"<p>Acesse clicando <b><a href=\"http://brtdtbgs0090sl:8083/acessos/consultar/{retorno.ID_RELACAO}\">aqui<a/>.</b>", null,
-                                new string[] { "ne_automacao.br@telefonica.com" });
+                            //email = new SendEmailModel(emailsender.Select(x => x.EMAIL), null, $"Mudança na solicitação de acesso N {acesso.Relacao.Sequence}",
+                            //    $"Status de solicitação de acesso alterado por {responsavel_resposta.NOME}",
+                            //    $"A solicitação de acesso teve seu status alterado para {data.Status}, com o responsável principal: {responsavel?.DISPLAY_NOME}.</p>" +
+                            //    $"<p>Acesse clicando <b><a href=\"http://brtdtbgs0090sl:8083/acessos/consultar/{retorno.ID_RELACAO}\">aqui<a/>.</b>", null,
+                            //    new string[] { "ne_automacao.br@telefonica.com" });
+
+                            email = new SendEmailModel(emailsender.Select(x => x.EMAIL), null,
+                                    $"Vivo X :: Controle de Demandas :: Mudança na solicitação de acesso N {chamado_relacao.Sequence}", $"",
+                                    $"Caro usuário,</p><br/><p>Sua solicitação de acesso aberta no Vivo X (Módulo Controle de Demandas) sob o número <b>{chamado_relacao.Sequence}</b>" +
+                                    $" teve seu status alterado para {data.Status} em {DateTime.Now.Date.ToString("dd/MM/yyyy")} as {DateTime.Now.Hour}h.</p>" +
+                                    $"<br/><p><b><u>Com a seguinte observação:</u></b></p><br/>" +
+                                    $"{data.resposta}" +
+                                    $"<p>Para maiores informações acessar chamado clicando <b><a href=\"http://brtdtbgs0090sl:8083/acessos/consultar/{retorno.ID_RELACAO}\">aqui<a/>.</b></p>" +
+                                    $"<br/><p style=\"color:red\">Caso tenha algum problema com a ferramenta, contate nosso suporte via e-mail NE_AUTOMACAO (<a href=\"mailto:ne_automacao.br@telefonica.com\">ne_automacao.br@telefonica.com</a>).</p>" +
+                                    $"<br/><p>Atenciosamente,</p>", null, new string[] { "ne_automacao.br@telefonica.com" });
                         }
                         break;
 
@@ -1540,11 +1579,21 @@ namespace Vivo_Apps_API.Controllers
                                     break;
                             }
 
-                            email = new SendEmailModel(emailsender.Select(x => x.EMAIL), null, $"Mudança na solicitação de desligamento N {desligamento.Relacao.Sequence}",
-                                $"Status de solicitação de desligamento alterado por {responsavel_resposta.NOME}",
-                                $"A solicitação de desligamento teve seu status alterado para {data.Status}, com o responsável principal: {responsavel?.DISPLAY_NOME}.</p>" +
-                                $"<p>Acesse clicando <b><a href=\"http://brtdtbgs0090sl:8083/acessos/consultar/{retorno.ID_RELACAO}\">aqui<a/>.</b>", null,
-                                new string[] { "ne_automacao.br@telefonica.com" });
+                            //email = new SendEmailModel(emailsender.Select(x => x.EMAIL), null, $"Mudança na solicitação de desligamento N {desligamento.Relacao.Sequence}",
+                            //    $"Status de solicitação de desligamento alterado por {responsavel_resposta.NOME}",
+                            //    $"A solicitação de desligamento teve seu status alterado para {data.Status}, com o responsável principal: {responsavel?.DISPLAY_NOME}.</p>" +
+                            //    $"<p>Para ver todos os detalhes do chamado clique <b><a href=\"http://brtdtbgs0090sl:8083/acessos/consultar/{retorno.ID_RELACAO}\">aqui<a/>.</b>"
+                            //    , null, new string[] { "ne_automacao.br@telefonica.com" });
+
+                            email = new SendEmailModel(emailsender.Select(x => x.EMAIL), null,
+                                $"Vivo X :: Controle de Demandas :: Mudança na solicitação de desligamento N {chamado_relacao.Sequence}", $"",
+                                $"Caro usuário,</p><br/><p>Sua solicitação de desligamento aberta no Vivo X (Módulo Controle de Demandas) sob o número <b>{chamado_relacao.Sequence}</b>" +
+                                $" teve seu status alterado para {data.Status} em {DateTime.Now.Date.ToString("dd/MM/yyyy")} as {DateTime.Now.Hour}h.</p>" +
+                                $"<br/><p><b><u>Com a seguinte observação:</u></b></p><br/>" +
+                                $"{data.resposta}" +
+                                $"<p>Para maiores informações acessar chamado clicando <b><a href=\"http://brtdtbgs0090sl:8083/desligamentos/consultar/{retorno.ID_RELACAO}\">aqui<a/>.</b></p>" +
+                                $"<br/><p style=\"color:red\">Caso tenha algum problema com a ferramenta, contate nosso suporte via e-mail NE_AUTOMACAO (<a href=\"mailto:ne_automacao.br@telefonica.com\">ne_automacao.br@telefonica.com</a>).</p>" +
+                                $"<br/><p>Atenciosamente,</p>", null, new string[] { "ne_automacao.br@telefonica.com" });
                         }
                         break;
                     default:
@@ -1554,7 +1603,7 @@ namespace Vivo_Apps_API.Controllers
 
                 await _cache.EvictByTagAsync("AllDemandas", default);
 
-                Task.Run(() => _service.SendEmail(email));
+                await _service.SendEmail(email);
                 email.Footer = "<div></div>";
                 Task.Run(() => _service.SendTeams(email));
 
@@ -1789,6 +1838,7 @@ namespace Vivo_Apps_API.Controllers
                     .Where(x => x.MATRICULA == demanda.ChamadoRelacao.MATRICULA_RESPONSAVEL)
                     .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
                     .First();
+
                 var solicitante = Demanda_BD.ACESSOS_MOBILE
                     .Where(x => x.MATRICULA == demanda.ChamadoRelacao.MATRICULA_SOLICITANTE)
                     .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
@@ -1807,12 +1857,12 @@ namespace Vivo_Apps_API.Controllers
 
                 var demandaCompleta = GetDemandaByID(demanda.ChamadoRelacao.ID);
 
-                SendEmailModel email = new SendEmailModel(new string[] { /*retorno.EMAIL,*/ solicitante.EMAIL }, null, $"Nova demanda N {demandaCompleta.Relacao.Sequence}",
+                SendEmailModel email = new SendEmailModel(new string[] { /*retorno.EMAIL,*/ retorno.EMAIL }, null, $"Nova demanda N {demandaCompleta.Relacao.Sequence}",
                     $"Nova demanda aberta por {solicitante.DISPLAY_NOME}",
                     $"Uma demanda demanda do tipo {demandaCompleta.Fila.ID_TIPO_FILANavigation.NOME_TIPO_FILA} e sub-fila {demandaCompleta.Fila.NOME_SUB_FILA} acaba de ser criada" +
-                    $" com o responsável principal {retorno.DISPLAY_NOME}, o sla para esta fila é de {demandaCompleta.Fila.SLA} dias.</p>" +
-                    $"<p>Acesse clicando <b><a href=\"http://brtdtbgs0090sl:8083/demandas/consultar/{demanda.ID_RELACAO}\">aqui<a/>.</b>", null,
-                    new string[] { "ne_automacao.br@telefonica.com" });
+                $" com o responsável principal {retorno.DISPLAY_NOME}, o sla para esta fila é de {(demandaCompleta.Fila.SLA > 24 ? $"{(demandaCompleta.Fila.SLA / 24)} dias" : $"{demandaCompleta.Fila.SLA} horas")} dias.</p>" +
+                $"<p>Acesse clicando <b><a href=\"http://brtdtbgs0090sl:8083/demandas/consultar/{demanda.ID_RELACAO}\">aqui<a/>.</b>", null,
+                new string[] { "ne_automacao.br@telefonica.com" });
 
 
 

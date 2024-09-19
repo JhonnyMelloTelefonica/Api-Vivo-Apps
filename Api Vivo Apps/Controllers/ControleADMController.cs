@@ -542,9 +542,19 @@ namespace Vivo_Apps_API.Controllers
             return new JsonResult(PagedResponse.CreatePagedReponse<SOLICITAR_USUARIO_MODEL>(DataFinal, filter, totalRecords));
         }
 
-        // GET LISTA DE ACESSOS PENDENTES //
-
-        // SOLICITANTE //
+        /// <summary>
+        /// GET LISTA DE ACESSOS PENDENTES
+        /// </summary>
+        /// <param name="usuario">
+        /// dados do usuário
+        /// </param>
+        /// <param name="matricula">
+        /// Matrícula do responsável pela ação
+        /// </param>
+        /// <param name="ID_ACESSOS_MOBILE">
+        /// Caso a solicitação seja de alteração
+        /// </param>
+        /// <returns></returns>
         [HttpPost("UpdateUsuarios")]
         public async Task<JsonResult> UpdateUsuarios([FromBody] SOLICITAR_USUARIO_MODEL usuario,
             int? matricula,
@@ -576,6 +586,7 @@ namespace Vivo_Apps_API.Controllers
                     CANAL = usuario.CANAL.Value,
                     NOME = usuario.NOME,
                     UF = usuario.UF,
+                    TELEFONE = usuario.TELEFONE,
                     CPF = usuario.CPF,
                     PDV = usuario.PDV,
                     DDD = usuario.DDD,
@@ -678,6 +689,7 @@ namespace Vivo_Apps_API.Controllers
                     UF = usuario.UF,
                     CPF = usuario.CPF,
                     PDV = usuario.PDV,
+                    TELEFONE = usuario.TELEFONE,
                     APROVACAO = false,
                     FIXA = usuario.FIXA,
                     DT_SOLICITACAO = DateTime.Now,
@@ -762,6 +774,7 @@ namespace Vivo_Apps_API.Controllers
                     UF = usuario.UF,
                     CPF = usuario.CPF,
                     PDV = usuario.PDV,
+                    TELEFONE = usuario.TELEFONE,
                     APROVACAO = false,
                     FIXA = usuario.FIXA,
                     DT_SOLICITACAO = DateTime.Now,
@@ -844,6 +857,7 @@ namespace Vivo_Apps_API.Controllers
                     user.NOME = usuario.NOME;
                     user.UF = usuario.UF;
                     user.DDD = usuario.DDD;
+                    user.TELEFONE = usuario.TELEFONE;
                     user.STATUS = usuario.STATUS;
                     user.FIXA = usuario.FIXA;
                     user.TP_AFASTAMENTO = usuario.TP_AFASTAMENTO;
@@ -921,6 +935,7 @@ namespace Vivo_Apps_API.Controllers
                     UF = user.UF,
                     APROVACAO = true,
                     FIXA = user.FIXA,
+                    TELEFONE = user.TELEFONE,
                     LOGIN_SOLICITANTE = matricula,
                     LOGIN_RESPONSAVEL = matricula,
                     DT_SOLICITACAO = DateTime.Now,
@@ -990,6 +1005,7 @@ namespace Vivo_Apps_API.Controllers
                     CANAL = user.CANAL,
                     NOME = user.NOME,
                     UF = user.UF,
+                    TELEFONE = user.TELEFONE,
                     APROVACAO = true,
                     FIXA = user.FIXA,
                     LOGIN_SOLICITANTE = matricula,
@@ -1228,6 +1244,7 @@ namespace Vivo_Apps_API.Controllers
                     CPF = usuario.CPF,
                     PDV = usuario.PDV,
                     DDD = usuario.DDD,
+                    TELEFONE = usuario.TELEFONE,
                     APROVACAO = false,
                     FIXA = usuario.FIXA,
                     DT_SOLICITACAO = DateTime.Now,
@@ -1385,6 +1402,7 @@ namespace Vivo_Apps_API.Controllers
                     CPF = usuario.SOLICITACAO.DADOS_SOLICITACAO.CPF,
                     DDD = usuario.SOLICITACAO.DADOS_SOLICITACAO.DDD,
                     PDV = usuario.SOLICITACAO.DADOS_SOLICITACAO.PDV,
+                    TELEFONE = usuario.SOLICITACAO.DADOS_SOLICITACAO.TELEFONE,
                     STATUS = true,
                     FIXA = usuario.SOLICITACAO.DADOS_SOLICITACAO.FIXA,
                     OBS = resposta,
@@ -1466,6 +1484,7 @@ namespace Vivo_Apps_API.Controllers
                 acesso.UF = usuario.SOLICITACAO.DADOS_SOLICITACAO.UF;
                 acesso.CPF = usuario.SOLICITACAO.DADOS_SOLICITACAO.CPF;
                 acesso.PDV = usuario.SOLICITACAO.DADOS_SOLICITACAO.PDV;
+                acesso.TELEFONE = usuario.SOLICITACAO.DADOS_SOLICITACAO.TELEFONE;
                 acesso.APROVACAO = usuario.SOLICITACAO.APROVACAO;
                 acesso.FIXA = usuario.SOLICITACAO.DADOS_SOLICITACAO.FIXA;
                 acesso.UserAvatar = usuario.SOLICITACAO.DADOS_SOLICITACAO.UserAvatar;
@@ -1546,6 +1565,7 @@ namespace Vivo_Apps_API.Controllers
                 acesso.CPF = usuario.SOLICITACAO.DADOS_SOLICITACAO.CPF;
                 acesso.PDV = usuario.SOLICITACAO.DADOS_SOLICITACAO.PDV;
                 acesso.FIXA = usuario.SOLICITACAO.DADOS_SOLICITACAO.FIXA;
+                acesso.TELEFONE = usuario.SOLICITACAO.DADOS_SOLICITACAO.TELEFONE;
                 acesso.STATUS = usuario.SOLICITACAO.DADOS_SOLICITACAO.STATUS;
                 acesso.DT_MOD = DateTime.Now;
                 acesso.LOGIN_MOD = matricula;
@@ -1624,7 +1644,7 @@ namespace Vivo_Apps_API.Controllers
         }
 
         [HttpPost("CriarUsuarioMassivo")]
-        public async Task<JsonResult> CriarUsuarioMassivo([FromBody] List<SOLICITAR_USUARIO_MODEL> usuarios, int matricula, string OBS)
+        public async Task<IActionResult> CriarUsuarioMassivo([FromBody] List<SOLICITAR_USUARIO_MODEL> usuarios, int matricula, string OBS)
         {
             try
             {
@@ -1647,6 +1667,7 @@ namespace Vivo_Apps_API.Controllers
                         FIXA = usuario.FIXA,
                         DDD = usuario.DDD,
                         ELEGIVEL = usuario.ELEGIVEL,
+                        TELEFONE = usuario.TELEFONE,
                         UserAvatar = System.IO.File.ReadAllBytes(Path.Combine(Directory.GetCurrentDirectory(), "FilesTemplates", "usericon.png")),
                         DT_SOLICITACAO = DateTime.Now,
                         DT_PRIMEIRO_RETORNO = null,
@@ -1681,27 +1702,11 @@ namespace Vivo_Apps_API.Controllers
                 }
                 await CD.SaveChangesAsync();
 
-                return new JsonResult(new Response<string>
-                {
-                    Data = "Foi criado uma solicitação de acesso para todos os usuários no arquivo",
-                    Succeeded = true,
-                    Message = "Foi criado uma solicitação de acesso para todos os usuários no arquivo",
-                    Errors = null,
-                });
+                return Ok("Foi criado uma solicitação de acesso para todos os usuários no arquivo");
             }
             catch (Exception ex)
             {
-                return new JsonResult(new Response<string>
-                {
-                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
-                    Succeeded = false,
-                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
-                    Errors = new string[]
-                    {
-                        ex.Message,
-                        ex.StackTrace
-                    },
-                });
+                return BadRequest("Recebemos a solicitação da ação mas não conseguimos executa-lá");
             }
         }
 
@@ -1739,6 +1744,7 @@ namespace Vivo_Apps_API.Controllers
                             UF = usuario.UF,
                             CPF = usuario.CPF,
                             PDV = usuario.PDV,
+                            TELEFONE = usuario.TELEFONE,
                             APROVACAO = false,
                             FIXA = usuario.FIXA,
                             DT_SOLICITACAO = DateTime.Now,
@@ -1752,6 +1758,7 @@ namespace Vivo_Apps_API.Controllers
                             STATUS = "ABERTO",
                             DDD = usuario.DDD,
                             ELEGIVEL = usuario.ELEGIVEL,
+                            SENHA = usuario.SENHA,
                             TIPO = "ALTERAÇÃO"
                         }).Entity;
 
@@ -1803,6 +1810,15 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
+        /// <summary>
+        /// Gera um modelo para o usuário dentro de um excel baseado nos filtros
+        /// </summary>
+        /// <param name="filter">
+        /// filtros idênticos aos filtros da página que carregou a tabela
+        /// </param>
+        /// <returns>
+        /// byte[] do arquivo excel
+        /// </returns>
         [HttpPost("GetUsuariosExcel")]
         public async Task<JsonResult> GetUsuariosExcel([FromBody] PaginationControleAcessoModel filter)
         {
@@ -1895,7 +1911,7 @@ namespace Vivo_Apps_API.Controllers
                     ID = x.ID,
                     EMAIL = x.EMAIL,
                     MATRICULA = x.MATRICULA,
-                    SENHA = x.SENHA,
+                    SENHA = "Insira uma nova senha",
                     REGIONAL = x.REGIONAL,
                     CARGO = x.CARGO,
                     CANAL = x.CANAL,
@@ -1903,6 +1919,7 @@ namespace Vivo_Apps_API.Controllers
                     CPF = x.CPF,
                     NOME = x.NOME,
                     UF = x.UF,
+                    TELEFONE = x.TELEFONE,
                     STATUS = x.STATUS,
                     FIXA = x.FIXA.Value,
                     TP_AFASTAMENTO = x.TP_AFASTAMENTO,
@@ -1917,13 +1934,14 @@ namespace Vivo_Apps_API.Controllers
                 string templatepath = Path.Combine(Directory.GetCurrentDirectory(), "FilesTemplates//Acessos_Mobile_Model.html");
                 string htmldata = System.IO.File.ReadAllText(templatepath);
 
-                var excelstring = new System.Text.StringBuilder();
+                var excelstring = new StringBuilder();
 
                 foreach (var blocao in dataAfterEntity)
                 {
                     excelstring.Append("<tr>");
                     excelstring.Append($"<td>{blocao.ID}</td>");
                     excelstring.Append($"<td>{blocao.EMAIL}</td>");
+                    excelstring.Append($"<td>{blocao.TELEFONE}</td>");
                     excelstring.Append($"<td>{blocao.MATRICULA}</td>");
                     excelstring.Append($"<td>{blocao.SENHA}</td>");
                     excelstring.Append($"<td>{blocao.REGIONAL}</td>");
@@ -1987,13 +2005,17 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
+
         [HttpPost("ValidateUsuarioMassivo")]
         public async Task<JsonResult> ValidateUsuarioMassivo([FromBody] List<SOLICITAR_USUARIO_MODEL> usuarios)
         {
             try
             {
                 if (CD.ACESSOS_MOBILE_PENDENTEs
-                    .Where(x => x.TIPO != "ALTERAÇÃO" && x.STATUS != "REPROVADO")
+                    .Where(x => x.TIPO != TIPO_ACESSOS_PENDENTES.ALTERACAO.Value
+                && (x.STATUS != STATUS_ACESSOS_PENDENTES.CANCELADO.Value
+                && x.STATUS != STATUS_ACESSOS_PENDENTES.APROVADO.Value
+                && x.STATUS != STATUS_ACESSOS_PENDENTES.REPROVADO.Value))
                     .Select(x => x.EMAIL.ToLower()).Any(x => usuarios.Select(y => y.EMAIL.ToLower()).Contains(x)))
                 {
                     IEnumerable<string> list = CD.ACESSOS_MOBILE_PENDENTEs.Select(x => x.EMAIL.ToLower()).Where(x => usuarios.Select(y => y.EMAIL.ToLower()).Contains(x)).Select(x => x + "\n");
@@ -2017,7 +2039,10 @@ namespace Vivo_Apps_API.Controllers
                     });
                 }
                 else if (CD.ACESSOS_MOBILE_PENDENTEs
-                    .Where(x => x.TIPO != "ALTERAÇÃO" && x.STATUS != "REPROVADO")
+                    .Where(x => x.TIPO != TIPO_ACESSOS_PENDENTES.ALTERACAO.Value
+                    && (x.STATUS != STATUS_ACESSOS_PENDENTES.CANCELADO.Value
+                    && x.STATUS != STATUS_ACESSOS_PENDENTES.APROVADO.Value
+                    && x.STATUS != STATUS_ACESSOS_PENDENTES.REPROVADO.Value))
                     .Select(x => x.MATRICULA).Any(x => usuarios.Select(y => y.MATRICULA).ToList().Contains(x.Value)))
                 {
                     IEnumerable<string> list = CD.ACESSOS_MOBILE_PENDENTEs.Where(x => x.TIPO.ToLower() != "alteração").Select(x => x.MATRICULA).Where(x => usuarios.Select(y => y.MATRICULA).ToList().Contains(x.Value)).Select(x => x + "\n");
