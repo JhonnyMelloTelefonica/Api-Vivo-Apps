@@ -125,11 +125,7 @@ namespace Vivo_Apps_API.Controllers
                     opt => opt.MapFrom(src => (Cargos)src.CARGO))
                 .ForMember(
                     dest => dest.CANAL,
-                    opt => opt.MapFrom(src => (Canal)src.CANAL))
-                .ForMember(
-                    dest => dest.DemandasResponsavel,
-                    opt => opt.MapFrom(src => src.DemandasResponsavel.AsEnumerable())
-                    );
+                    opt => opt.MapFrom(src => (Canal)src.CANAL));
 
 
                 cfg.CreateMap<DEMANDA_BD_OPERADORE, DEMANDA_BD_OPERADORES_DTO>()
@@ -921,20 +917,20 @@ namespace Vivo_Apps_API.Controllers
                     }
                 }
 
-                if (filter.Value.tipo_fila is not null)
+                if (filter.Value.fila_macro is not null)
                 {
-                    if (filter.Value.tipo_fila.Any())
+                    if (filter.Value.fila_macro.Any())
                     {
-                        List<int> tipo_fila = filter.Value.tipo_fila.Select(x => x.ID_TIPO_FILA).ToList();
+                        List<int> tipo_fila = filter.Value.fila_macro;
 
                         dataBeforeFilter = dataBeforeFilter.Where(k =>
                             tipo_fila.Contains(k.ID_TIPO_FILA));
 
-                        if (filter.Value.fila is not null)
+                        if (filter.Value.sub_fila is not null)
                         {
-                            if (filter.Value.fila.Any())
+                            if (filter.Value.sub_fila.Any())
                             {
-                                List<int> sub_fila = filter.Value.fila.Select(x => x.ID_SUB_FILA).ToList();
+                                List<int> sub_fila = filter.Value.sub_fila;
 
                                 dataBeforeFilter = dataBeforeFilter.Where(k => sub_fila.Contains(k.ID_SUB_FILA));
                             }
@@ -949,7 +945,6 @@ namespace Vivo_Apps_API.Controllers
                         dataBeforeFilter = dataBeforeFilter.Where(k =>
                             CD.DEMANDA_RESPONSAVEL_FILAs
                                 .Where(postAndMeta => filter.Value.responsável
-                                        .Select(x => x.MATRICULA)
                                         .Contains(postAndMeta.MATRICULA_RESPONSAVEL.Value))
                                 .Select(l => l.ID_SUB_FILA).Contains(k.ID_SUB_FILA)
                         );
@@ -1000,9 +995,9 @@ namespace Vivo_Apps_API.Controllers
                 var datafilters = new FilterFilaDemandasModel();
                 if (RefreshFilas)
                 {
-                    datafilters.filas = Demanda_BD.DEMANDA_TIPO_FILA
+                    datafilters.filas = Demanda_BD.DEMANDA_SUB_FILA
                         .Where(x => x.REGIONAL == regional)
-                        .ProjectTo<DEMANDA_TIPO_FILA_DTO>(_mapper.ConfigurationProvider);
+                        .Select(x=> new RELACAO_FILA_SUB_FILA(x.ID_TIPO_FILA,x.ID_TIPO_FILANavigation.NOME_TIPO_FILA,x.ID_SUB_FILA,x.NOME_SUB_FILA));
                 }
 
                 IQueryable<DEMANDA_RESPONSAVEL_FILA> parcial_result = Demanda_BD.DEMANDA_RESPONSAVEL_FILA;
@@ -1026,7 +1021,7 @@ namespace Vivo_Apps_API.Controllers
                     .Where(x => list_matriculas.Contains(x.MATRICULA));
 
 
-                datafilters.AnalistaSuporte = resultanalista.ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider).Where(x => x.REGIONAL == regional);
+                datafilters.AnalistaSuporte = resultanalista.ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider).Where(x => x.REGIONAL == regional).ToList();
 
                 return new JsonResult(new Response<FilterFilaDemandasModel>
                 {
@@ -1057,8 +1052,9 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var fila = Demanda_BD.DEMANDA_TIPO_FILA.Where(x => x.REGIONAL == regional).IgnoreAutoIncludes()
-                    .ProjectTo<DEMANDA_TIPO_FILA_DTO>(_mapper.ConfigurationProvider).AsEnumerable();
+                var fila = Demanda_BD.DEMANDA_SUB_FILA
+                .Where(x => x.REGIONAL == regional)
+                .Select(x => new RELACAO_FILA_SUB_FILA(x.ID_TIPO_FILA, x.ID_TIPO_FILANavigation.NOME_TIPO_FILA, x.ID_SUB_FILA, x.NOME_SUB_FILA));
 
                 var analistassuporte = Demanda_BD.ACESSOS_MOBILE.Where(k => k.REGIONAL == regional).Where(k =>
                             Demanda_BD.DEMANDA_RESPONSAVEL_FILA.Select(x => x.MATRICULA_RESPONSAVEL).Distinct().Contains(k.MATRICULA)
@@ -2398,7 +2394,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpPost("GetDataDash")]
         [ProducesResponseType(typeof(Response<DEMANDAS_CHAMADO_DTO>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public async Task<JsonResult> GetDataDash([FromBody] Tuple<IEnumerable<int>, IEnumerable<DateTime>, IEnumerable<ACESSOS_MOBILE_DTO>?, DEMANDA_TIPO_FILA_DTO?, DEMANDA_SUB_FILA_DTO?> Data, string regional, int matricula,
+        public async Task<JsonResult> GetDataDash([FromBody] Tuple<IEnumerable<int>, IEnumerable<DateTime>, IEnumerable<ACESSOS_MOBILE_DTO>?, int?, int?> Data, string regional, int matricula,
             //Nullable Parameters
             string? status, bool Comprioridade, bool Semprioridade)
         {
@@ -2435,11 +2431,11 @@ namespace Vivo_Apps_API.Controllers
                         linqFiltered = linqFiltered.Where(x => x.Relacao.PRIORIDADE == false);
                 }
 
-                if (Data.Item4 is not null && Data.Item4.ID_TIPO_FILA != 0)
-                    linqFiltered = linqFiltered.Where(x => x.Fila.ID_TIPO_FILA == Data.Item4.ID_TIPO_FILA);
+                if (Data.Item4 is not null && Data.Item4 != 0)
+                    linqFiltered = linqFiltered.Where(x => x.Fila.ID_TIPO_FILA == Data.Item4);
 
-                if (Data.Item5 is not null && Data.Item5.ID_SUB_FILA != 0)
-                    linqFiltered = linqFiltered.Where(x => x.Fila.ID_SUB_FILA == Data.Item5.ID_SUB_FILA);
+                if (Data.Item5 is not null && Data.Item5 != 0)
+                    linqFiltered = linqFiltered.Where(x => x.Fila.ID_SUB_FILA == Data.Item5);
 
 
                 var Total_de_Demandas = linqFiltered
@@ -2745,7 +2741,6 @@ namespace Vivo_Apps_API.Controllers
                     .Include(x => x.Relacao)
                         .ThenInclude(x => x.Respostas)
                             .ThenInclude(x => x.Responsavel)
-                                .ThenInclude(x => x.DemandasResponsavel.Take(5))
                         .Include(x => x.Relacao)
                         .ThenInclude(x => x.Respostas)
                             .ThenInclude(x => x.Status)
@@ -2767,7 +2762,6 @@ namespace Vivo_Apps_API.Controllers
                     .Include(x => x.Relacao)
                         .ThenInclude(x => x.Respostas)
                             .ThenInclude(x => x.Responsavel)
-                                .ThenInclude(x => x.ResponsavelDemandasTotais)
                     .Include(x => x.Relacao)
                         .ThenInclude(x => x.Respostas)
                             .ThenInclude(x => x.Status)

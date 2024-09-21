@@ -110,9 +110,7 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var result = Demanda.ACESSOS_MOBILE.Where(x => x.MATRICULA == matricula)
-                    .Include(x=> x.DemandasResponsavel)
-                    .Include(x=> x.DemandasSolicitadas).FirstOrDefault();
+                var result = Demanda.ACESSOS_MOBILE.Where(x => x.MATRICULA == matricula).FirstOrDefault();
 
                 return new JsonResult(new Response<ACESSOS_MOBILE>
                 {

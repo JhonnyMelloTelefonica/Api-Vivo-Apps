@@ -25,15 +25,17 @@ INSERÇÃO DE USUÁRIO NO VIVO +
 select * from DEMANDA_SUB_FILA  where regional = 'MG' order by Nome_sub_fila asc
 select * from JORNADA_BD_QUESTION_HISTORICO WHERE TP_FORMS = 'Jornada' and CADERNO = 42
 
-select * from JORNADA_BD_CARGOS_CANAL
+select * from DEMANDA_CAMPOS_FILA where ID_CAMPOS IS NULL OR ID_CAMPOS = NULL 
 
+select * from Cardapio.PRODUTOS_CARDAPIO
+select * from JORNADA_BD_QUESTION
 --insert into JORNADA_BD_CARGOS_CANAL
 --values(23,'Representante de Vendas',6,'Distribuição')
 
-update ACESSO_PERMISSAO_MENU
-set DescricaoMenu = 'GERENTE GERAL - LLPP'
-where IdAcesso =
-(select IdAcesso from ACESSO where Login = '66359')
+--update ACESSO_PERMISSAO_MENU
+--set DescricaoMenu = 'GERENTE GERAL - LLPP'
+--where IdAcesso =
+--(select IdAcesso from ACESSO where Login = '66359')
 
 
 
@@ -555,3 +557,5 @@ select * from JORNADA_BD_QUESTION WHERE ID_QUESTION = 9883
 --SELECT * FROM JORNADA_BD_ANSWER_ALTERNATIVAS where STATUS_ALTERNATIVA = 0
 --update JORNADA_BD_ANSWER_ALTERNATIVAS  SET STATUS_ALTERNATIVA = 1
 
+--delete DEMANDA_RESPONSAVEL_FILA WHERE ID_sub_FILA IN (select * FROM DEMANDA_SUB_FILA WHERE ID_TIPO_FILA = 33)
+--delete demanda_tipo_fila WHERE ID_TIPO_FILA = 33

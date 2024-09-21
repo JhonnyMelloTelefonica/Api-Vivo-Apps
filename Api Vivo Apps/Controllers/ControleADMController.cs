@@ -1702,11 +1702,22 @@ namespace Vivo_Apps_API.Controllers
                 }
                 await CD.SaveChangesAsync();
 
-                return Ok("Foi criado uma solicitação de acesso para todos os usuários no arquivo");
+                return Ok(new Response<string>
+                {
+                    Data = "Foi criado uma solicitação de acesso para todos os usuários no arquivo",
+                    Message = "Foi criado uma solicitação de acesso para todos os usuários no arquivo",
+                    Succeeded = true
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest("Recebemos a solicitação da ação mas não conseguimos executa-lá");
+                return BadRequest(
+                    new Response<string>
+                    {
+                        Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                        Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                        Succeeded = false
+                    });
             }
         }
 

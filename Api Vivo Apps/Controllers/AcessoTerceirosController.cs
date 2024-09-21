@@ -82,10 +82,6 @@ namespace Vivo_Apps_API.Controllers
                 .ForMember(
                     dest => dest.CANAL,
                     opt => opt.MapFrom(src => (Canal)src.CANAL)
-                    )
-                .ForMember(
-                    dest => dest.DemandasResponsavel,
-                    opt => opt.MapFrom(src => src.DemandasResponsavel.AsEnumerable())
                     );
 
                 cfg.CreateMap<DEMANDA_CHAMADO_RESPOSTA, DEMANDA_CHAMADO_RESPOSTA_DTO>();
@@ -130,7 +126,6 @@ namespace Vivo_Apps_API.Controllers
                    .Include(x => x.Relacao)
                        .ThenInclude(x => x.Respostas)
                            .ThenInclude(x => x.Responsavel)
-                               .ThenInclude(x => x.ResponsavelDemandasTotais)
                    .Include(x => x.Relacao)
                        .ThenInclude(x => x.Respostas)
                            .ThenInclude(x => x.Status)
@@ -634,7 +629,6 @@ namespace Vivo_Apps_API.Controllers
                    .Include(x => x.Relacao)
                        .ThenInclude(x => x.Respostas)
                            .ThenInclude(x => x.Responsavel)
-                               .ThenInclude(x => x.ResponsavelDemandasTotais)
                    .Include(x => x.Relacao)
                        .ThenInclude(x => x.Respostas)
                            .ThenInclude(x => x.Status)

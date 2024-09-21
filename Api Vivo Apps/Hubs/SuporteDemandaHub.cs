@@ -136,10 +136,6 @@ namespace Vivo_Apps_API.Hubs
                 .ForMember(
                     dest => dest.CANAL,
                     opt => opt.MapFrom(src => (Canal)src.CANAL)
-                    )
-                .ForMember(
-                    dest => dest.DemandasResponsavel,
-                    opt => opt.MapFrom(src => src.DemandasResponsavel.AsEnumerable())
                     );
 
 
@@ -234,6 +230,7 @@ namespace Vivo_Apps_API.Hubs
                     .Include(x => x.AcessoRelacao)
                     .Include(x => x.ChamadoRelacao)
                     .Include(x => x.DesligamentoRelacao)
+                    .AsSplitQuery()
                     .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider);
 
                 data = saida.ToList();
@@ -415,7 +412,6 @@ namespace Vivo_Apps_API.Hubs
             if (matricula != string.Empty)
             {
                 var saida = Demanda_BD.ACESSOS_MOBILE
-                    .Include(x => x.DemandasResponsavel)
                     .First(x => x.MATRICULA == int.Parse(matricula));
 
                 var user = _mapper.Map<ACESSOS_MOBILE_DTO>(saida);
