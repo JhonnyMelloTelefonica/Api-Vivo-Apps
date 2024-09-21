@@ -166,7 +166,7 @@ namespace Vivo_Apps_API.Controllers
                     Cargos.Gerente_Senior_Gestão_Vendas,
                     Cargos.Gerente_Senior_Territorial,
                     Cargos.Gerente_Vendas_B2C,
-                    Cargos.Representante_de_vendas
+                    Cargos.ADM
                 };
 
                 IEnumerable<Option<int>> cargos = Enum.GetValues(typeof(Cargos))
