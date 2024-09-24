@@ -471,7 +471,7 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var saida = CD.ACESSOS_MOBILEs.Where(x=>x.REGIONAL == regional).ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
+                var saida = CD.ACESSOS_MOBILEs.Where(x => x.REGIONAL == regional).ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
                     .Where(x => cargos.Contains(x.CARGO)).AsEnumerable();
 
                 return new JsonResult(new Response<IEnumerable<ACESSOS_MOBILE_DTO>>
@@ -525,7 +525,7 @@ namespace Vivo_Apps_API.Controllers
             }
 
             var alterados = CD.SaveChanges();
-            
+
             try
             {
                 return new JsonResult(new Response<string>
@@ -761,7 +761,7 @@ namespace Vivo_Apps_API.Controllers
             try
             {
                 var dataBeforeFilter = CD.JORNADA_BD_HIERARQUIAs
-                    .Where(x=> x.STATUS == filter.Value.STATUS)
+                    .Where(x => x.STATUS == filter.Value.STATUS)
                     .AsQueryable();
 
                 if (!string.IsNullOrEmpty(filter.Value.AnyColumnMatch))
@@ -874,5 +874,27 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
+        [HttpGet("QuestionTemas")]
+        [ProducesResponseType(typeof(Response<JORNADA_HIERARQUIA_DTO>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public IActionResult QuestionTemas()
+        {
+            try
+            {
+                var saida = CD.JORNADA_BD_TEMAS_SUB_TEMAs.Select(x => new
+                {
+                    Id_Tema = x.ID_TEMAS ?? 0,
+                    Tema = x.TEMAS,
+                    Id_sub_Tema = x.ID_SUB_TEMAS,
+                    sub_Tema = x.SUB_TEMAS,
+                });
+
+                return Ok(saida);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
+            }
+        }
     }
 }

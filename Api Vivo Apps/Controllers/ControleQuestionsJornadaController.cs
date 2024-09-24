@@ -286,7 +286,7 @@ namespace Vivo_Apps_API.Controllers
                 {
                     if (string.IsNullOrEmpty(filter.Value.Pergunta))
                     {
-                        Data = Data.Where(x => x.PERGUNTA.Contains(filter.Value.Pergunta));
+                        Data = Data.Where(x => x.PERGUNTA.Contains(filter.Value.Pergunta, StringComparison.InvariantCultureIgnoreCase));
                     }
                 }
 

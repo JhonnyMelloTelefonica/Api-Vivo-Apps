@@ -997,7 +997,10 @@ namespace Vivo_Apps_API.Controllers
                 {
                     datafilters.filas = Demanda_BD.DEMANDA_SUB_FILA
                         .Where(x => x.REGIONAL == regional)
-                        .Select(x=> new RELACAO_FILA_SUB_FILA(x.ID_TIPO_FILA,x.ID_TIPO_FILANavigation.NOME_TIPO_FILA,x.ID_SUB_FILA,x.NOME_SUB_FILA));
+                        .Include(x=>x.DEMANDA_RESPONSAVEL_FILAs)
+                        .Select(x=> new RELACAO_FILA_SUB_FILA(x.ID_TIPO_FILA,x.ID_TIPO_FILANavigation.NOME_TIPO_FILA,x.ID_SUB_FILA,x.NOME_SUB_FILA,x.DEMANDA_RESPONSAVEL_FILAs.Select(y=>y.MATRICULA_RESPONSAVEL.Value).ToArray()))
+                        .AsSplitQuery()
+                        .ToList();
                 }
 
                 IQueryable<DEMANDA_RESPONSAVEL_FILA> parcial_result = Demanda_BD.DEMANDA_RESPONSAVEL_FILA;
@@ -1015,13 +1018,13 @@ namespace Vivo_Apps_API.Controllers
 
                 var list_matriculas = parcial_result
                             .Select(x => x.MATRICULA_RESPONSAVEL)
-                            .Distinct();
+                            .Distinct().ToList();
 
                 var resultanalista = Demanda_BD.ACESSOS_MOBILE
                     .Where(x => list_matriculas.Contains(x.MATRICULA));
 
 
-                datafilters.AnalistaSuporte = resultanalista.ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider).Where(x => x.REGIONAL == regional).ToList();
+                datafilters.AnalistaSuporte = resultanalista.Where(x => x.REGIONAL == regional).ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider).ToList();
 
                 return new JsonResult(new Response<FilterFilaDemandasModel>
                 {
@@ -1054,7 +1057,8 @@ namespace Vivo_Apps_API.Controllers
             {
                 var fila = Demanda_BD.DEMANDA_SUB_FILA
                 .Where(x => x.REGIONAL == regional)
-                .Select(x => new RELACAO_FILA_SUB_FILA(x.ID_TIPO_FILA, x.ID_TIPO_FILANavigation.NOME_TIPO_FILA, x.ID_SUB_FILA, x.NOME_SUB_FILA));
+                .Include(x => x.DEMANDA_RESPONSAVEL_FILAs)
+                .Select(x => new RELACAO_FILA_SUB_FILA(x.ID_TIPO_FILA, x.ID_TIPO_FILANavigation.NOME_TIPO_FILA, x.ID_SUB_FILA, x.NOME_SUB_FILA, x.DEMANDA_RESPONSAVEL_FILAs.Select(y => y.MATRICULA_RESPONSAVEL.Value).ToArray()));
 
                 var analistassuporte = Demanda_BD.ACESSOS_MOBILE.Where(k => k.REGIONAL == regional).Where(k =>
                             Demanda_BD.DEMANDA_RESPONSAVEL_FILA.Select(x => x.MATRICULA_RESPONSAVEL).Distinct().Contains(k.MATRICULA)

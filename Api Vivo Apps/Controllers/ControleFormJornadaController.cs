@@ -1543,7 +1543,7 @@ namespace Vivo_Apps_API.Controllers
 
                 var Data = Provas.OrderByDescending(x => x.ID_PROVA)
                     .Skip((filter.PageNumber - 1) * filter.PageSize)
-                    .Take(filter.PageSize);
+                    .Take(filter.PageSize).OrderBy(x => x.DT_CRIACAO);
 
 
                 var totalRecords = Provas.Count();
