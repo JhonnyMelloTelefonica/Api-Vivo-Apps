@@ -521,173 +521,6 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
-        //[HttpPost("CreateFormulario")]
-        //[ProducesResponseType(typeof(Response<string>), 200)]
-        //[ProducesResponseType(typeof(Response<string>), 500)]
-        //public async Task<JsonResult> CreateFormulario(
-        //       [FromBody] List<TEMAS_QTD>? TEMAS_QUANTIDADE,
-        //       string TIPO_PROVA,
-        //       int CARGO,
-        //       bool FIXA,
-        //       string REGIONAL,
-        //       string MATRICULA,
-        //       string DT_INIT,
-        //       string? DT_FINAL,
-        //       int QTD_TOTAL_SOLICITADA
-        //   )
-        //{
-        //    try
-        //    {
-        //        List<JORNADA_BD_QUESTION> Formulario = new List<JORNADA_BD_QUESTION>(); // LISTA ONDE SERÁ INSERIDA AS PERGUNTAS
-        //        bool FormularioExistente;
-        //        int proximocaderno = 0;
-        //        var matricula = MATRICULA;
-        //        string rota = TIPO_PROVA;
-        //        Random random = new Random();
-
-        //        if (rota.Equals("Rota Cruzada"))
-        //        {
-        //            FormularioExistente = CD.JORNADA_BD_QUESTION_HISTORICOs
-        //                .ToList()
-        //                .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains(CARGO))
-        //                .Where(x => x.ID_CRIADOR == matricula)
-        //                .Where(x => x.REGIONAL == REGIONAL)
-        //                .Where(x => x.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains(rota))
-        //                .Where(x => x.FIXA == FIXA).Any();
-
-        //            if (FormularioExistente)
-        //            {
-        //                var maxcaderno = (int)(CD.JORNADA_BD_QUESTION_HISTORICOs
-        //                    .ToList()
-        //                    .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains(CARGO))
-        //                    .Where(x => x.ID_CRIADOR == matricula)
-        //                    .Where(x => x.REGIONAL == REGIONAL)
-        //                    .Where(x => x.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains("Rota Cruzada"))
-        //                    .Where(x => x.FIXA == FIXA)
-        //                    .Select(y => y.CADERNO).Max());
-
-        //                //vai buscar a ultima prova com os parametros passados
-        //                var datafinal = CD.JORNADA_BD_QUESTION_HISTORICOs
-        //                .ToList()
-        //                    .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains(CARGO))
-        //                    .Where(x => x.ID_CRIADOR == matricula)
-        //                    .Where(x => x.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains("Rota Cruzada"))
-        //                    .Where(x => x.REGIONAL == REGIONAL)
-        //                    .Where(x => x.FIXA == FIXA)
-        //                    .Where(x => x.CADERNO == maxcaderno)
-        //                    .Select(x => x.DT_FINALIZACAO).FirstOrDefault();
-
-        //                if (string.IsNullOrEmpty(datafinal))
-        //                {
-        //                    //DateTime.Now > Convert.ToDateTime(datafinal)
-        //                    //significa que o formulário está finalizado
-        //                    return new JsonResult(new Response<string>
-        //                    {
-        //                        Data = "Tentativa de criação de formulário repetido",
-        //                        Succeeded = false,
-        //                        Message = "Desculpe já existe uma prova com os mesmos filtros associados ao seu usuário onde ainda não foi finalizada, por favor finalize a prova e tente novamente",
-        //                        Errors = null,
-        //                    });
-        //                }
-
-        //                proximocaderno = maxcaderno + 1;
-        //            }
-        //            else
-        //            {
-        //                proximocaderno = 1;
-        //            }
-
-
-        //            for (int i = 0; i < TEMAS_QUANTIDADE.Count(); i++)
-        //            {
-        //                InsertQuestionsRotaCruzadaIntoForm(REGIONAL, TEMAS_QUANTIDADE, CARGO, FIXA, Formulario, FormularioExistente, matricula, random, i);
-        //            }
-        //        }
-        //        else // Caso seja Jornada
-        //        { // Este looping faz o mesmo mas sem o parametro de matricula
-        //            FormularioExistente = CD.JORNADA_BD_QUESTION_HISTORICOs
-        //                .ToList()
-        //                .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains(CARGO))
-        //                .Where(x => x.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains(rota))
-        //                .Where(x => x.REGIONAL == REGIONAL)
-        //                .Where(x => x.FIXA == FIXA).Any();
-
-        //            if (FormularioExistente)
-        //            {
-        //                proximocaderno = (int)(CD.JORNADA_BD_QUESTION_HISTORICOs
-        //                .ToList()
-        //                    .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains(CARGO))
-        //                    .Where(x => x.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains(rota))
-        //                    .Where(x => x.REGIONAL == REGIONAL)
-        //                    .Where(x => x.FIXA == FIXA)
-        //                    .Select(y => y.CADERNO).Max() + 1);
-        //            }
-        //            else
-        //            {
-        //                proximocaderno = 1;
-        //            }
-
-        //            for (int i = 0; i < TEMAS_QUANTIDADE.Count(); i++)
-        //            {
-        //                InsertQuestionsJornadaIntoForm(REGIONAL, TEMAS_QUANTIDADE, CARGO, FIXA, Formulario, FormularioExistente, rota, random, i);
-        //            }
-        //        }
-
-        //        if (Formulario.Count() <= 0 || Formulario is null)
-        //        {
-        //            return new JsonResult(new Response<string>
-        //            {
-        //                Data = "Algum erro ocorreu",
-        //                Succeeded = false,
-        //                Message = "Não foi encontrado nenhuma pergunta com esses filtros para o formulário",
-        //                Errors = new string[]
-        //                {
-        //                    "Lista de perguntas retornou vazia"
-        //                },
-        //            });
-        //        }
-        //        if (Formulario.Count() < QTD_TOTAL_SOLICITADA)
-        //        {
-        //            return new JsonResult(new Response<string>
-        //            {
-        //                Data = "Algum erro ocorreu",
-        //                Succeeded = false,
-        //                Message = "A quantidade total de perguntadas encontradas não foi suficiente para o preenchimento do formulário",
-        //                Errors = new string[]
-        //                {
-        //                    "Lista de perguntas retornou vazia"
-        //                },
-        //            });
-        //        }
-
-        //        InsertQuestionsIntoForm(REGIONAL, TIPO_PROVA, CARGO, FIXA, MATRICULA, DT_INIT, DT_FINAL, Formulario, proximocaderno);
-
-        //        await CD.SaveChangesAsync();
-
-        //        return new JsonResult(new Response<string>
-        //        {
-        //            Data = "Tudo certo!",
-        //            Succeeded = true,
-        //            Message = "O formulário foi criado corretamente",
-        //            Errors = null,
-        //        });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return new JsonResult(new Response<string>
-        //        {
-        //            Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
-        //            Succeeded = false,
-        //            Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
-        //            Errors = new string[]
-        //            {
-        //                ex.Message,
-        //                ex.StackTrace
-        //            },
-        //        });
-        //    }
-        //}
-
         [HttpPost("CreateFormulario")]
         [ProducesResponseType(typeof(Response<string>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
@@ -934,19 +767,23 @@ namespace Vivo_Apps_API.Controllers
                     Cargos.Vendedor_PAP,
                     Cargos.Supervisor_PAP,
                     Cargos.Vendedor_Revenda,
-                    Cargos.Gerente_Revenda
+                    Cargos.Gerente_Revenda,
+                    Cargos.Gerente_de_area_PAP,
+                    Cargos.Representante_de_vendas
                 };
 
-                IEnumerable<Cargos> CargosProvaGGP = new List<Cargos> // Cargos que iram ver prova de GA
+                IEnumerable<Cargos> CargosProvaGGP = new List<Cargos> // Cargos que iram ver prova de GGP
                 {
                     Cargos.Vendedor_PAP,
                     Cargos.Supervisor_PAP,
                     Cargos.Vendedor_Revenda,
                     Cargos.Gerente_Revenda,
-                    Cargos.Gerente_Área
+                    Cargos.Gerente_Área,
+                    Cargos.Gerente_de_area_PAP,
+                    Cargos.Representante_de_vendas
                 };
 
-                IEnumerable<Cargos> CargosProvaGV = new List<Cargos> // Cargos que iram ver prova de GA
+                IEnumerable<Cargos> CargosProvaGV = new List<Cargos> // Cargos que iram ver prova de GV
                 {
                     Cargos.Vendedor_PAP,
                     Cargos.Supervisor_PAP,
@@ -957,6 +794,8 @@ namespace Vivo_Apps_API.Controllers
                     Cargos.Gerente_Operações,
                     Cargos.Consultor_Negócios,
                     Cargos.Consultor_Tecnológico,
+                    Cargos.Gerente_de_area_PAP,
+                    Cargos.Representante_de_vendas
                 };
 
                 IEnumerable<Cargos> CargosProvaDivisao = new List<Cargos> // Cargos que iram ver prova de Divisão
@@ -972,9 +811,11 @@ namespace Vivo_Apps_API.Controllers
                     Cargos.Consultor_Negócios,
                     Cargos.Consultor_Tecnológico,
                     Cargos.Gerente_Vendas_B2C,
+                    Cargos.Gerente_de_area_PAP,
+                    Cargos.Representante_de_vendas
                 };
 
-                IEnumerable<Cargos> CargosProvaJornadaGestorDireto = new List<Cargos> // Cargos que iram ver prova de Divisão
+                IEnumerable<Cargos> CargosProvaJornadaGestorDireto = new List<Cargos> // Cargos que iram ver prova de Gestor Direto
                 {
                     Cargos.Vendedor_PAP,
                     Cargos.Supervisor_PAP,
@@ -982,7 +823,8 @@ namespace Vivo_Apps_API.Controllers
                     Cargos.Gerente_Revenda,
                     Cargos.Gerente_Operações,
                     Cargos.Consultor_Negócios,
-                    Cargos.Consultor_Tecnológico
+                    Cargos.Consultor_Tecnológico,
+                    Cargos.Representante_de_vendas
                 };
 
                 // Busca Provas de Rota
@@ -2365,7 +2207,7 @@ namespace Vivo_Apps_API.Controllers
             else
             {
                 JORNADA_BD_HIERARQUIum PDVDivisão = CD.JORNADA_BD_HIERARQUIAs
-                    .Where(x => x.ADABAS == usuario.PDV && x.RE_GV != null).FirstOrDefault();
+                    .Where(x => x.ADABAS == usuario.PDV && x.RE_DIVISAO != null).FirstOrDefault();
 
                 if (PDVDivisão is not null)
                 {

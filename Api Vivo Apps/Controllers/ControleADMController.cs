@@ -236,20 +236,18 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
-        // GET LISTA DE ACESSOS PENDENTES //
         /// <summary>
-        /// 
+        /// GET LISTA DE ACESSOS PENDENTES  
         /// </summary>
         /// <param name="filter"></param>
         /// <returns></returns>
         [HttpPost("GetUsuariosPendentes")]
-        public async Task<JsonResult> GetUsuariosPendentes(
-            [FromBody] GenericPaginationModel<FilterUsuariosPendentesModel> filter)
+        public async Task<JsonResult> GetUsuariosPendentes([FromBody] GenericPaginationModel<FilterUsuariosPendentesModel> filter)
         {
             try
             {
-                var users = CD.ACESSOS_MOBILE_PENDENTEs.AsQueryable();
-
+                var users = CD.ACESSOS_MOBILE_PENDENTEs.AsSplitQuery().AsQueryable();
+                List<int> matriculassolicitadas = [];
                 // FILTRA PELA REGIONAL DO USUÁRIO
                 if (filter.Value.IsSuporte.HasValue && !filter.Value.IsMaster)
                 {
@@ -319,7 +317,8 @@ namespace Vivo_Apps_API.Controllers
                 {
                     if (filter.Value.MATRICULA.Any())
                     {
-                        users = users.Where(x => filter.Value.MATRICULA.Contains(x.MATRICULA));
+                        matriculassolicitadas = filter.Value.MATRICULA.Cast<int>().ToList();
+                        users = users.Where(x => matriculassolicitadas.Contains(x.MATRICULA ?? 0));
                     }
                 }
 
@@ -343,7 +342,7 @@ namespace Vivo_Apps_API.Controllers
                 {
                     if (filter.Value.DT_SOLICITACAO.Count() >= 2)
                     {
-                        users = users.ToList().Where(x => filter.Value.DT_SOLICITACAO[0] <= x.DT_SOLICITACAO && filter.Value.DT_SOLICITACAO[1] >= x.DT_SOLICITACAO).AsQueryable();
+                        users = users.Where(x => filter.Value.DT_SOLICITACAO[0] <= x.DT_SOLICITACAO && filter.Value.DT_SOLICITACAO[1] >= x.DT_SOLICITACAO).AsQueryable();
                     }
                 }
 

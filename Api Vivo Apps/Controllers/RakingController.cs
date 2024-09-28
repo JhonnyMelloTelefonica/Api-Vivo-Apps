@@ -55,6 +55,7 @@ namespace Vivo_Apps_API.Controllers
             try
             {
                 var Avaliacoes = CD.JORNADA_BD_ANSWER_AVALIACAOs
+                    .AsSplitQuery()
                     .Where(x => x.TP_FORMS.Equals("Jornada") && x.ID_PROVA != null && x.RE_AVALIADO != 0)
                     .Where(x => x.DT_AVALIACAO.HasValue && x.DT_AVALIACAO.Value.Year == 2024)
                     .AsEnumerable();
@@ -62,14 +63,11 @@ namespace Vivo_Apps_API.Controllers
                 /* total te questões respondidas em total provas respondidas = Num / 100 = Nota total possivel
                   Peso * Total de questões acertadas */
 
-                var Agrupadorank = Avaliacoes.GroupBy(x => x.RE_AVALIADO.Value);
-
-
                 var rank = Avaliacoes.GroupBy(x => x.RE_AVALIADO.Value)
                     .OrderByDescending(x => x.Sum(y => y.NOTA.Value))
                     .Select((x, i) => new RakingJornada
                     {
-                        User = CD.ACESSOS_MOBILEs.ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider).First(y => y.MATRICULA == x.Key),
+                        User = _mapper.Map<ACESSOS_MOBILE_DTO>(CD.ACESSOS_MOBILEs.First(y => y.MATRICULA == x.Key)),
                         Pontuação = (double)x.Sum(y => y.NOTA.Value),
                         Classificação = i + 1,
                         Media = (double)x.Sum(y => y.NOTA.Value) / x.Count(),

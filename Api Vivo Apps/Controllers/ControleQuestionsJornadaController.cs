@@ -236,7 +236,7 @@ namespace Vivo_Apps_API.Controllers
 
                 IEnumerable<Option<int>> cargos = Enum.GetValues(typeof(Cargos))
                     .Cast<Cargos>().ToList().Where(x => !list.Contains(x))
-                    .Select(x => new Option<int> ( Convert.ToInt32(x),x.GetDisplayName()));
+                    .Select(x => new Option<int>(Convert.ToInt32(x), x.GetDisplayName()));
 
                 var tema_subtema = CD.JORNADA_BD_TEMAS_SUB_TEMAs;
 
@@ -274,7 +274,7 @@ namespace Vivo_Apps_API.Controllers
             try
             {
                 var Data = CD.JORNADA_BD_QUESTIONs
-                    .Where(x=> x.REGIONAL == filter.Value.Regional)
+                    .Where(x => x.REGIONAL == filter.Value.Regional)
                     .AsQueryable();
 
                 if (filter.Value.Status is not null)
@@ -326,7 +326,7 @@ namespace Vivo_Apps_API.Controllers
                 {
                     if (filter.Value.TP_questao.Any())
                     {
-                        Data = Data.Where(x => filter.Value.TP_questao.Select(x=> x.Value).Contains(x.TP_QUESTAO));
+                        Data = Data.Where(x => filter.Value.TP_questao.Select(x => x.Value).Contains(x.TP_QUESTAO));
                     }
                 }
 
@@ -370,14 +370,56 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
-        [HttpDelete("DeleteQuestion")]
-        public async Task<JsonResult> DeleteQuestion(int ID_QUESTION)
+        [HttpGet("EnableQuestion")]
+        public async Task<JsonResult> EnableQuestion(int ID_QUESTION, int matricula)
         {
             try
             {
                 var question = CD.JORNADA_BD_QUESTIONs.Find(ID_QUESTION);
-                question.STATUS_QUESTION = false;
-                await CD.SaveChangesAsync();
+                if (question != null)
+                {
+                    question.STATUS_QUESTION = true;
+                    question.DT_MOD = DateTime.Now;
+                    question.LOGIN_MOD = matricula;
+                    await CD.SaveChangesAsync();
+                }
+                return new JsonResult(new Response<string>
+                {
+                    Data = $"A Questão de ID: {ID_QUESTION} foi ativada com sucesso!",
+                    Succeeded = true,
+                    Message = $"A Questão de ID: {ID_QUESTION} foi ativada com sucesso!",
+                    Errors = null,
+                });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    },
+                });
+            }
+        }
+
+        [HttpGet("DeleteQuestion")]
+        public async Task<JsonResult> DeleteQuestion(int ID_QUESTION, int matricula)
+        {
+            try
+            {
+                var question = CD.JORNADA_BD_QUESTIONs.Find(ID_QUESTION);
+                if (question != null)
+                {
+                    question.STATUS_QUESTION = false;
+                    question.DT_MOD = DateTime.Now;
+                    question.LOGIN_MOD = matricula;
+                    await CD.SaveChangesAsync();
+                }
                 return new JsonResult(new Response<string>
                 {
                     Data = $"A Questão de ID: {ID_QUESTION} foi inativada com sucesso!",
@@ -419,6 +461,7 @@ namespace Vivo_Apps_API.Controllers
                     PERGUNTA = getquestion.PERGUNTA,
                     CARGO = GetCargosFromStringList(getquestion.CARGO).Cast<int>().ToList(),
                     FIXA = getquestion.FIXA,
+                    STATUS = getquestion.STATUS_QUESTION.Value,
                     ALTERNATIVAS = CD.JORNADA_BD_ANSWER_ALTERNATIVAs.Where(x => x.ID_QUESTION == ID_QUESTION).ToList()
                 };
 

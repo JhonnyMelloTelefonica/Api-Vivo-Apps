@@ -471,8 +471,8 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var saida = CD.ACESSOS_MOBILEs.Where(x => x.REGIONAL == regional).ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
-                    .Where(x => cargos.Contains(x.CARGO)).AsEnumerable();
+                var saida = CD.ACESSOS_MOBILEs.Where(x => x.REGIONAL == regional && cargos.Contains((Cargos)x.CARGO)).ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
+                    .AsEnumerable();
 
                 return new JsonResult(new Response<IEnumerable<ACESSOS_MOBILE_DTO>>
                 {

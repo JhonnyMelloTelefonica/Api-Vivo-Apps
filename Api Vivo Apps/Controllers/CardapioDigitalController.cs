@@ -101,7 +101,7 @@ namespace Vivo_Apps_API.Controllers
                     .Include(x => x.Avaliacao)
                     .Include(x => x.Argumentacao)
                     .Include(x => x.Ficha)
-                    .Include(x => x.Imagens.Take(1))
+                    .Include(x => x.Imagens.Take(4))
                     .Take(10)
                     .AsEnumerable();
 
