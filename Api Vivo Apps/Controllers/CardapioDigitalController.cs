@@ -141,12 +141,13 @@ namespace Vivo_Apps_API.Controllers
                 var result = BD.PRODUTOS_CARDAPIO
                     .Include(x => x.Ficha)
                     .Include(x => x.Avaliacao)
-                    .Include(x => x.Argumentacao.OrderByDescending(y=> y.DT_MODIFICACAO))
+                    .Include(x => x.Argumentacao.OrderByDescending(y => y.DT_MODIFICACAO))
                         .ThenInclude(x => x.Responsavel)
                     .Include(x => x.Argumentacao)
                         .ThenInclude(x => x.Avaliacoes)
                     .IgnoreAutoIncludes()
                     .First(x => x.ID_PRODUTO == id);
+
 
                 var countimages = BD.PRODUTO_IMAGENS
                     .Where(x => x.ID_PRODUTO == id)
@@ -466,5 +467,35 @@ namespace Vivo_Apps_API.Controllers
                 });
             }
         }
+        [HttpDelete("Post/Avaliacao/Argumento")]
+        [ProducesResponseType(typeof(Response<string>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public IActionResult PostAvaliacaoToArgumento([FromBody] AVALIACAO_ARGUMENTACAO avaliacao)
+        {
+            try
+            {
+                if (BD.AVALIACAO_ARGUMENTACAO.Any(x => x.MATRICULA_RESPONSAVEL == avaliacao.MATRICULA_RESPONSAVEL && x.ID_ARGUMENTACAO == avaliacao.ID_ARGUMENTACAO))
+                {
+                    var result = BD.AVALIACAO_ARGUMENTACAO.Where(x => x.MATRICULA_RESPONSAVEL == avaliacao.MATRICULA_RESPONSAVEL && x.ID_ARGUMENTACAO == avaliacao.ID_ARGUMENTACAO).First();
+                    result.DT_MODIFICACAO = DateTime.Now;
+                    result.Avaliacao = result.Avaliacao;
+                    result.IsUtil = result.IsUtil;
+                }
+                else
+                {
+                    BD.AVALIACAO_ARGUMENTACAO.Add(avaliacao);
+                }
+
+                BD.SaveChanges();
+
+                return Ok(true);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(true);
+            }
+        }
+
+
     }
 }
