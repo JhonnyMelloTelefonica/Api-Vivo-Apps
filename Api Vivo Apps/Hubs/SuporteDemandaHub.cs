@@ -223,17 +223,16 @@ namespace Vivo_Apps_API.Hubs
                 /*** Sempre utilizamos apenas os chamados do último ano ***/
                 var dataBeforeFilter = Demanda_BD.DEMANDA_RELACAO_CHAMADO
                     .Where(x => x.Respostas.First().DATA_RESPOSTA >= DateTime.Now.AddYears(-1)
-                        && x.Respostas.First().DATA_RESPOSTA <= DateTime.Now)
-                    .AsNoTracking();
+                        && x.Respostas.First().DATA_RESPOSTA <= DateTime.Now);
 
                 var saida = dataBeforeFilter
+                    .AsSplitQuery()
                     .Include(x => x.AcessoRelacao)
                     .Include(x => x.ChamadoRelacao)
                     .Include(x => x.DesligamentoRelacao)
-                    .AsSplitQuery()
                     .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider);
 
-                data = saida.ToList();
+                data = saida;
             }
             catch (Exception ex)
             {
@@ -398,7 +397,7 @@ namespace Vivo_Apps_API.Hubs
                         message = $"Uma demanda acaba de ser aberta onde você é o responsável com N° {content.ID}";
                     }
 
-                    _context.Clients.Client(item.Key).SendAsync("NewNotificationByUser", matricula, message, $"/consultar/consultardemandasbyid/{content.ID}");
+                    _context.Clients.Client(item.Key).SendAsync("NewNotificationByUser", matricula, message, $"demandas/consultar/{content.ID}");
                 }
             }
 

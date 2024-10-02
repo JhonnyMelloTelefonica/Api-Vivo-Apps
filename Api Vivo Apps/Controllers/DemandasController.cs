@@ -45,6 +45,8 @@ using Shared_Static_Class.Model_DTO.FilterModels;
 using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using DocumentFormat.OpenXml.Office2010.CustomUI;
+using Microsoft.Office.Interop.Excel;
+using BootstrapBlazor.Components;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -80,9 +82,23 @@ namespace Vivo_Apps_API.Controllers
             _logger = logger;
             var config = new MapperConfiguration(cfg =>
             {
+                cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_DTO>()
+               .ForMember(
+                   dest => dest.CARGO,
+                   opt => opt.MapFrom(src => (Cargos)src.CARGO)
+                   )
+               .ForMember(
+                   dest => dest.CANAL,
+                   opt => opt.MapFrom(src => (Canal)src.CANAL)
+                   )
+               .ForMember(
+                   dest => dest.Perfis,
+                   opt => opt.MapFrom(src => Demanda_BD.PERFIL_USUARIO.Where(x => x.MATRICULA == src.MATRICULA))
+                   );
+
                 cfg.CreateMap<DEMANDA_RELACAO_CHAMADO, DEMANDA_DTO>()
-                .ForMember(x => x.Respostas, opt => opt.Ignore())
-                .ForMember(x => x.Status, opt => opt.Ignore());
+                   .ForMember(x => x.Respostas, opt => opt.Ignore())
+                   .ForMember(x => x.Status, opt => opt.Ignore());
 
                 cfg.CreateMap<DEMANDA_CHAMADO, PAINEL_DEMANDAS_CHAMADO_DTO>();
                 cfg.CreateMap<DEMANDA_ACESSOS, DEMANDA_ACESSOS_PAINEL>();
@@ -112,31 +128,33 @@ namespace Vivo_Apps_API.Controllers
                 cfg.CreateMap<DEMANDA_VALORES_CAMPOS_SUSPENSO, DEMANDA_VALORES_CAMPOS_SUSPENSO_DTO>();
 
                 cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_NO_RELATIONS>()
-                .ForMember(
-                    dest => dest.CARGO,
-                    opt => opt.MapFrom(src => (Cargos)src.CARGO))
-                .ForMember(
-                    dest => dest.CANAL,
-                    opt => opt.MapFrom(src => (Canal)src.CANAL));
+               .ForMember(
+                   dest => dest.CARGO,
+                   opt => opt.MapFrom(src => (Cargos)src.CARGO))
+               .ForMember(
+                   dest => dest.CANAL,
+                   opt => opt.MapFrom(src => (Canal)src.CANAL));
 
                 cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_DTO>()
                 .ForMember(
                     dest => dest.CARGO,
-                    opt => opt.MapFrom(src => (Cargos)src.CARGO))
+                    opt => opt.MapFrom(src => (Cargos)src.CARGO)
+                    )
                 .ForMember(
                     dest => dest.CANAL,
-                    opt => opt.MapFrom(src => (Canal)src.CANAL));
+                    opt => opt.MapFrom(src => (Canal)src.CANAL)
+                    );
 
 
                 cfg.CreateMap<DEMANDA_BD_OPERADORE, DEMANDA_BD_OPERADORES_DTO>()
                 .ForMember(
                     dest => dest.MATRICULA,
-                    opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs
+                    opt => opt.MapFrom(src => Demanda_BD.ACESSOS_MOBILE
                                 .Where(x => x.MATRICULA == src.MATRICULA)
                                 .FirstOrDefault()))
                 .ForMember(
                     dest => dest.MATRICULA_MOD,
-                    opt => opt.MapFrom(src => CD.ACESSOS_MOBILEs
+                    opt => opt.MapFrom(src => Demanda_BD.ACESSOS_MOBILE
                                 .Where(x => x.MATRICULA == src.MATRICULA_MOD)
                                 .FirstOrDefault())
                     );
@@ -164,11 +182,6 @@ namespace Vivo_Apps_API.Controllers
                     );
 
                 cfg.CreateMap<DEMANDA_CHAMADO_RESPOSTA, DEMANDA_CHAMADO_RESPOSTA_DTO>();
-                cfg.CreateMap<DEMANDA_ARQUIVOS_RESPOSTA, DEMANDA_ARQUIVOS_RESPOSTA_DTO>()
-                .ForMember(
-                    dest => dest.ARQUIVO,
-                    opt => opt.MapFrom(src => ConvertFile(src.ARQUIVO))
-                    );
 
                 cfg.CreateMap<DEMANDA_STATUS_CHAMADO, DEMANDA_STATUS_CHAMADO_DTO>()
                 .ForMember(
@@ -179,7 +192,6 @@ namespace Vivo_Apps_API.Controllers
                     dest => dest.Para_Quem_redirecionou,
                     opt => opt.MapFrom(src => Demanda_BD.ACESSOS_MOBILE.First(x => x.MATRICULA == src.MAT_DESTINATARIO))
                     );
-
             });
             _mapper = config.CreateMapper();
         }
@@ -997,8 +1009,8 @@ namespace Vivo_Apps_API.Controllers
                 {
                     datafilters.filas = Demanda_BD.DEMANDA_SUB_FILA
                         .Where(x => x.REGIONAL == regional)
-                        .Include(x=>x.DEMANDA_RESPONSAVEL_FILAs)
-                        .Select(x=> new RELACAO_FILA_SUB_FILA(x.ID_TIPO_FILA,x.ID_TIPO_FILANavigation.NOME_TIPO_FILA,x.ID_SUB_FILA,x.NOME_SUB_FILA,x.DEMANDA_RESPONSAVEL_FILAs.Select(y=>y.MATRICULA_RESPONSAVEL.Value).ToArray()))
+                        .Include(x => x.DEMANDA_RESPONSAVEL_FILAs)
+                        .Select(x => new RELACAO_FILA_SUB_FILA(x.ID_TIPO_FILA, x.ID_TIPO_FILANavigation.NOME_TIPO_FILA, x.ID_SUB_FILA, x.NOME_SUB_FILA, x.DEMANDA_RESPONSAVEL_FILAs.Select(y => y.MATRICULA_RESPONSAVEL.Value).ToArray()))
                         .AsSplitQuery()
                         .ToList();
                 }
@@ -2065,8 +2077,9 @@ namespace Vivo_Apps_API.Controllers
                     Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
                     Errors = new string[]
                     {
+                        ex.InnerException.Message,
                         ex.Message,
-                        ex.StackTrace
+                        ex.StackTrace,
                     },
                 });
             }
@@ -2590,14 +2603,10 @@ namespace Vivo_Apps_API.Controllers
             try
             {
                 /*** Sempre utilizamos apenas os chamados do último ano ***/
-
-                var dataBeforeFilter = Demanda_BD.DEMANDA_RELACAO_CHAMADO
+                IQueryable<DEMANDA_RELACAO_CHAMADO> data = Demanda_BD.DEMANDA_RELACAO_CHAMADO.AsSplitQuery()
                     .Where(x => x.REGIONAL == filter.Value.regional && x.Respostas.First().DATA_RESPOSTA >= DateTime.Now.AddYears(-1)
                         && x.Respostas.First().DATA_RESPOSTA <= DateTime.Now)
-                    .AsNoTracking();
-
-                IQueryable<DEMANDA_RELACAO_CHAMADO> data = dataBeforeFilter
-                    .IgnoreAutoIncludes().AsNoTracking();
+                    .AsNoTracking().AsQueryable();
 
 
                 var list_ids = Demanda_BD.DEMANDA_RESPONSAVEL_FILA
@@ -2609,7 +2618,7 @@ namespace Vivo_Apps_API.Controllers
                     /** Consulta para usuários básicos **/
                     case Controle_Demanda_role.BASICO:
 
-                        data = data.Where(x => x.MATRICULA_SOLICITANTE == filter.Value.matricula && x.REGIONAL == filter.Value.regional);
+                        data = data.Where(x => x.MATRICULA_SOLICITANTE == filter.Value.matricula);
                         break;
 
                     /** Consulta para analistas do suporte que não tratam solicitação de acessos terceiro **/
@@ -2640,19 +2649,42 @@ namespace Vivo_Apps_API.Controllers
                 }
 
                 var lista = data.OrderBy(x => x.Sequence)
-                .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize);
+                    .Skip((filter.PageNumber - 1) * filter.PageSize)
+                    .Take(filter.PageSize);
 
                 var totalRecords = data.Count();
                 var totalPages = ((double)totalRecords / (double)filter.PageSize);
 
-                var Data = data.ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider).AsQueryable();
+                var Data = lista.AsSplitQuery()
+                    .Include(x => x.AcessoRelacao)
+                    .Include(x => x.ChamadoRelacao)
+                    .Include(x => x.DesligamentoRelacao)
+                    .Include(x => x.Solicitante)
+                    .Include(x => x.Responsavel)
+                    .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider);
 
-                return Ok(PagedResponse.CreatePagedReponse(Data, filter, totalRecords));
+                return Ok(new Response<PagedModelResponse<IEnumerable<DEMANDA_DTO>>>
+                {
+                    Data = PagedResponse.CreatePagedReponse(Data, filter, totalRecords),
+                    Message = "Sucessfull",
+                    Errors = [],
+                    Succeeded = true
+                });
             }
             catch (Exception ex)
             {
-                return BadRequest(ex);
+                return BadRequest(new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.InnerException.Message,
+                        ex.Message,
+                        ex.StackTrace,
+                    },
+                });
             }
         }
 

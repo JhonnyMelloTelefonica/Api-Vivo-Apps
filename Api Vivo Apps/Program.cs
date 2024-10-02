@@ -140,7 +140,7 @@ app.Lifetime.ApplicationStarted.Register(async () =>
     //app.Services.GetService<IDistributedCache>()
     //.Set("cachedTimeUTC", encodedCurrentTimeUTC, options);
 
-    await app.Services.GetRequiredService<ISuporteDemandaHub>().GetAllAsync(null);
+    //await app.Services.GetRequiredService<ISuporteDemandaHub>().GetAllAsync(null);
 });
 
 app.UseSwagger();

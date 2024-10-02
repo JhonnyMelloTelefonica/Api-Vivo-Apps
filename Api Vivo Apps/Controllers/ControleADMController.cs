@@ -267,13 +267,7 @@ namespace Vivo_Apps_API.Controllers
                     {
                         //users = users.Where(x => CD.ACESSOS_MOBILEs.Where(y => y.MATRICULA == x.LOGIN_SOLICITANTE).Select(y => y.NOME.ToLower()).Contains(filter.Value.NomeSolicitante.ToLower()));
                         var matriculasSolicitantes = users
-                        .Where(x =>
-                            CD.ACESSOS_MOBILEs
-                            .Where(y =>
-                                y.NOME.ToLower()
-                                    .Contains(filter.Value.NomeSolicitante.ToLower()))
-                                    .Select(y => y.MATRICULA)
-                                    .Contains(x.LOGIN_SOLICITANTE.Value))
+                        .Where(x => filter.Value.NomeSolicitante.Contains(x.Solicitante.NOME, StringComparison.InvariantCulture))
                         .Select(y => y.LOGIN_SOLICITANTE).Distinct();
 
                         users = users.Where(x => matriculasSolicitantes.Contains(x.LOGIN_SOLICITANTE)
@@ -317,8 +311,7 @@ namespace Vivo_Apps_API.Controllers
                 {
                     if (filter.Value.MATRICULA.Any())
                     {
-                        matriculassolicitadas = filter.Value.MATRICULA.Cast<int>().ToList();
-                        users = users.Where(x => matriculassolicitadas.Contains(x.MATRICULA ?? 0));
+                        users = users.Where(x => filter.Value.MATRICULA.Contains(x.MATRICULA.Value.ToString()));
                     }
                 }
 

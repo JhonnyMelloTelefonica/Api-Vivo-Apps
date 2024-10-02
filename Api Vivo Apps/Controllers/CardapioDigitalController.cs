@@ -20,6 +20,7 @@ using System.Drawing;
 using NuGet.Versioning;
 using Microsoft.AspNetCore.OutputCaching;
 using Shared_Razor_Components.FundamentalModels;
+using Shared_Static_Class.Model_DTO;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -78,8 +79,9 @@ namespace Vivo_Apps_API.Controllers
                     Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
                     Errors = new string[]
                     {
+                        ex.InnerException?.Message ?? "no InnerException",
                         ex.Message,
-                        ex.StackTrace
+                        ex.StackTrace ?? "no StackTrace"
                     },
                 });
             }
@@ -124,8 +126,9 @@ namespace Vivo_Apps_API.Controllers
                     Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
                     Errors = new string[]
                     {
+                        ex.InnerException?.Message ?? "no InnerException",
                         ex.Message,
-                        ex.StackTrace
+                        ex.StackTrace ?? "no StackTrace"
                     },
                 });
             }
@@ -138,7 +141,8 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var result = BD.PRODUTOS_CARDAPIO
+                var Getbyid = BD.PRODUTOS_CARDAPIO
+                    .AsSplitQuery()
                     .Include(x => x.Ficha)
                     .Include(x => x.Avaliacao)
                     .Include(x => x.Argumentacao.OrderByDescending(y => y.DT_MODIFICACAO))
@@ -148,14 +152,13 @@ namespace Vivo_Apps_API.Controllers
                     .IgnoreAutoIncludes()
                     .First(x => x.ID_PRODUTO == id);
 
-
                 var countimages = BD.PRODUTO_IMAGENS
                     .Where(x => x.ID_PRODUTO == id)
                     .Select(x => x.ID_IMAGEM).ToArray();
 
                 for (var i = 0; i < countimages.Count(); i++)
                 {
-                    result.Imagens.Add(new PRODUTO_IMAGEM
+                    Getbyid.Imagens.Add(new PRODUTO_IMAGEM
                     {
                         Imagem = null,
                         ID_IMAGEM = countimages[i],
@@ -163,9 +166,43 @@ namespace Vivo_Apps_API.Controllers
                     });
                 }
 
-                return new JsonResult(new Response<PRODUTOS_CARDAPIO>
+                var Model = new CreateProdutoDTO
                 {
-                    Data = result,
+                    Nome = Getbyid.Nome,
+                    Descrição = Getbyid.Descrição,
+                    Avaliacao = Getbyid.Avaliacao is not null ? new AvaliacaoDTO(Getbyid.Avaliacao.Avaliacao, Getbyid.Avaliacao.PositionInRank) : new(0, 0),
+                    Categoria = Getbyid.Categoria_Produto,
+                    Fabricante = Getbyid.Fabricante,
+                    Cor = Getbyid.Cor,
+                    IsOferta = Getbyid.IsOferta,
+                    Valor = Getbyid.Valor,
+                    MaxParcelas = Getbyid.MaxParcelas,
+                    MaxParcelasSemJuros = Getbyid.MaxParcelasSemJuros,
+                    Ficha = Getbyid.Ficha
+                        .Select(x => new FichaTecnicaDTO(
+                            x.Especificação,
+                            x.Valor,
+                            x.IsImportant,
+                            x.IsInfoAdicional,
+                            x.Categoria_Especificação)
+                        ).ToList(),
+                    Argumentacao = Getbyid.Argumentacao
+                        .Select(x => new ArgumentacaoDTO(x.Argumentacao, x.DT_MODIFICACAO, x.SetAvaliacaoArgumentacaoGeral(), x.IsGold, x.IsBadCaracter, x.ID_ARGUMENTACAO,
+                        x.Responsavel is not null ? new ACESSOS_MOBILE_DTO(x.Responsavel.EMAIL,
+                        x.Responsavel.MATRICULA,
+                        x.Responsavel.TELEFONE,
+                        x.Responsavel.REGIONAL,
+                        (Cargos)x.Responsavel.CARGO,
+                        (Canal)x.Responsavel.CANAL,
+                        x.Responsavel.PDV,
+                        x.Responsavel.NOME,
+                        x.Responsavel.UserAvatar) : null)).ToList(),
+                    Imagens = Getbyid.Imagens.Select(x => new ProdutoImageDTO(x.Imagem, true, x.ID_IMAGEM)).ToList(),
+                };
+
+                return new JsonResult(new Response<CreateProdutoDTO>
+                {
+                    Data = Model,
                     Succeeded = true,
                     Message = "Você está habilitado a solicitação de acesso a ferramenta."
                 }, new JsonSerializerOptions
@@ -182,8 +219,9 @@ namespace Vivo_Apps_API.Controllers
                     Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
                     Errors = new string[]
                     {
+                        ex.InnerException?.Message ?? "no InnerException",
                         ex.Message,
-                        ex.StackTrace
+                        ex.StackTrace ?? "no StackTrace"
                     },
                 });
             }
@@ -229,8 +267,9 @@ namespace Vivo_Apps_API.Controllers
                     Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
                     Errors = new string[]
                     {
+                        ex.InnerException?.Message ?? "no InnerException",
                         ex.Message,
-                        ex.StackTrace
+                        ex.StackTrace ?? "no StackTrace"
                     },
                 });
             }
@@ -265,8 +304,9 @@ namespace Vivo_Apps_API.Controllers
                     Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
                     Errors = new string[]
                     {
+                        ex.InnerException?.Message ?? "no InnerException",
                         ex.Message,
-                        ex.StackTrace
+                        ex.StackTrace ?? "no StackTrace"
                     },
                 });
             }
@@ -301,8 +341,9 @@ namespace Vivo_Apps_API.Controllers
                     Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
                     Errors = new string[]
                     {
+                        ex.InnerException?.Message ?? "no InnerException",
                         ex.Message,
-                        ex.StackTrace
+                        ex.StackTrace ?? "no StackTrace"
                     },
                 });
             }
@@ -327,7 +368,6 @@ namespace Vivo_Apps_API.Controllers
                 result.Avaliacao = produto.Avaliacao;
 
                 result.Avaliacao.Avaliacao = produto.Avaliacao.Avaliacao;
-                result.Avaliacao.IsInHotSpot = produto.Avaliacao.IsInHotSpot;
                 result.Avaliacao.PositionInRank = produto.Avaliacao.PositionInRank;
 
                 result.Categoria_Produto = produto.Categoria_Produto;
@@ -372,12 +412,12 @@ namespace Vivo_Apps_API.Controllers
 
                 #region Update Argumentos
 
-                IEnumerable<ARGUMENTACAO_OURO> NovaArgumentos = result.Argumentacao.Union(produto.Argumentacao).ToList();
+                //IEnumerable<ARGUMENTACAO_OURO> NovaArgumentos = result.Argumentacao.Union(produto.Argumentacao.Where(x => x.ID_ARGUMENTACAO == Guid.Empty)).ToList();
                 /** Une os perfis que estão no banco e os inseridos pelo usuário em uma lista, dá o distinct automaticamente **/
-                IEnumerable<ARGUMENTACAO_OURO> ArgumentosExcluidos = result.Argumentacao.ExceptBy(produto.Argumentacao.Select(x => x.ID_ARGUMENTACAO), x => x.ID_ARGUMENTACAO).ToList();
+                IEnumerable<ARGUMENTACAO_OURO> ArgumentosExcluidos = result.Argumentacao.Where(x => !produto.Argumentacao.Where(y => y.ID_ARGUMENTACAO != Guid.Empty).Select(y => y.ID_ARGUMENTACAO).Contains(x.ID_ARGUMENTACAO)).ToList();
                 /** Perfis que estão no banco e que não estão na união entre as 2 listas **/
 
-                foreach (var argumentos in NovaArgumentos)
+                foreach (var argumentos in produto.Argumentacao)
                 {
                     if (argumentos.ID_ARGUMENTACAO == Guid.Empty)
                     { /* Caso não haja Id Adicionamos*/
@@ -387,20 +427,24 @@ namespace Vivo_Apps_API.Controllers
                     else
                     {/* Caso haja Id Atualizamos sua propriedades*/
                         var fichainDB = BD.ARGUMENTACAO_OURO.Find(argumentos.ID_ARGUMENTACAO);
-
-                        fichainDB.Argumentacao = argumentos.Argumentacao;
-                        fichainDB.MATRICULA_RESPONSAVEL = argumentos.MATRICULA_RESPONSAVEL;
+                        if (fichainDB.Argumentacao != argumentos.Argumentacao)
+                        {
+                            fichainDB.Argumentacao = argumentos.Argumentacao;
+                            fichainDB.MATRICULA_RESPONSAVEL = argumentos.MATRICULA_RESPONSAVEL;
+                            fichainDB.DT_MODIFICACAO = argumentos.DT_MODIFICACAO;
+                        }
                         fichainDB.IsBadCaracter = argumentos.IsBadCaracter;
-                        fichainDB.DT_MODIFICACAO = argumentos.DT_MODIFICACAO;
                         fichainDB.IsGold = argumentos.IsGold;
                     }
                 }
 
                 foreach (var argumentos in ArgumentosExcluidos)
                 {
-                    /* Caso Esteja na lista é uma imagem deletada*/
+                    //Exclui
+                    BD.AVALIACAO_ARGUMENTACAO.RemoveRange(BD.AVALIACAO_ARGUMENTACAO.Where(x => x.ID_ARGUMENTACAO == argumentos.ID_ARGUMENTACAO));
                     BD.ARGUMENTACAO_OURO.Remove(argumentos);
                 }
+
                 #endregion
 
                 var saida = BD.SaveChanges();
@@ -409,7 +453,7 @@ namespace Vivo_Apps_API.Controllers
                 {
                     Data = produto,
                     Succeeded = true,
-                    Message = $"Os dados do produto {result.Nome} foi atualizado"
+                    Message = $"As informações do produto {result.Nome} foram atualizados"
                 }, new JsonSerializerOptions
                 {
                     ReferenceHandler = ReferenceHandler.IgnoreCycles
@@ -424,8 +468,9 @@ namespace Vivo_Apps_API.Controllers
                     Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
                     Errors = new string[]
                     {
+                        ex.InnerException?.Message ?? "no InnerException",
                         ex.Message,
-                        ex.StackTrace
+                        ex.StackTrace ?? "no StackTrace"
                     },
                 });
             }
@@ -461,13 +506,14 @@ namespace Vivo_Apps_API.Controllers
                     Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
                     Errors = new string[]
                     {
+                         ex.InnerException?.Message ?? "no InnerException",
                         ex.Message,
-                        ex.StackTrace
+                        ex.StackTrace ?? "no StackTrace"
                     },
                 });
             }
         }
-        [HttpDelete("Post/Avaliacao/Argumento")]
+        [HttpPost("Post/Avaliacao/Argumento")]
         [ProducesResponseType(typeof(Response<string>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
         public IActionResult PostAvaliacaoToArgumento([FromBody] AVALIACAO_ARGUMENTACAO avaliacao)
@@ -478,8 +524,8 @@ namespace Vivo_Apps_API.Controllers
                 {
                     var result = BD.AVALIACAO_ARGUMENTACAO.Where(x => x.MATRICULA_RESPONSAVEL == avaliacao.MATRICULA_RESPONSAVEL && x.ID_ARGUMENTACAO == avaliacao.ID_ARGUMENTACAO).First();
                     result.DT_MODIFICACAO = DateTime.Now;
-                    result.Avaliacao = result.Avaliacao;
-                    result.IsUtil = result.IsUtil;
+                    result.Avaliacao = avaliacao.Avaliacao;
+                    result.IsUtil = avaliacao.IsUtil;
                 }
                 else
                 {
