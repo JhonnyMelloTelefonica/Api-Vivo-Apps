@@ -242,7 +242,7 @@ namespace Vivo_Apps_API.Controllers
         /// <param name="filter"></param>
         /// <returns></returns>
         [HttpPost("GetUsuariosPendentes")]
-        public async Task<JsonResult> GetUsuariosPendentes([FromBody] GenericPaginationModel<FilterUsuariosPendentesModel> filter)
+        public Task<JsonResult> GetUsuariosPendentes([FromBody] GenericPaginationModel<FilterUsuariosPendentesModel> filter)
         {
             try
             {
@@ -253,25 +253,18 @@ namespace Vivo_Apps_API.Controllers
                 {
                     if (filter.Value.IsSuporte.HasValue)
                     {
-                        users = users.Where(x => filter.Value.REGIONAL.Contains(x.REGIONAL));
+                        if (!filter.Value.IsSuporte.Value)
+                        {
+                            users = users.Where(x => filter.Value.MatriculaRequisitante == x.LOGIN_SOLICITANTE.Value);
+                        }
+                        else
+                        {
+                            users = users.Where(x => filter.Value.REGIONAL.Contains(x.REGIONAL));
+                        }
                     }
                     else
                     {
-                        users = users.Where(x => filter.Value.LOGIN_SOLICITANTE.Contains(x.LOGIN_SOLICITANTE.Value));
-                    }
-                }
-
-                if (filter.Value.NomeSolicitante is not null)
-                {
-                    if (!string.IsNullOrEmpty(filter.Value.NomeSolicitante))
-                    {
-                        //users = users.Where(x => CD.ACESSOS_MOBILEs.Where(y => y.MATRICULA == x.LOGIN_SOLICITANTE).Select(y => y.NOME.ToLower()).Contains(filter.Value.NomeSolicitante.ToLower()));
-                        var matriculasSolicitantes = users
-                        .Where(x => filter.Value.NomeSolicitante.Contains(x.Solicitante.NOME, StringComparison.InvariantCulture))
-                        .Select(y => y.LOGIN_SOLICITANTE).Distinct();
-
-                        users = users.Where(x => matriculasSolicitantes.Contains(x.LOGIN_SOLICITANTE)
-                        );
+                        users = users.Where(x => filter.Value.MatriculaRequisitante == x.LOGIN_SOLICITANTE.Value);
                     }
                 }
 
@@ -352,6 +345,14 @@ namespace Vivo_Apps_API.Controllers
                     }
                 }
 
+                if (filter.Value.NomeSolicitante is not null)
+                {
+                    if (!string.IsNullOrEmpty(filter.Value.NomeSolicitante))
+                    {
+                        users = users.Where(x => x.LOGIN_SOLICITANTE.ToString() == filter.Value.NomeSolicitante);
+                    }
+                }
+
                 var lista = users.OrderBy(x => x.ID)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
                 .Take(filter.PageSize);
@@ -361,17 +362,17 @@ namespace Vivo_Apps_API.Controllers
                 var totalRecords = users.Count();
                 var totalPages = ((double)totalRecords / (double)filter.PageSize);
 
-                return new JsonResult(new Response<PagedModelResponse<IEnumerable<ACESSOS_MOBILE_PENDENTE_DTO>>>
+                return Task.FromResult(new JsonResult(new Response<PagedModelResponse<IEnumerable<ACESSOS_MOBILE_PENDENTE_DTO>>>
                 {
                     Data = PagedResponse.CreatePagedReponse<ACESSOS_MOBILE_PENDENTE_DTO, FilterUsuariosPendentesModel>(Data, filter, totalRecords),
                     Succeeded = true,
                     Message = "Tudo Certo!",
                     Errors = null,
-                });
+                }));
             }
             catch (Exception ex)
             {
-                return new JsonResult(new Response<string>
+                return Task.FromResult(new JsonResult(new Response<string>
                 {
                     Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
                     Succeeded = false,
@@ -381,7 +382,7 @@ namespace Vivo_Apps_API.Controllers
                         ex.Message,
                         ex.StackTrace
                     },
-                });
+                }));
             }
         }
 

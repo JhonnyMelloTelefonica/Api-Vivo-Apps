@@ -2093,7 +2093,8 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var Dados_Operadores = CD.DEMANDA_BD_OPERADOREs
+                var Dados_Operadores = Demanda_BD.DEMANDA_BD_OPERADORES
+                    .AsSplitQuery()
                     .Where(x => x.REGIONAL == regional)
                     .ProjectTo<DEMANDA_BD_OPERADORES_DTO>(_mapper.ConfigurationProvider)
                     .AsEnumerable();
@@ -2611,7 +2612,7 @@ namespace Vivo_Apps_API.Controllers
 
                 var list_ids = Demanda_BD.DEMANDA_RESPONSAVEL_FILA
                     .Where(x => x.MATRICULA_RESPONSAVEL == filter.Value.matricula)
-                    .Select(x => x.ID_SUB_FILA).ToList();
+                    .Select(x => x.ID_SUB_FILA).AsEnumerable();
 
                 switch (filter.Value.role)
                 {
@@ -2624,7 +2625,7 @@ namespace Vivo_Apps_API.Controllers
                     /** Consulta para analistas do suporte que não tratam solicitação de acessos terceiro **/
                     case Controle_Demanda_role.ANALISTA:
 
-                        data = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
+                        data = data.Where(x => x.Tabela == Tabela_Demanda.ChamadoRelacao
                         && x.ChamadoRelacao != null && list_ids.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA)
                         && x.REGIONAL == filter.Value.regional);
                         break;
@@ -2632,13 +2633,14 @@ namespace Vivo_Apps_API.Controllers
                     /** Consulta para analistas do suporte que tratam solicitação de acessos terceiro **/
                     case Controle_Demanda_role.ANALISTA_ACESSO:
 
+                        //var datademandaanalistaacesso = data.Where(x => x.Tabela == Tabela_Demanda.ChamadoRelacao
+                        //    && x.ChamadoRelacao != null && list_ids.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA));
 
-                        var datademandaanalistaacesso = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.ChamadoRelacao
-                            && x.ChamadoRelacao != null && list_ids.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA) && x.REGIONAL == filter.Value.regional);
+                        //var dataacessoanalistaacesso = data.Where(x => x.Tabela == Tabela_Demanda.AcessoRelacao);
 
-                        var dataacessoanalistaacesso = data.Where(x => x.Tabela == DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.AcessoRelacao);
-
-                        data = datademandaanalistaacesso.UnionBy(dataacessoanalistaacesso, x => x.ID_RELACAO);
+                        //data = datademandaanalistaacesso.UnionBy(dataacessoanalistaacesso, x => x.ID_RELACAO);
+                        data = data.Where(x => (x.Tabela == Tabela_Demanda.ChamadoRelacao
+                            && x.ChamadoRelacao != null && list_ids.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA)) || (x.Tabela == Tabela_Demanda.AcessoRelacao));
 
                         break;
 

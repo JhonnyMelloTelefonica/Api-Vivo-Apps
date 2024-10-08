@@ -87,6 +87,39 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
+
+        public static bool StringContains(string ToSearch, string Search)
+        {
+            return ToSearch.Contains(Search, StringComparison.InvariantCulture);
+        }
+
+        [HttpGet("Search")]
+        [ProducesResponseType(typeof(Response<IEnumerable<PRODUTOS_CARDAPIO>>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public JsonResult Get(string search)
+        {
+            try
+            {
+                var result = BD.PRODUTOS_CARDAPIO
+                    .AsSplitQuery()
+                    .Include(x => x.Avaliacao)
+                    .Include(x => x.Imagens.Take(1))
+                    .AsEnumerable()
+                    .Where(x => x.Nome.Contains(search, StringComparison.InvariantCultureIgnoreCase))
+                    .Take(5);
+
+                return new JsonResult(result, new JsonSerializerOptions
+                {
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(ex);
+            }
+        }
+
+
         [HttpGet("Get")]
         [ProducesResponseType(typeof(Response<IEnumerable<PRODUTOS_CARDAPIO>>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
