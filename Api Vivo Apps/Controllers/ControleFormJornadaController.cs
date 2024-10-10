@@ -550,7 +550,6 @@ namespace Vivo_Apps_API.Controllers
                 if (rota.Equals("Rota Cruzada"))
                 {
                     FormularioExistente = CD.JORNADA_BD_QUESTION_HISTORICOs
-                        .ToList()
                         .Where(x => x.CARGO == CARGO)
                         .Where(x => x.ID_CRIADOR == matricula)
                         .Where(x => x.REGIONAL == REGIONAL)
@@ -560,7 +559,6 @@ namespace Vivo_Apps_API.Controllers
                     if (FormularioExistente)
                     {
                         var maxcaderno = (int)(CD.JORNADA_BD_QUESTION_HISTORICOs
-                            .ToList()
                             .Where(x => x.CARGO == CARGO)
                             .Where(x => x.ID_CRIADOR == matricula)
                             .Where(x => x.REGIONAL == REGIONAL)
@@ -570,7 +568,6 @@ namespace Vivo_Apps_API.Controllers
 
                         //vai buscar a ultima prova com os parametros passados
                         var datafinal = CD.JORNADA_BD_QUESTION_HISTORICOs
-                            .ToList()
                             .Where(x => x.CARGO == CARGO)
                             .Where(x => x.ID_CRIADOR == matricula)
                             .Where(x => x.TP_FORMS == "Rota Cruzada")
@@ -609,7 +606,6 @@ namespace Vivo_Apps_API.Controllers
                     }
 
                     FormularioExistente = CD.JORNADA_BD_QUESTION_HISTORICOs
-                        .ToList()
                         .Where(x => x.CARGO == CARGO)
                         .Where(x => x.TP_FORMS == rota)
                         .Where(x => x.REGIONAL == REGIONAL)
@@ -618,7 +614,6 @@ namespace Vivo_Apps_API.Controllers
                     if (FormularioExistente)
                     {
                         proximocaderno = (int)(CD.JORNADA_BD_QUESTION_HISTORICOs
-                        .ToList()
                             .Where(x => x.CARGO == CARGO)
                             .Where(x => x.TP_FORMS == rota)
                             .Where(x => x.REGIONAL == REGIONAL)
@@ -643,7 +638,6 @@ namespace Vivo_Apps_API.Controllers
                     }
 
                     FormularioExistente = CD.JORNADA_BD_QUESTION_HISTORICOs
-                        .ToList()
                         .Where(x => x.CARGO == CARGO)
                         .Where(x => x.TP_FORMS == rota)
                         .Where(x => x.REGIONAL == REGIONAL)
@@ -652,7 +646,6 @@ namespace Vivo_Apps_API.Controllers
                     if (FormularioExistente)
                     {
                         proximocaderno = (int)(CD.JORNADA_BD_QUESTION_HISTORICOs
-                        .ToList()
                             .Where(x => x.CARGO == CARGO)
                             .Where(x => x.TP_FORMS == rota)
                             .Where(x => x.REGIONAL == REGIONAL)
@@ -1815,20 +1808,17 @@ namespace Vivo_Apps_API.Controllers
             {
 
                 var questaorepetida = CD.JORNADA_BD_QUESTION_HISTORICOs // BUSCA OS ID'S DAS QUESTÕES REPETIDAS
-                    .ToList()
                     .Where(x => x.CARGO == CARGO)
                     .Where(x => x.TP_FORMS == rota)
                     .Where(x => x.REGIONAL == REGIONAL)
                     .Where(x => x.FIXA == FIXA)
-                    .Select(y => y.ID_QUESTION).ToList();
+                    .Select(y => y.ID_QUESTION);
 
                 jornadaQuestion = CD.JORNADA_BD_QUESTIONs
-                    .ToList()
-                    .Where(x => x.STATUS_QUESTION == true)
+                    .Where(x => x.STATUS_QUESTION == true && x.ID_TEMAS == tema && x.ID_SUB_TEMAS == subtema)
+                    .AsEnumerable()
                     .Where(x => x.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains("Jornada"))
                     .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains(CARGO))
-                    .Where(k => k.ID_TEMAS == tema)
-                    .Where(y => y.ID_SUB_TEMAS == subtema)
                     .OrderBy(item => random.Next())
                     .GroupBy(x => new { x.PERGUNTA }).Select(x => x.FirstOrDefault())
                     .Where(x => (FIXA == false ? x.FIXA == FIXA : x.FIXA != null))
@@ -1841,11 +1831,11 @@ namespace Vivo_Apps_API.Controllers
 
                     while (jornadaQuestion.Count() != qtdtema)
                     {
-                        jornadaQuestion.Add(CD.JORNADA_BD_QUESTIONs.AsEnumerable().ToList()
+                        jornadaQuestion.Add(CD.JORNADA_BD_QUESTIONs.ToList()
                         .Where(x => x.STATUS_QUESTION == true)
-                        .Where(x => x.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains("Jornada"))
                         .Where(k => k.ID_TEMAS == tema)
                         .Where(y => y.ID_SUB_TEMAS == subtema)
+                        .Where(x => x.TP_FORMS.Split(new[] { ';' }).Select(c => c).Contains("Jornada"))
                         .Where(x => x.CARGO.Split(new[] { ';' }).Select(c => int.Parse(c)).Contains(CARGO))
                         .Where(x => (FIXA == false ? x.FIXA == FIXA : x.FIXA != null))
                         .OrderBy(item => random.Next())
