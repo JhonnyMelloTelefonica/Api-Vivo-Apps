@@ -23,12 +23,10 @@ using Microsoft.AspNetCore.OutputCaching;
 using Azure.Core;
 using Microsoft.AspNetCore.Http;
 using System.Security.Policy;
-using BootstrapBlazor.Components;
 using DocumentFormat.OpenXml.InkML;
 using System.Diagnostics;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
-using KGySoft.CoreLibraries;
 
 namespace Vivo_Apps_API.Hubs
 {
@@ -200,7 +198,7 @@ namespace Vivo_Apps_API.Hubs
         //    return $"{scheme}://{request.Host}{request.PathBase}";
         //}
 
-        public async Task NewDemanda(Guid id) 
+        public async Task NewDemanda(Guid id)
         {
             var result = Demanda_BD.DEMANDA_RELACAO_CHAMADO
                 .Include(x => x.AcessoRelacao)
@@ -210,7 +208,7 @@ namespace Vivo_Apps_API.Hubs
                 .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider)
                 .First();
 
-            data.TryAdd(result);
+            data = data.Append(result);
 
             SendTableDemandas();
 

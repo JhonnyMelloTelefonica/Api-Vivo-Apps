@@ -21,6 +21,9 @@ using NuGet.Versioning;
 using Microsoft.AspNetCore.OutputCaching;
 using Shared_Razor_Components.FundamentalModels;
 using Shared_Static_Class.Model_DTO;
+using Shared_Static_Class.Model_DTO.FilterModels;
+using static Shared_Static_Class.Data.DEMANDA_RELACAO_CHAMADO;
+using System.Linq;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -109,6 +112,78 @@ namespace Vivo_Apps_API.Controllers
                     .Take(5);
 
                 return new JsonResult(result, new JsonSerializerOptions
+                {
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(ex);
+            }
+        }
+
+
+        [HttpPost("Search")]
+        [ProducesResponseType(typeof(Response<IEnumerable<PRODUTOS_CARDAPIO>>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public JsonResult SearchByFilters(GenericPaginationModel<PainelCardapioDigital> filter)
+        {
+            try
+            {
+                var data = BD.PRODUTOS_CARDAPIO.AsSplitQuery();
+
+                if (!string.IsNullOrEmpty(filter.Value.search))
+                {
+                    data = data.Where(x => x.Nome.Contains(filter.Value.search, StringComparison.InvariantCultureIgnoreCase));
+                }
+                if (filter.Value.avaliacao != 0)
+                {
+                    data = data.Where(x => x.Avaliacao.Avaliacao == filter.Value.avaliacao);
+                }
+                if (filter.Value.categorias.Any())
+                {
+                    data = data.Where(x => filter.Value.categorias.Contains(x.Categoria_Produto));
+                }
+                if (filter.Value.especificações.Any())
+                {
+                    data = data.Where(x => x.Ficha.Any(y => filter.Value.especificações.Contains(y.Categoria_Especificação)));
+                }
+                if (filter.Value.cor.Any())
+                {
+                    data = data.Where(x => filter.Value.cor.Contains(x.Cor));
+                }
+                if (filter.Value.fabricante.Any())
+                {
+                    data = data.Where(x => filter.Value.fabricante.Contains(x.Fabricante));
+                }
+                if (filter.Value.IsOferta.HasValue)
+                {
+                    data = data.Where(x => filter.Value.IsOferta.Value);
+                }
+                if (filter.Value.Valor != 0)
+                {
+                    data = data.Where(x => filter.Value.Valor == x.Valor);
+                }
+
+                var lista = data
+                    .OrderBy(x => x.Avaliacao.Avaliacao)
+                    .Skip((filter.PageNumber - 1) * filter.PageSize)
+                    .Take(filter.PageSize);
+
+                var totalRecords = data.Count();
+                var totalPages = ((double)totalRecords / (double)filter.PageSize);
+
+                var Data = lista.Include(x => x.Avaliacao)
+                    .Include(x => x.Imagens.Take(1))
+                    .AsEnumerable();
+
+                return new JsonResult(new Response<PagedModelResponse<IEnumerable<PRODUTOS_CARDAPIO>>>
+                {
+                    Data = PagedResponse.CreatePagedReponse(Data, filter, totalRecords),
+                    Message = "Sucessfull",
+                    Errors = [],
+                    Succeeded = true
+                }, new JsonSerializerOptions
                 {
                     ReferenceHandler = ReferenceHandler.IgnoreCycles
                 });
