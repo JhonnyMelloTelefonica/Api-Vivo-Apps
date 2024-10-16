@@ -47,6 +47,8 @@ using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pag
 using DocumentFormat.OpenXml.Office2010.CustomUI;
 using Microsoft.Office.Interop.Excel;
 using BootstrapBlazor.Components;
+using DocumentFormat.OpenXml.Math;
+using DocumentFormat.OpenXml.Presentation;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -1191,6 +1193,64 @@ namespace Vivo_Apps_API.Controllers
                 });
             }
         }
+
+
+        [HttpGet("GetDadosFilaSubFila")]
+        [ProducesResponseType(typeof(Response<object>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public IActionResult GetDadosFilaBy(string regional)
+        {          
+
+            try
+            {
+                
+                var demandaSubDemandas = Demanda_BD.DEMANDA_TIPO_FILA
+                .Where(d => d.REGIONAL == regional)
+                .Select(fila => new DEMANDA_TIPO_FILA_DTO
+
+                {
+
+                    ID_TIPO_FILA = fila.ID_TIPO_FILA,
+
+                    NOME_TIPO_FILA = fila.NOME_TIPO_FILA,
+
+                    DEMANDA_SUB_FILAs = Demanda_BD.DEMANDA_SUB_FILA
+
+                .Where(subFila => subFila.ID_TIPO_FILA == fila.ID_TIPO_FILA)
+
+                .Select(subFila => new DEMANDA_SUB_FILA_DTO
+
+                {
+
+                    ID_TIPO_FILA = subFila.ID_TIPO_FILA,
+
+                    ID_SUB_FILA = subFila.ID_SUB_FILA,
+
+                    NOME_SUB_FILA = subFila.NOME_SUB_FILA
+
+                }).ToList() // Cria uma lista de subfilas
+
+                });
+
+               return Ok(demandaSubDemandas);
+
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Erro ao buscar informações dos filtros",
+                    Succeeded = false,
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    },
+                    Message = "Erro ao buscar informações dos filtros"
+                });
+            }
+        }
+
 
         /// <summary>
         /// Responde a demnanda alterando o status de alguma forma
