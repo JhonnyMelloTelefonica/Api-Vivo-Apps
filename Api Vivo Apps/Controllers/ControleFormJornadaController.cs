@@ -1318,6 +1318,15 @@ namespace Vivo_Apps_API.Controllers
                     && x.REGIONAL == filter.Value.REGIONAL && x.ID_PROVA != 0);
                 // Filtra por Matricula de quem está fazendo a requisição
 
+                if (filter.Value.Caderno != 0)
+                {
+                    DataProvas = DataProvas.Where(x => x.CADERNO == filter.Value.Caderno);
+                }
+
+                if (filter.Value.ID_PROVA != 0)
+                {
+                    DataProvas = DataProvas.Where(x => x.ID_PROVA == filter.Value.ID_PROVA);
+                }
 
                 if (filter.Value.ELEGIVEL.HasValue)
                 {
@@ -1334,27 +1343,13 @@ namespace Vivo_Apps_API.Controllers
                     DataProvas = DataProvas.Where(x => filter.Value.TP_FORMS.Contains(x.TP_FORMS));
                 }
 
-                if (filter.Value.PeriodoInicioAprovacao.Any())
+                if (filter.Value.PeriodoAbertura.Any())
                 {
-                    if (filter.Value.PeriodoInicioAprovacao.Count() == 2)
+                    if (filter.Value.PeriodoAbertura.Count() == 2)
                     {
-                        DataProvas = DataProvas.Where(x => x.DT_INICIO_AVALIACAO > filter.Value.PeriodoInicioAprovacao[0]
-                        && x.DT_INICIO_AVALIACAO < filter.Value.PeriodoInicioAprovacao[1]);
+                        DataProvas = DataProvas.Where(x => x.DT_CRIACAO > filter.Value.PeriodoAbertura[0]
+                        && x.DT_CRIACAO < filter.Value.PeriodoAbertura[1]);
                     }
-                }
-
-                if (filter.Value.PeriodoFinalizacao.Any())
-                {
-                    if (filter.Value.PeriodoFinalizacao.Count() == 2)
-                    {
-                        DataProvas = DataProvas.Where(x => x.DT_FINALIZACAO > filter.Value.PeriodoFinalizacao[0]
-                        && x.DT_FINALIZACAO < filter.Value.PeriodoFinalizacao[1]);
-                    }
-                }
-
-                if (filter.Value.Caderno != 0)
-                {
-                    DataProvas = DataProvas.Where(x => x.CADERNO == filter.Value.Caderno);
                 }
 
                 //var teste = DataProvas
@@ -1998,7 +1993,7 @@ namespace Vivo_Apps_API.Controllers
 
             questionsjornada = questionsjornada
                 .Where(x => x.DT_INICIO_AVALIACAO.Value < actual) // Data inicial deve ser maior que hoje
-                .Where(x => x.DT_FINALIZACAO.Value.AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
+                .Where(x => x.DT_FINALIZACAO.Value > actual) // Data final deve ser menor que hoje
                 .ToList();
 
             resposta = CD.JORNADA_BD_ANSWER_AVALIACAOs // Busca respostas para o formulario encontrado
@@ -2043,7 +2038,7 @@ namespace Vivo_Apps_API.Controllers
 
                     actualquestionsjornadaGestor = actualquestionsjornadaGestor
                         .Where(x => x.DT_INICIO_AVALIACAO.Value < actual) // Data inicial deve ser maior que hoje
-                        .Where(x => x.DT_FINALIZACAO.Value.AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
+                        .Where(x => x.DT_FINALIZACAO.Value > actual) // Data final deve ser menor que hoje
                         .ToList();
 
                     var provasEncontradas = actualquestionsjornadaGestor.Select(x => x.ID_PROVA).Distinct().ToList();
@@ -2093,7 +2088,7 @@ namespace Vivo_Apps_API.Controllers
 
                     questionsjornadaGestor = questionsjornadaGestor
                         .Where(x => x.DT_INICIO_AVALIACAO.Value < actual) // Data inicial deve ser maior que hoje
-                        .Where(x => x.DT_FINALIZACAO.Value.AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
+                        .Where(x => x.DT_FINALIZACAO.Value > actual) // Data final deve ser menor que hoje
                         .ToList();
 
                     var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).ToList();
@@ -2134,7 +2129,7 @@ namespace Vivo_Apps_API.Controllers
 
                     questionsjornadaGestor = questionsjornadaGestor
                         .Where(x => x.DT_INICIO_AVALIACAO.Value < actual) // Data inicial deve ser maior que hoje
-                        .Where(x => x.DT_FINALIZACAO.Value.AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
+                        .Where(x => x.DT_FINALIZACAO.Value > actual) // Data final deve ser menor que hoje
                         .ToList();
 
                     var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).Distinct().ToList();
@@ -2174,7 +2169,7 @@ namespace Vivo_Apps_API.Controllers
 
                     questionsjornadaGestor = questionsjornadaGestor
                         .Where(x => x.DT_INICIO_AVALIACAO.Value < actual) // Data inicial deve ser maior que hoje
-                        .Where(x => x.DT_FINALIZACAO.Value.AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
+                        .Where(x => x.DT_FINALIZACAO.Value > actual) // Data final deve ser menor que hoje
                         .ToList();
 
                     var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).ToList().Distinct();
@@ -2212,7 +2207,7 @@ namespace Vivo_Apps_API.Controllers
 
                     questionsjornadaGestor = questionsjornadaGestor
                         .Where(x => x.DT_INICIO_AVALIACAO.Value < actual) // Data inicial deve ser maior que hoje
-                        .Where(x => x.DT_FINALIZACAO.Value.AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
+                        .Where(x => x.DT_FINALIZACAO.Value > actual) // Data final deve ser menor que hoje
                         .ToList();
 
                     var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).Distinct().ToList();
@@ -2262,7 +2257,7 @@ namespace Vivo_Apps_API.Controllers
 
                     questionsjornadaGestor = questionsjornadaGestor
                         .Where(x => x.DT_INICIO_AVALIACAO.Value < actual) // Data inicial deve ser maior que hoje
-                        .Where(x => x.DT_FINALIZACAO.Value.AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
+                        .Where(x => x.DT_FINALIZACAO.Value > actual) // Data final deve ser menor que hoje
                         .ToList();
 
                     var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).Distinct().ToList();
@@ -2320,7 +2315,7 @@ namespace Vivo_Apps_API.Controllers
 
                     questionsjornadaGestor = questionsjornadaGestor
                         .Where(x => x.DT_INICIO_AVALIACAO.Value < actual) // Data inicial deve ser maior que hoje
-                        .Where(x => x.DT_FINALIZACAO.Value.AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
+                        .Where(x => x.DT_FINALIZACAO.Value > actual) // Data final deve ser menor que hoje
                         .ToList();
 
                     var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).Distinct().ToList();
@@ -2372,7 +2367,7 @@ namespace Vivo_Apps_API.Controllers
 
                     questionsjornadaGestor = questionsjornadaGestor
                         .Where(x => Convert.ToDateTime(x.DT_INICIO_AVALIACAO) < actual) // Data inicial deve ser maior que hoje
-                        .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO).AddHours(23).AddMinutes(59) > actual) // Data final deve ser menor que hoje
+                        .Where(x => Convert.ToDateTime(x.DT_FINALIZACAO) > actual) // Data final deve ser menor que hoje
                         .ToList();
 
                     var provasEncontradas = questionsjornadaGestor.Select(x => x.ID_PROVA).Distinct().ToList();

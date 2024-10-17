@@ -1305,15 +1305,6 @@ namespace Vivo_Apps_API.Controllers
                 //Demanda_BD.SaveChanges();
                 Demanda_BD.SaveChanges();
 
-                //Demanda_BD.DEMANDA_STATUS_CHAMADO.Add(new DEMANDA_STATUS_CHAMADO
-                //{
-                //    ID_CHAMADO = data.IdChamado,
-                //    STATUS = data.Status,
-                //    DATA = data.Data,
-                //    MAT_QUEM_REDIRECIONOU = data.MATRICULA,
-                //    MAT_DESTINATARIO = data.MATRICULA_REDIRECIONADO,
-                //    ID_RESPOSTA = retorno.ID
-                //});
                 int MATRICULA_SOLICITANTE = 0;
                 int? MATRICULA_RESPONSAVEL = null;
                 int? MATRICULA_ANTIGO_RESPONSAVEL = null;
@@ -1388,7 +1379,6 @@ namespace Vivo_Apps_API.Controllers
                                 $"<br/><p style=\"color:red\">Caso tenha algum problema com a ferramenta, contate nosso suporte via e-mail NE_AUTOMACAO (<a href=\"mailto:ne_automacao.br@telefonica.com\">ne_automacao.br@telefonica.com</a>).</p>" +
                                 $"<br/><p>Atenciosamente,</p>", null, new string[] { "ne_automacao.br@telefonica.com" });
                 }
-
 
                 switch (tabela)
                 {
@@ -1672,16 +1662,16 @@ namespace Vivo_Apps_API.Controllers
                         break;
                 }
 
-                await _cache.EvictByTagAsync("AllDemandas", default);
+                await Demanda_BD.SaveChangesAsync();
+
+                await _hubContext.NewStatusDemanda(data.Status, data.ID_RELACAO);
 
                 await _service.SendEmail(email);
                 email.Footer = "<div></div>";
+
                 Task.Run(() => _service.SendTeams(email));
 
                 Task.Run(() => _hubContext.UpdateStatusChamado(chamado_relacao));
-
-
-                //await _hubContext.SendTableDemandas();
 
                 var options = new JsonSerializerOptions
                 {
@@ -1921,21 +1911,22 @@ namespace Vivo_Apps_API.Controllers
                 };
 
 
-                await _hubContext.NewDemanda(demanda.ID_RELACAO);
+                var matriculas = fila.DEMANDA_RESPONSAVEL_FILAs.Select(x => x.MATRICULA_RESPONSAVEL ?? 0).AsEnumerable();
+                matriculas = matriculas.Append(demanda.MATRICULA_SOLICITANTE);
+
+                await _hubContext.NewDemanda(demanda.ID_RELACAO, matriculas);
 
                 await _hubContext.NewNotificationByUser(responsavel, demanda.ChamadoRelacao);
                 await _hubContext.NewNotificationByUser(int.Parse(data.MAT_SOLICITANTE), demanda.ChamadoRelacao);
 
                 var demandaCompleta = GetDemandaByID(demanda.ChamadoRelacao.ID);
 
-                SendEmailModel email = new SendEmailModel(new string[] { /*retorno.EMAIL,*/ retorno.EMAIL }, null, $"Nova demanda N {demandaCompleta.Relacao.Sequence}",
+                SendEmailModel email = new SendEmailModel(new string[] { retorno.EMAIL }, null, $"Nova demanda N {demandaCompleta.Relacao.Sequence}",
                     $"Nova demanda aberta por {solicitante.DISPLAY_NOME}",
                     $"Uma demanda demanda do tipo {demandaCompleta.Fila.ID_TIPO_FILANavigation.NOME_TIPO_FILA} e sub-fila {demandaCompleta.Fila.NOME_SUB_FILA} acaba de ser criada" +
                 $" com o responsável principal {retorno.DISPLAY_NOME}, o sla para esta fila é de {(demandaCompleta.Fila.SLA > 24 ? $"{(demandaCompleta.Fila.SLA / 24)} dias" : $"{demandaCompleta.Fila.SLA} horas")} dias.</p>" +
                 $"<p>Acesse clicando <b><a href=\"http://brtdtbgs0090sl:8083/demandas/consultar/{demanda.ID_RELACAO}\">aqui<a/>.</b>", null,
                 new string[] { "ne_automacao.br@telefonica.com" });
-
-
 
                 Task.Run(() => _service.SendEmail(email));
                 email.Footer = "<div></div>";

@@ -44,10 +44,10 @@ builder.WebHost.ConfigureKestrel(serverOptions =>
 
 // Add services to the container. 
 
-//builder.Services.AddControllers().AddJsonOptions(options =>
-//{
-//    options.JsonSerializerOptions.Converters.Add(new Iso8601DateTimeConverter());
-//});
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.Converters.Add(new Iso8601DateTimeConverter());
+});
 
 builder.Services.AddControllers().AddJsonOptions(options =>
 {
@@ -111,6 +111,14 @@ builder.Services.AddDbContextFactory<CardapioDigitalContext>(opt =>
 {
     opt.EnableSensitiveDataLogging();
     opt.EnableDetailedErrors();
+}, ServiceLifetime.Singleton);
+
+
+builder.Services.AddDbContextFactory<ForumRTCZContext>(opt =>
+{
+    opt.EnableSensitiveDataLogging();
+    opt.EnableDetailedErrors();
+
 }, ServiceLifetime.Singleton);
 
 builder.Services.AddSingleton<ISuporteDemandaHub, SuporteDemandaHub>();

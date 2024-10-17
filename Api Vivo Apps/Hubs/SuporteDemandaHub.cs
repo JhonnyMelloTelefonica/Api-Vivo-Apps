@@ -27,6 +27,7 @@ using DocumentFormat.OpenXml.InkML;
 using System.Diagnostics;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
+using NuGet.Packaging.Signing;
 
 namespace Vivo_Apps_API.Hubs
 {
@@ -42,7 +43,8 @@ namespace Vivo_Apps_API.Hubs
          * Caso seja passado o paramêtro de alguma matrícula, o HUB apenas notifica a matrícula em questão se ela estiver conectada 
         **/
         Task UpdateDemanda(DEMANDAS_CHAMADO_DTO data);
-        Task NewDemanda(Guid id);
+        Task NewDemanda(Guid id, IEnumerable<int> matriculas);
+        Task NewStatusDemanda(string status, Guid id);
         Task UpdateStatusChamado(DEMANDA_RELACAO_CHAMADO macro);
     }
 
@@ -191,6 +193,7 @@ namespace Vivo_Apps_API.Hubs
             api_host_dev = _config.GetConnectionString("api_host_link");
             api_host_production = _config.GetConnectionString("api_host_link_production");
         }
+
         //private string GetBaseUrl(this HttpRequest request)
         //{
         //    // SSL offloading
@@ -198,7 +201,7 @@ namespace Vivo_Apps_API.Hubs
         //    return $"{scheme}://{request.Host}{request.PathBase}";
         //}
 
-        public async Task NewDemanda(Guid id)
+        public async Task NewDemanda(Guid id, IEnumerable<int> matriculas)
         {
             var result = Demanda_BD.DEMANDA_RELACAO_CHAMADO
                 .Include(x => x.AcessoRelacao)
@@ -206,14 +209,27 @@ namespace Vivo_Apps_API.Hubs
                 .Include(x => x.DesligamentoRelacao)
                 .Where(x => x.ID_RELACAO == id)
                 .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider)
-                .First();
+            .First();
 
-            data = data.Append(result);
+            var ids = CurrentUsers.Where(x => matriculas.Contains(x.Value.MATRICULA));
 
-            SendTableDemandas();
+            if (ids.Any())
+            {
+                foreach (var onlineperson in ids)
+                {
+                    await _context.Clients.Client(onlineperson.Key).SendAsync("NewDemanda", result);
+                }
+            }
 
             await Task.CompletedTask;
         }
+
+        public async Task NewStatusDemanda(string status, Guid id)
+        {
+            await _context.Clients.All.SendAsync("ChangeStatus", status, id);
+            await Task.CompletedTask;
+        }
+
         public async Task GetAllAsync(int? matricula = null)
         {
             try

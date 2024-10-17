@@ -87,3 +87,16 @@ Content-Type: application/json
 GET {{Api_Vivo_Apps_HostAddress}}/api/cardapiodigital/Get/{{Id}}
 
 ###
+
+POST {{Api_Vivo_Apps_HostAddress}}/api/forumrtcz/Get
+Content-Type: application/json
+
+{
+  "PageNumber": 1,
+  "PageSize": 100,
+  "Value": {
+   "search":"P"
+  }
+}
+
+###
