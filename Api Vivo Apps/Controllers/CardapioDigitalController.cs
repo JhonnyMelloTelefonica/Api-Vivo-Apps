@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using DataTable = System.Data.DataTable;
 using System.Data;
+using System.Data.SqlClient;
 using Vivo_Apps_API.Models;
 using Shared_Static_Class.Data;
 using System.Data.SqlClient;
@@ -90,12 +91,6 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
-
-        public static bool StringContains(string ToSearch, string Search)
-        {
-            return ToSearch.Contains(Search, StringComparison.InvariantCulture);
-        }
-
         [HttpGet("Search")]
         [ProducesResponseType(typeof(Response<IEnumerable<PRODUTOS_CARDAPIO>>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
@@ -107,9 +102,9 @@ namespace Vivo_Apps_API.Controllers
                     .AsSplitQuery()
                     .Include(x => x.Avaliacao)
                     .Include(x => x.Imagens.Take(1))
-                    .AsEnumerable()
-                    .Where(x => x.Nome.Contains(search, StringComparison.InvariantCultureIgnoreCase))
-                    .Take(5);
+                    .Where(x => EF.Functions.Like(x.Nome, $"%{search}%"))
+                    .OrderByDescending(x => x.Nome.StartsWith(search))
+                    .Take(7);
 
                 return new JsonResult(result, new JsonSerializerOptions
                 {
@@ -122,7 +117,6 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
-
         [HttpPost("Search")]
         [ProducesResponseType(typeof(Response<IEnumerable<PRODUTOS_CARDAPIO>>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
@@ -130,15 +124,12 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
+                IQueryable<PRODUTOS_CARDAPIO> lista = null;
                 var data = BD.PRODUTOS_CARDAPIO.AsSplitQuery();
 
-                if (!string.IsNullOrEmpty(filter.Value.search))
-                {
-                    data = data.Where(x => x.Nome.Contains(filter.Value.search, StringComparison.InvariantCultureIgnoreCase));
-                }
                 if (filter.Value.avaliacao != 0)
                 {
-                    data = data.Where(x => x.Avaliacao.Avaliacao == filter.Value.avaliacao);
+                    data = data.Where(x => x.Avaliacao.Avaliacao >= Math.Round(((decimal)filter.Value.avaliacao * 10), 0));
                 }
                 if (filter.Value.categorias.Any())
                 {
@@ -165,10 +156,22 @@ namespace Vivo_Apps_API.Controllers
                     data = data.Where(x => filter.Value.Valor == x.Valor);
                 }
 
-                var lista = data
-                    .OrderBy(x => x.Avaliacao.Avaliacao)
-                    .Skip((filter.PageNumber - 1) * filter.PageSize)
-                    .Take(filter.PageSize);
+                if (!string.IsNullOrEmpty(filter.Value.search))
+                {
+                    data = data.Where(x => EF.Functions.Like(x.Nome, $"%{filter.Value.search}%"));
+
+                    lista = data.OrderByDescending(x => x.Avaliacao.Avaliacao)
+                            .Skip((filter.PageNumber - 1) * filter.PageSize)
+                            .Take(filter.PageSize);
+                }
+                else
+                {
+                    lista = data
+                       .OrderBy(x => x.Avaliacao.Avaliacao)
+                       .Skip((filter.PageNumber - 1) * filter.PageSize)
+                       .Take(filter.PageSize);
+                }
+
 
                 var totalRecords = data.Count();
                 var totalPages = ((double)totalRecords / (double)filter.PageSize);
@@ -194,20 +197,17 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
-
-        [HttpGet("Get")]
+        [HttpGet("GetTop10Vendidos")]
         [ProducesResponseType(typeof(Response<IEnumerable<PRODUTOS_CARDAPIO>>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult Get()
+        public JsonResult GetTop10Vendidos()
         {
             try
             {
-                //var result = BD.PRODUTOS_CARDAPIO
-                //    .Include(x => x.Ficha)
-                //    .Include(x => x.Imagens.First())
-                //    .AsEnumerable();
-
                 var result = BD.PRODUTOS_CARDAPIO
+                    .AsSplitQuery()
+                    .OrderBy(x => x.Avaliacao.PositionInRank)
+                    .ThenByDescending(x => x.DATA_INCLUSÃO)
                     .Include(x => x.Avaliacao)
                     .Include(x => x.Argumentacao)
                     .Include(x => x.Ficha)
@@ -219,7 +219,96 @@ namespace Vivo_Apps_API.Controllers
                 {
                     Data = result,
                     Succeeded = true,
-                    Message = "Você está habilitado a solicitação de acesso a ferramenta."
+                    Message = "Success"
+                }, new JsonSerializerOptions
+                {
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.InnerException?.Message ?? "no InnerException",
+                        ex.Message,
+                        ex.StackTrace ?? "no StackTrace"
+                    },
+                });
+            }
+        }
+
+        [HttpGet("GetTop10Indicacao")]
+        [ProducesResponseType(typeof(Response<IEnumerable<PRODUTOS_CARDAPIO>>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public JsonResult GetTop10Indicacao()
+        {
+            try
+            {
+                var result = BD.PRODUTOS_CARDAPIO
+                    .AsSplitQuery()
+                    .OrderByDescending(x => x.Avaliacao.Avaliacao)
+                    .ThenByDescending(x => x.DATA_INCLUSÃO)
+                    .Include(x => x.Avaliacao)
+                    .Include(x => x.Argumentacao)
+                    .Include(x => x.Ficha)
+                    .Include(x => x.Imagens.Take(4))
+                    .Take(10)
+                    .AsEnumerable();
+
+                return new JsonResult(new Response<IEnumerable<PRODUTOS_CARDAPIO>>
+                {
+                    Data = result,
+                    Succeeded = true,
+                    Message = "Success"
+                }, new JsonSerializerOptions
+                {
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.InnerException?.Message ?? "no InnerException",
+                        ex.Message,
+                        ex.StackTrace ?? "no StackTrace"
+                    },
+                });
+            }
+        }
+
+        [HttpGet("GetTop10Novos")]
+        [ProducesResponseType(typeof(Response<IEnumerable<PRODUTOS_CARDAPIO>>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public JsonResult GetTop10Novos()
+        {
+            try
+            {
+                var result = BD.PRODUTOS_CARDAPIO
+                    .AsSplitQuery()
+                    .OrderByDescending(x => x.DATA_INCLUSÃO)
+                    .Include(x => x.Avaliacao)
+                    .Include(x => x.Argumentacao)
+                    .Include(x => x.Ficha)
+                    .Include(x => x.Imagens.Take(4))
+                    .Take(10)
+                    .AsEnumerable();
+
+                return new JsonResult(new Response<IEnumerable<PRODUTOS_CARDAPIO>>
+                {
+                    Data = result,
+                    Succeeded = true,
+                    Message = "Success"
                 }, new JsonSerializerOptions
                 {
                     ReferenceHandler = ReferenceHandler.IgnoreCycles
