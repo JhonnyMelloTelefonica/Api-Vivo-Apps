@@ -1202,6 +1202,7 @@ namespace Vivo_Apps_API.Controllers
                 });
             }
         }
+
         // VALIDAÇÕES //
 
         private string CryptSenha(string senha)
@@ -1216,6 +1217,51 @@ namespace Vivo_Apps_API.Controllers
             }
             return sb.ToString();
         }
+
+
+
+        //[HttpGet("GetAllPerfilByCargo")]
+        //public async Task<JsonResult> GetAllPerfilByCargo()
+        //{
+        //    try
+        //    {
+        //        //var perfilbycargo = CD.PERFIL_PLATAFORMAS_VIVOs
+        //        //    .Where(x => x.CARGO != null)
+        //        //    .ToList()
+        //        //    .Where(x => x.CARGO.Split(new[] { ';' }).Select(p => int.Parse(p)).Contains(int.Parse(cargo)));
+
+        //        foreach (var cargo in CD.PERFIL_PLATAFORMAS_VIVOs) { 
+                
+
+
+
+
+        //        }
+
+        //        return new JsonResult(new Response<IEnumerable<PERFIL_PLATAFORMAS_VIVO>>
+        //        {
+        //            Data = perfilbycargo,
+        //            Succeeded = true,
+        //            Message = "matrícula válida!"
+        //        });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return new JsonResult(new Response<string>
+        //        {
+        //            Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+        //            Succeeded = false,
+        //            Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+        //            Errors = new string[]
+        //            {
+        //                ex.Message,
+        //                ex.StackTrace
+        //            },
+        //        });
+        //    }
+        //}
+
+
 
         [HttpPost("CriarUsuario")]
         public async Task<JsonResult> CriarUsuario([FromBody] SOLICITAR_USUARIO_MODEL usuario,
