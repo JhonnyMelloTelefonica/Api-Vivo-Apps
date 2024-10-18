@@ -1,4 +1,5 @@
 ﻿@Api_Vivo_Apps_HostAddress = http://localhost:5159
+@apiAdriel = http://localhost:31510
 
 GET {{Api_Vivo_Apps_HostAddress}}/api/demandas/GetFilas
 
@@ -98,5 +99,9 @@ Content-Type: application/json
    "search":"P"
   }
 }
+
+###
+GET {{apiAdriel}}/api/ControleADM/GetAllPerfilByCargo
+
 
 ###
