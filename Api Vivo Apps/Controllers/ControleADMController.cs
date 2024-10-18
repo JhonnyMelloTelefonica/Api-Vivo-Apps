@@ -19,6 +19,7 @@ using System.Text.Json;
 using DocumentFormat.OpenXml.Office2010.Excel;
 using System.Drawing;
 using Shared_Razor_Components.FundamentalModels;
+using System.Linq.Dynamic.Core;
 
 
 namespace Vivo_Apps_API.Controllers
@@ -1203,6 +1204,73 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
+
+        [HttpGet("GetAllPerfilByCargo")]
+        public IActionResult GetAllPerfilByCargo()
+        {
+            try
+            {
+                //var perfilbycargo = CD.PERFIL_PLATAFORMAS_VIVOs.SelectMany(p => p.CARGO.Split(';', (p, cargoId) => new {
+                //    cargoId => Id, perfil = p.perfil}).GroupBy(x => x.UsuariosId).Select(
+                //    g=> new
+                //    {
+                //        UsuarioId = g.Key,
+                //        perfil=g.Select(x => x.perfil).ToList()
+                //    }).ToList()
+                //    ;
+
+
+                var perfilbycargo = CD.PERFIL_PLATAFORMAS_VIVOs
+                 .AsEnumerable()
+                 .Where(x => x.CARGO != null)
+                 .SelectMany(p => p.CARGO.Split(';'), (p, CargoId) => new { CargoId = CargoId, Perfil = p.Perfil, IdPerfil = p.ID_PERFIL})
+                 .GroupBy(x => x.IdPerfil)
+                 .Select(g => new
+                 {
+                     //UsuarioId = (Cargos)int.Parse(g.Key),
+                     IdPerfil = g.Key,
+                     NomePerfil = g.Select(x => x.Perfil.FirstOrDefault()),
+                     //Perfis = g.Select(x => x.Perfil).ToList(),
+                     cargos = g.Select(x=> x.CargoId) ?? []
+                 }).ToList();
+               
+
+                //{
+                //                  "Perfilid": 11,
+                //        "PerfilName": "VIVOX_ACESSO_USER_SOLICITANTE",
+                //  "Carrgos": [
+                //    1,2,3,4,5
+                //  ]
+                //}
+
+
+                //return new JsonResult(new Response<IEnumerable<PERFIL_PLATAFORMAS_VIVO>>
+                //{
+                //    Data = perfilbycargo,
+                //    Succeeded = true,
+                //    Message = "matrícula válida!"
+                //});
+
+                return Ok(perfilbycargo);
+            }
+            catch (Exception ex)
+            {
+                //return new JsonResult(new Response<string>
+                //{
+                //    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                //    Succeeded = false,
+                //    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                //    Errors = new string[]
+                //    {
+                //        ex.Message,
+                //        ex.StackTrace
+                //    },
+                //});
+                return BadRequest(ex);
+            }
+        }
+
+
         // VALIDAÇÕES //
 
         private string CryptSenha(string senha)
@@ -1217,49 +1285,6 @@ namespace Vivo_Apps_API.Controllers
             }
             return sb.ToString();
         }
-
-
-
-        //[HttpGet("GetAllPerfilByCargo")]
-        //public async Task<JsonResult> GetAllPerfilByCargo()
-        //{
-        //    try
-        //    {
-        //        //var perfilbycargo = CD.PERFIL_PLATAFORMAS_VIVOs
-        //        //    .Where(x => x.CARGO != null)
-        //        //    .ToList()
-        //        //    .Where(x => x.CARGO.Split(new[] { ';' }).Select(p => int.Parse(p)).Contains(int.Parse(cargo)));
-
-        //        foreach (var cargo in CD.PERFIL_PLATAFORMAS_VIVOs) { 
-                
-
-
-
-
-        //        }
-
-        //        return new JsonResult(new Response<IEnumerable<PERFIL_PLATAFORMAS_VIVO>>
-        //        {
-        //            Data = perfilbycargo,
-        //            Succeeded = true,
-        //            Message = "matrícula válida!"
-        //        });
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return new JsonResult(new Response<string>
-        //        {
-        //            Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
-        //            Succeeded = false,
-        //            Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
-        //            Errors = new string[]
-        //            {
-        //                ex.Message,
-        //                ex.StackTrace
-        //            },
-        //        });
-        //    }
-        //}
 
 
 
