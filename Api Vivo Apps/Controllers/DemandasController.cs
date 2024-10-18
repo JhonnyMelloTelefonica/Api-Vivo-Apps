@@ -46,7 +46,6 @@ using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using Microsoft.VisualStudio.Web.CodeGenerators.Mvc.Templates.BlazorIdentity.Pages.Manage;
 using DocumentFormat.OpenXml.Office2010.CustomUI;
 using Microsoft.Office.Interop.Excel;
-using BootstrapBlazor.Components;
 using DocumentFormat.OpenXml.Math;
 using DocumentFormat.OpenXml.Presentation;
 

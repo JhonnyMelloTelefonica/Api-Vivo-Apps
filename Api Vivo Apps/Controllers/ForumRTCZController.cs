@@ -143,9 +143,10 @@ namespace Vivo_Apps_API.Controllers
                     .Include(x => x.Respostas.Take(1))
                         .ThenInclude(x => x.Avaliacao)
                     .Include(x => x.Tema)
+                    .Select(x => new PUBLICACAO_SOLICITACAODTO(x, false, false))
                     .AsEnumerable();
 
-                return new JsonResult(new Response<PagedModelResponse<IEnumerable<PUBLICACAO_SOLICITACAO>>>
+                return new JsonResult(new Response<PagedModelResponse<IEnumerable<PUBLICACAO_SOLICITACAODTO>>>
                 {
                     Data = PagedResponse.CreatePagedReponse(Data, filter, totalRecords),
                     Message = "Sucessfull",
@@ -207,9 +208,10 @@ namespace Vivo_Apps_API.Controllers
                     .Include(x => x.Respostas.Take(1))
                         .ThenInclude(x => x.Avaliacao)
                     .Include(x => x.Tema)
+                    .Select(x => new PUBLICACAO_SOLICITACAODTO(x, false, false))
                     .AsEnumerable();
 
-                return new JsonResult(new Response<PagedModelResponse<IEnumerable<PUBLICACAO_SOLICITACAO>>>
+                return new JsonResult(new Response<PagedModelResponse<IEnumerable<PUBLICACAO_SOLICITACAODTO>>>
                 {
                     Data = PagedResponse.CreatePagedReponse(Data, filter, totalRecords),
                     Message = "Sucessfull",
@@ -253,9 +255,10 @@ namespace Vivo_Apps_API.Controllers
                     .Include(x => x.Respostas.Take(1))
                         .ThenInclude(x => x.Avaliacao)
                     .Include(x => x.Tema)
+                    .Select(x => new PUBLICACAO_SOLICITACAODTO(x, false, false))
                     .AsEnumerable();
 
-                return new JsonResult(new Response<PagedModelResponse<IEnumerable<PUBLICACAO_SOLICITACAO>>>
+                return new JsonResult(new Response<PagedModelResponse<IEnumerable<PUBLICACAO_SOLICITACAODTO>>>
                 {
                     Data = PagedResponse.CreatePagedReponse(Data, filter, totalRecords),
                     Message = "Sucessfull",
@@ -292,7 +295,46 @@ namespace Vivo_Apps_API.Controllers
                 return new JsonResult(new Response<bool>
                 {
                     Data = true,
-                    Message = "Sucessfull",
+                    Message = "Publicação enviada com sucesso!",
+                    Errors = [],
+                    Succeeded = true
+                }, new JsonSerializerOptions
+                {
+                    ReferenceHandler = ReferenceHandler.IgnoreCycles
+                });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<bool>
+                {
+                    Data = false,
+                    Message = "Algum erro Ocorreu",
+                    Errors = [ex.Message, ex.InnerException?.Message ?? ""],
+                    Succeeded = false
+                });
+            }
+        }
+        [HttpPost("publicacao/resposta/post")]
+        [ProducesResponseType(typeof(Response<IEnumerable<RESPOSTA_PUBLICACAODTO>>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public JsonResult PostRespostaPublicacao([FromBody] RESPOSTA_PUBLICACAODTO data)
+        {
+            try
+            {
+                BD.RESPOSTA_PUBLICACAO.Add(new RESPOSTA_PUBLICACAO
+                {
+                    ID_SOLICITACAO_PUBLICACAO = data.ID_SOLICITACAO_PUBLICACAO,
+                    HORA = data.HORA,
+                    MAT_SOLICITANTE = data.MAT_SOLICITANTE,
+                    TEXT_PUBLICACAO = data.TEXT_PUBLICACAO
+                });
+
+                BD.SaveChanges();
+
+                return new JsonResult(new Response<bool>
+                {
+                    Data = true,
+                    Message = "Resposta para a publicação enviada com sucesso!",
                     Errors = [],
                     Succeeded = true
                 }, new JsonSerializerOptions
@@ -319,30 +361,29 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                BD.AVALIACAO_PUBLICACAO.Add(data);
+                if (BD.AVALIACAO_PUBLICACAO.Where(x => x.MATRICULA_RESPONSAVEL == data.MATRICULA_RESPONSAVEL && x.ID_PUBLICACAO == data.ID_PUBLICACAO).Any())
+                {
+                    var saida = BD.AVALIACAO_PUBLICACAO.Where(x => x.MATRICULA_RESPONSAVEL == data.MATRICULA_RESPONSAVEL && x.ID_PUBLICACAO == data.ID_PUBLICACAO).First();
+                    saida.AVALIACAO = data.AVALIACAO;
+                }
+                else
+                {
+                    BD.AVALIACAO_PUBLICACAO.Add(new AVALIACAO_PUBLICACAO
+                    {
+                        ID_PUBLICACAO = data.ID_PUBLICACAO,
+                        MATRICULA_RESPONSAVEL = data.MATRICULA_RESPONSAVEL,
+                        AVALIACAO = data.AVALIACAO
+                    });
+                }
 
                 BD.SaveChanges();
 
-                return new JsonResult(new Response<bool>
-                {
-                    Data = true,
-                    Message = "Sucessfull",
-                    Errors = [],    
-                    Succeeded = true
-                }, new JsonSerializerOptions
-                {
-                    ReferenceHandler = ReferenceHandler.IgnoreCycles
-                });
+                return new JsonResult(true);
             }
             catch (Exception ex)
             {
-                return new JsonResult(new Response<bool>
-                {
-                    Data = false,
-                    Message = "Algum erro Ocorreu",
-                    Errors = [ex.Message, ex.InnerException?.Message ?? ""],
-                    Succeeded = false
-                });
+                Console.WriteLine(ex.InnerException?.Message ?? ex.StackTrace);
+                return new JsonResult(false);
             }
         }
 
