@@ -110,12 +110,12 @@ namespace Vivo_Apps_API.Controllers
 
                 if (!string.IsNullOrEmpty(filter.Value.search))
                 {
-                    data = data.Where(x => EF.Functions.Like(x.Tema.TEMAS, $"%{filter.Value.search}%") || EF.Functions.Like(x.Tema.SUB_TEMAS, $"%{filter.Value.search}%"));
+                    data = data.Where(x => EF.Functions.Like(x.TEXT_PUBLICACAO, $"%{filter.Value.search}%") || (x.Respostas.Any() && EF.Functions.Like(x.Respostas.First().TEXT_PUBLICACAO, $"%{filter.Value.search}%")));
                 }
 
                 if (filter.Value.avaliacao != 0)
                 {
-                    data = data.Where(x => x.Avaliacao.Average(x => x.AVALIACAO) >= filter.Value.avaliacao);
+                    data = data.Where(x => x.Avaliacao.Average(x => x.AVALIACAO) == filter.Value.avaliacao);
                 }
 
                 if (filter.Value.tema.Any())
@@ -175,12 +175,12 @@ namespace Vivo_Apps_API.Controllers
 
                 if (!string.IsNullOrEmpty(filter.Value.search))
                 {
-                    data = data.Where(x => EF.Functions.Like(x.Tema.TEMAS, $"%{filter.Value.search}%") || EF.Functions.Like(x.Tema.SUB_TEMAS, $"%{filter.Value.search}%"));
+                    data = data.Where(x => EF.Functions.Like(x.TEXT_PUBLICACAO, $"%{filter.Value.search}%") || (x.Respostas.Any() && EF.Functions.Like(x.Respostas.First().TEXT_PUBLICACAO, $"%{filter.Value.search}%")));
                 }
 
                 if (filter.Value.avaliacao != 0)
                 {
-                    data = data.Where(x => x.Avaliacao.Average(x => x.AVALIACAO) >= filter.Value.avaliacao);
+                    data = data.Where(x => x.Avaliacao.Average(x => x.AVALIACAO) == filter.Value.avaliacao);
                 }
 
                 if (filter.Value.tema.Any())
@@ -235,10 +235,21 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
+            
                 IQueryable<PUBLICACAO_SOLICITACAO> lista = null;
 
                 List<int> ids = BD.RESPONSAVEL_TEMA.Where(x => x.MATRICULA_RESPONSAVEL == matricula).Select(x => x.SUB_TEMA).ToList();
                 var data = BD.PUBLICACAO_SOLICITACAO.Where(x => !x.Respostas.Any() && ids.Contains(x.SUB_TEMA)).AsSplitQuery();
+
+                if (!string.IsNullOrEmpty(filter.Value.search))
+                {
+                    data = data.Where(x => EF.Functions.Like(x.TEXT_PUBLICACAO, $"%{filter.Value.search}%") || (x.Respostas.Any() && EF.Functions.Like(x.Respostas.First().TEXT_PUBLICACAO, $"%{filter.Value.search}%")));
+                }
+
+                if (filter.Value.avaliacao != 0)
+                {
+                    data = data.Where(x => x.Avaliacao.Average(x => x.AVALIACAO) == filter.Value.avaliacao);
+                }
 
                 lista = data.OrderByDescending(x => x.HORA)
                 .Skip((filter.PageNumber - 1) * filter.PageSize)
