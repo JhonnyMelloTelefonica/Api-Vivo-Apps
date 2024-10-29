@@ -1229,8 +1229,7 @@ namespace Vivo_Apps_API.Controllers
                  {
                      //UsuarioId = (Cargos)int.Parse(g.Key),
                      IdPerfil = g.Key,
-                     NomePerfil = g.Select(x => x.Perfil.FirstOrDefault()),
-                     //Perfis = g.Select(x => x.Perfil).ToList(),
+                     NomePerfil = g.Select(x => x.Perfil).ToList().FirstOrDefault(),
                      cargos = g.Select(x=> x.CargoId) ?? []
                  }).ToList();
                
