@@ -27,6 +27,7 @@ using static Shared_Static_Class.Data.DEMANDA_RELACAO_CHAMADO;
 using System.Linq;
 using Shared_Static_Class.Model_ForumRTCZ_Context;
 using NuGet.Protocol.Core.Types;
+using Shared_Static_Class.Model;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -235,7 +236,7 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-            
+
                 IQueryable<PUBLICACAO_SOLICITACAO> lista = null;
 
                 List<int> ids = BD.RESPONSAVEL_TEMA.Where(x => x.MATRICULA_RESPONSAVEL == matricula).Select(x => x.SUB_TEMA).ToList();
@@ -287,9 +288,7 @@ namespace Vivo_Apps_API.Controllers
         }
 
         [HttpPost("publicacao/post")]
-        [ProducesResponseType(typeof(Response<IEnumerable<PUBLICACAO_SOLICITACAO>>), 200)]
-        [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult PostPublicacao([FromBody] PUBLICACAO_SOLICITACAO data)
+        public JsonResult PostPublicacao([FromBody] PublicacaoModel data)
         {
             try
             {
@@ -326,9 +325,7 @@ namespace Vivo_Apps_API.Controllers
             }
         }
         [HttpPost("publicacao/resposta/post")]
-        [ProducesResponseType(typeof(Response<IEnumerable<RESPOSTA_PUBLICACAODTO>>), 200)]
-        [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult PostRespostaPublicacao([FromBody] RESPOSTA_PUBLICACAODTO data)
+        public JsonResult PostRespostaPublicacao([FromBody] RespostaPublicacaoModel data)
         {
             try
             {
@@ -366,9 +363,7 @@ namespace Vivo_Apps_API.Controllers
         }
 
         [HttpPost("Post/Avaliacao/Publicacao")]
-        [ProducesResponseType(typeof(Response<IEnumerable<PUBLICACAO_SOLICITACAO>>), 200)]
-        [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult PostAvaliacaoPublicacao([FromBody] AVALIACAO_PUBLICACAO data)
+        public JsonResult PostAvaliacaoPublicacao([FromBody] AvaliacaoPublicacaoModel data)
         {
             try
             {
