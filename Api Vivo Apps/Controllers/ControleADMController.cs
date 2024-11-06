@@ -560,7 +560,7 @@ namespace Vivo_Apps_API.Controllers
                 if (solicitacaorepetida.Any(x => x.TIPO == TIPO_ACESSOS_PENDENTES.ALTERACAO.Value //Verifica alterações solicitadas para esse usuário
                 && (x.STATUS != STATUS_ACESSOS_PENDENTES.CANCELADO.Value
                 && x.STATUS != STATUS_ACESSOS_PENDENTES.REPROVADO.Value
-                && x.STATUS != STATUS_ACESSOS_PENDENTES.APROVADO.Value)))
+                && x.STATUS != STATUS_ACESSOS_PENDENTES.CONCLUIDO.Value)))
                 //Verifica se essa solicitação já foi finalizada ou reprovada
                 {
                     return new JsonResult(new Response<string>
@@ -657,7 +657,7 @@ namespace Vivo_Apps_API.Controllers
                 if (CD.ACESSOS_MOBILE_PENDENTEs.Where(x => x.TIPO == TIPO_ACESSOS_PENDENTES.ALTERACAO.Value
                 && (x.STATUS != STATUS_ACESSOS_PENDENTES.CANCELADO.Value
                 && x.STATUS != STATUS_ACESSOS_PENDENTES.REPROVADO.Value
-                && x.STATUS != STATUS_ACESSOS_PENDENTES.APROVADO.Value))
+                && x.STATUS != STATUS_ACESSOS_PENDENTES.CONCLUIDO.Value))
                     .Any(x => x.ID_ACESSOS_MOBILE == id))
                 {
                     return new JsonResult(new Response<string>
@@ -742,7 +742,7 @@ namespace Vivo_Apps_API.Controllers
                 if (CD.ACESSOS_MOBILE_PENDENTEs.Where(x => x.TIPO == TIPO_ACESSOS_PENDENTES.ALTERACAO.Value
                 && (x.STATUS != STATUS_ACESSOS_PENDENTES.CANCELADO.Value
                 && x.STATUS != STATUS_ACESSOS_PENDENTES.REPROVADO.Value
-                && x.STATUS != STATUS_ACESSOS_PENDENTES.APROVADO.Value))
+                && x.STATUS != STATUS_ACESSOS_PENDENTES.CONCLUIDO.Value))
                     .Any(x => x.ID_ACESSOS_MOBILE == id))
                 {
                     return new JsonResult(new Response<string>
@@ -1072,7 +1072,7 @@ namespace Vivo_Apps_API.Controllers
 
                 var saida = CD.ACESSOS_MOBILE_PENDENTEs.Where(x => x.TIPO != TIPO_ACESSOS_PENDENTES.ALTERACAO.Value
                 && (x.STATUS != STATUS_ACESSOS_PENDENTES.CANCELADO.Value
-                && x.STATUS != STATUS_ACESSOS_PENDENTES.APROVADO.Value
+                && x.STATUS != STATUS_ACESSOS_PENDENTES.CONCLUIDO.Value
                 && x.STATUS != STATUS_ACESSOS_PENDENTES.REPROVADO.Value))
                     .FirstOrDefault(x => x.EMAIL.ToLower() == email.ToLower());
 
@@ -1133,7 +1133,7 @@ namespace Vivo_Apps_API.Controllers
 
                 var saida = CD.ACESSOS_MOBILE_PENDENTEs.Where(x => x.TIPO != TIPO_ACESSOS_PENDENTES.ALTERACAO.Value
                 && (x.STATUS != STATUS_ACESSOS_PENDENTES.CANCELADO.Value
-                    && x.STATUS != STATUS_ACESSOS_PENDENTES.APROVADO.Value
+                    && x.STATUS != STATUS_ACESSOS_PENDENTES.CONCLUIDO.Value
                     && x.STATUS != STATUS_ACESSOS_PENDENTES.REPROVADO.Value))
 
                     .FirstOrDefault(x => x.MATRICULA == matricula);
@@ -2088,7 +2088,7 @@ namespace Vivo_Apps_API.Controllers
                 if (CD.ACESSOS_MOBILE_PENDENTEs
                     .Where(x => x.TIPO != TIPO_ACESSOS_PENDENTES.ALTERACAO.Value
                 && (x.STATUS != STATUS_ACESSOS_PENDENTES.CANCELADO.Value
-                && x.STATUS != STATUS_ACESSOS_PENDENTES.APROVADO.Value
+                && x.STATUS != STATUS_ACESSOS_PENDENTES.CONCLUIDO.Value
                 && x.STATUS != STATUS_ACESSOS_PENDENTES.REPROVADO.Value))
                     .Select(x => x.EMAIL.ToLower()).Any(x => usuarios.Select(y => y.EMAIL.ToLower()).Contains(x)))
                 {
@@ -2115,7 +2115,7 @@ namespace Vivo_Apps_API.Controllers
                 else if (CD.ACESSOS_MOBILE_PENDENTEs
                     .Where(x => x.TIPO != TIPO_ACESSOS_PENDENTES.ALTERACAO.Value
                     && (x.STATUS != STATUS_ACESSOS_PENDENTES.CANCELADO.Value
-                    && x.STATUS != STATUS_ACESSOS_PENDENTES.APROVADO.Value
+                    && x.STATUS != STATUS_ACESSOS_PENDENTES.CONCLUIDO.Value
                     && x.STATUS != STATUS_ACESSOS_PENDENTES.REPROVADO.Value))
                     .Select(x => x.MATRICULA).Any(x => usuarios.Select(y => y.MATRICULA).ToList().Contains(x.Value)))
                 {

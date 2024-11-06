@@ -892,6 +892,13 @@ GROUP BY A.ID, F.FILA, C.STATUS, D.Nome, A.DATA_ABERTURA, E.DATA_RESPOSTA,E.RESP
 
 select * from JORNADA_BD_QUESTION WHERE ID_QUESTION = 9883
 
+select distinct LastStatus from Demandas.DEMANDA_RELACAO_CHAMADO 
+select distinct Status from Demandas.DEMANDA_STATUS_CHAMADO 
+select * from DEMANDA_SUB_FILA where NOME_SUB_FILA like '%Fibrasil%'
+select * from DEMANDA_TIPO_FILA where ID_TIPO_FILA = 18
+
+--update Demandas.DEMANDA_RELACAO_CHAMADO set LastStatus = 'CONCLUIDO' where LastStatus = 'APROVADO'
+--update Demandas.DEMANDA_STATUS_CHAMADO set Status = 'CONCLUIDO' where Status = 'APROVADO'
 --update JORNADA_BD_QUESTION 
 --set  STATUS_QUESTION = 0
 --where REGIONAL = 'MG' AND STATUS_QUESTION = 1
@@ -900,3 +907,5 @@ select * from JORNADA_BD_QUESTION WHERE ID_QUESTION = 9883
 
 --delete DEMANDA_RESPONSAVEL_FILA WHERE ID_sub_FILA IN (select * FROM DEMANDA_SUB_FILA WHERE ID_TIPO_FILA = 33)
 --delete demanda_tipo_fila WHERE ID_TIPO_FILA = 33
+
+select * from ACESSOS_MOBILE WHERE UserAvatar = null

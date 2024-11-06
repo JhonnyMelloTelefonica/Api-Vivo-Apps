@@ -59,7 +59,7 @@ namespace Vivo_Apps_API.Controllers
                 {
                     var solicitacaoAndamento = (string.Equals(UltimaSolicitacao.STATUS, STATUS_ACESSOS_PENDENTES.REPROVADO.Value)
                                                 || string.Equals(UltimaSolicitacao.STATUS, STATUS_ACESSOS_PENDENTES.CANCELADO.Value)
-                                                || string.Equals(UltimaSolicitacao.STATUS, STATUS_ACESSOS_PENDENTES.APROVADO.Value));
+                                                || string.Equals(UltimaSolicitacao.STATUS, STATUS_ACESSOS_PENDENTES.CONCLUIDO.Value));
                     // verifico se possui o último status é finalizado ou reprovado ou aprovado,
                     // caso não seja nenhum dos 2 siginifica que ainda está em andamento
 

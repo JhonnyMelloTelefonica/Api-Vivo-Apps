@@ -1157,7 +1157,7 @@ namespace Vivo_Apps_API.Controllers
             {
                 var Carteira = CD.Carteira_NEs.Where(x => x.ANOMES == CD.Carteira_NEs.Max(y => y.ANOMES));
                 var Sap = CD.CNS_BASE_TERCEIROS_SAP_GTs.AsQueryable();
-                var Dados_Fila = Demanda_BD.DEMANDA_SUB_FILA.Where(x => x.STATUS_SUB_FILA == true && x.ID_TIPO_FILA == id_fila).Select(x => new OptionFilas(x.ID_SUB_FILA, x.NOME_SUB_FILA, x.DESCRICAO)).Distinct().AsEnumerable();
+                var Dados_Fila = Demanda_BD.DEMANDA_SUB_FILA.Where(x => x.ID_TIPO_FILA == id_fila && x.STATUS_SUB_FILA == true).Select(x => new OptionFilas(x.ID_SUB_FILA, x.NOME_SUB_FILA, x.DESCRICAO)).Distinct().AsEnumerable();
                 string Descricao = Demanda_BD.DEMANDA_TIPO_FILA.Find(id_fila).DESCRICAO ?? string.Empty;
 
                 return new JsonResult(new Response<object>
@@ -1198,11 +1198,11 @@ namespace Vivo_Apps_API.Controllers
         [ProducesResponseType(typeof(Response<object>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
         public IActionResult GetDadosFilaBy(string regional)
-        {          
+        {
 
             try
             {
-                
+
                 var demandaSubDemandas = Demanda_BD.DEMANDA_TIPO_FILA
                 .Where(d => d.REGIONAL == regional)
                 .Select(fila => new DEMANDA_TIPO_FILA_DTO
@@ -1231,7 +1231,7 @@ namespace Vivo_Apps_API.Controllers
 
                 });
 
-               return Ok(demandaSubDemandas);
+                return Ok(demandaSubDemandas);
 
             }
             catch (Exception ex)
@@ -1391,7 +1391,7 @@ namespace Vivo_Apps_API.Controllers
                             chamado_relacao.MATRICULA_RESPONSAVEL = data.MATRICULA_REDIRECIONADO;
                         }
 
-                        if (data.Status == STATUS_ACESSOS_PENDENTES.APROVADO.Value)
+                        if (data.Status == STATUS_ACESSOS_PENDENTES.CONCLUIDO.Value)
                         {
                             chamado.DATA_FECHAMENTO = DateTime.Now;
                         }
@@ -1450,7 +1450,7 @@ namespace Vivo_Apps_API.Controllers
                                 case "REPROVADO":
                                     emailsender.Add(solicitante);
                                     break;
-                                case "APROVADO":
+                                case "CONCLUIDO":
                                     emailsender.Add(solicitante);
                                     break;
                                 case "REABERTO":
@@ -1537,7 +1537,7 @@ namespace Vivo_Apps_API.Controllers
                                 case "REPROVADO":
                                     emailsender.Add(solicitante);
                                     break;
-                                case "APROVADO":
+                                case "CONCLUIDO":
                                     emailsender.Add(solicitante);
                                     break;
                                 case "REABERTO":
@@ -1569,7 +1569,7 @@ namespace Vivo_Apps_API.Controllers
                         var desligamento = Demanda_BD.DEMANDA_DESLIGAMENTOS.Find(data.IdChamado);
                         var mat_Desligada = Demanda_BD.DEMANDA_RELACAO_TREINAMENTO_FINALIZADO.FirstOrDefault(x => x.MATRICULA == desligamento.Matricula);
 
-                        if (data.Status == STATUS_ACESSOS_PENDENTES.APROVADO.Value && mat_Desligada != null)
+                        if (data.Status == STATUS_ACESSOS_PENDENTES.CONCLUIDO.Value && mat_Desligada != null)
                         {
                             mat_Desligada.STATUS_MATRICULA = "INATIVO";
                             await Demanda_BD.SaveChangesAsync();
@@ -1630,7 +1630,7 @@ namespace Vivo_Apps_API.Controllers
                                 case "REPROVADO":
                                     emailsender.Add(solicitante);
                                     break;
-                                case "APROVADO":
+                                case "CONCLUIDO":
                                     emailsender.Add(solicitante);
                                     break;
                                 case "REABERTO":
@@ -2522,11 +2522,11 @@ namespace Vivo_Apps_API.Controllers
                 {
 
                     Concluído = linqFiltered
-                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS == STATUS_ACESSOS_PENDENTES.APROVADO.Value)
+                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS == STATUS_ACESSOS_PENDENTES.CONCLUIDO.Value)
                         .Count();
 
                     Em_andamento = linqFiltered
-                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS != STATUS_ACESSOS_PENDENTES.APROVADO.Value)
+                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS != STATUS_ACESSOS_PENDENTES.CONCLUIDO.Value)
                         .Count();
 
                     var list24Diferences = linqFiltered
@@ -2540,7 +2540,7 @@ namespace Vivo_Apps_API.Controllers
                     Porc_Primeiro_SLA_24h = Math.Round((Qtd_Primeiro_SLA_24h / (double)Total_de_Demandas) * 100.0, 1);
 
                     var list_Dentro_SLA = linqFiltered
-                          .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).Last().STATUS == STATUS_ACESSOS_PENDENTES.APROVADO.Value)
+                          .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).Last().STATUS == STATUS_ACESSOS_PENDENTES.CONCLUIDO.Value)
                           .Select(x => new { lastdate = x.Relacao.Status.OrderBy(k => k.DATA).Last().DATA, dt_abertura = x.DATA_ABERTURA.Value, sla = x.Fila.SLA })
                           .AsEnumerable();
 
@@ -2666,13 +2666,13 @@ namespace Vivo_Apps_API.Controllers
 
                 switch (filter.Value.role)
                 {
-                    /** Consulta para usuários básicos **/
+                    // Consulta para usuários básicos
                     case Controle_Demanda_role.BASICO:
 
                         data = data.Where(x => x.MATRICULA_SOLICITANTE == filter.Value.matricula);
                         break;
 
-                    /** Consulta para analistas do suporte que não tratam solicitação de acessos terceiro **/
+                    // Consulta para analistas do suporte que não tratam solicitação de acessos terceiro
                     case Controle_Demanda_role.ANALISTA:
 
                         data = data.Where(x => x.Tabela == Tabela_Demanda.ChamadoRelacao
@@ -2680,7 +2680,7 @@ namespace Vivo_Apps_API.Controllers
                         && x.REGIONAL == filter.Value.regional);
                         break;
 
-                    /** Consulta para analistas do suporte que tratam solicitação de acessos terceiro **/
+                    // Consulta para analistas do suporte que tratam solicitação de acessos terceiro
                     case Controle_Demanda_role.ANALISTA_ACESSO:
 
                         //var datademandaanalistaacesso = data.Where(x => x.Tabela == Tabela_Demanda.ChamadoRelacao
@@ -2694,13 +2694,15 @@ namespace Vivo_Apps_API.Controllers
 
                         break;
 
-                    /** Consulta para gerente do suporte **/
+                    // Consulta para gerente do suporte
                     case Controle_Demanda_role.GERENTE:
 
                         break;
                 }
 
-                var lista = data.OrderBy(x => x.Sequence)
+                var lista = data.OrderByDescending(x => x.PRIORIDADE)
+                    .ThenByDescending(x => x.PRIORIDADE_SEGMENTO)
+                    .ThenBy(x => x.DATA_ABERTURA)
                     .Skip((filter.PageNumber - 1) * filter.PageSize)
                     .Take(filter.PageSize);
 
