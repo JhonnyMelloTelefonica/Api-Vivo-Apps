@@ -37,6 +37,7 @@ using System.Globalization;
 using DocumentFormat.OpenXml.ExtendedProperties;
 using System.Drawing;
 using Shared_Razor_Components.Services;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 
 namespace Vivo_Apps_API.Controllers
@@ -166,7 +167,7 @@ namespace Vivo_Apps_API.Controllers
             try
             {
                 //body.Solicitante = DB.ACESSOS_MOBILE.First(x => x.MATRICULA == body.MATRICULA_SOLICITANTE);]
-                if (DB.DEMANDA_ACESSOS.Where(x=> id.Select(y=> y.Item2).Contains(x.ID)).Any(x=> !x.DataExtracao.HasValue))
+                if (DB.DEMANDA_ACESSOS.Where(x => id.Select(y => y.Item2).Contains(x.ID)).Any(x => !x.DataExtracao.HasValue))
                 {
                     return Ok(new Response<string>
                     {
@@ -189,7 +190,7 @@ namespace Vivo_Apps_API.Controllers
                         });
                     }
 
-                   
+
                     await ExecuteChangeMatriculaTerceiro(singleid.Item1, singleid.Item2, matricula_resp, mensagem, out DEMANDA_ACESSOS? demanda);
                 }
 
@@ -224,22 +225,38 @@ namespace Vivo_Apps_API.Controllers
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> Create([FromBody] DEMANDA_ACESSOS body, string MENSAGEM)
+        public async Task<IActionResult> Create([FromBody] DEMANDA_ACESSOS data, string MENSAGEM)
         {
             try
             {
+                int responsavel;
+
+                List<(int, int)> saida = new();
+                var uf = data.Estado?.GetDisplayName();
+                var responsaveisacesso = DB.DEMANDA_ACESSO_RESPONSAVEL_UF.Where(x => x.UF == uf).Select(x => x.MATRICULA_RESPONSAVEL).ToList();
+
+                foreach (var item in responsaveisacesso)
+                {
+                    saida.Add((DB.DEMANDA_CHAMADO.Where(x=> responsaveisacesso.Contains(x.MATRICULA_RESPONSAVEL.Value)).Count(x => x.MATRICULA_RESPONSAVEL == item), item));
+                }
+
+                responsavel = saida.MinBy(x => x.Item1).Item2;
+
+                data.MATRICULA_RESPONSAVEL = responsavel;
+
                 var demanda = new DEMANDA_RELACAO_CHAMADO
                 {
                     Sequence = DB.DEMANDA_RELACAO_CHAMADO.Count() + 1,
                     Tabela = DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.AcessoRelacao,
-                    MATRICULA_SOLICITANTE = body.MATRICULA_SOLICITANTE,
+                    MATRICULA_SOLICITANTE = data.MATRICULA_SOLICITANTE,
+                    MATRICULA_RESPONSAVEL = responsavel,
                     DATA_ABERTURA = DateTime.Now,
                     PRIORIDADE = false,
                     PRIORIDADE_SEGMENTO = false,
                     LastStatus = STATUS_ACESSOS_PENDENTES.ABERTO.Value,
-                    REGIONAL = body.REGIONAL,
-                    AcessoRelacao = body,
-                    ID_CHAMADO = body.ID
+                    REGIONAL = data.REGIONAL,
+                    AcessoRelacao = data,
+                    ID_CHAMADO = data.ID
                 };
 
                 var demandaCompleta = DB.DEMANDA_RELACAO_CHAMADO.Add(demanda).Entity;
@@ -252,7 +269,7 @@ namespace Vivo_Apps_API.Controllers
                     ID_RELACAO = demanda.ID_RELACAO,
                     ID_CHAMADO = demanda.ID_CHAMADO,
                     RESPOSTA = MENSAGEM,
-                    MATRICULA_RESPONSAVEL = body.MATRICULA_SOLICITANTE,
+                    MATRICULA_RESPONSAVEL = data.MATRICULA_SOLICITANTE,
                     DATA_RESPOSTA = DateTime.Now,
                     ARQUIVOS = null
                 });

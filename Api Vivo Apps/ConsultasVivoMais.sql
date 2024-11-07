@@ -54,6 +54,23 @@ INSERÇÃO DE USUÁRIO NO VIVO +
 --t.schema_id = SCHEMA_ID('Fórum');
 
     
+    select * from CONTROLE_DE_DEMANDAS_OPERADORES
+    --insert into Demandas.DEMANDA_ACESSO_RESPONSAVEL_UF
+    --values
+    ----Omar
+    --(159706,'BA'),
+    --(159706,'SE'),
+    --(159706,'AL'),
+    --(40418413,'BA'),
+    --(40418413,'SE'),
+    --(40418413,'AL'),
+    ----Julia
+    --(163794,'PB'),
+    --(163794,'PI'),
+    --(163794,'PE'),
+    --(163794,'RN'),
+    --(163794,'SE')
+
     select * from Demandas.DEMANDA_RELACAo_CHAMADO wheRE Sequence = 46
         select * from Demandas.DEMANDA_CHAMADO wheRE ID = 203
         select * from Demandas.DEMANDA_STATUS_CHAMADO where ID_RELACAO = '995B2FA4-F8BC-4CC0-E311-08DCEDF5D4AF'

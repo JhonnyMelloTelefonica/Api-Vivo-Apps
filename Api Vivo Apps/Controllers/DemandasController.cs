@@ -48,6 +48,8 @@ using DocumentFormat.OpenXml.Office2010.CustomUI;
 using Microsoft.Office.Interop.Excel;
 using DocumentFormat.OpenXml.Math;
 using DocumentFormat.OpenXml.Presentation;
+using System.Net.NetworkInformation;
+using Microsoft.FluentUI.AspNetCore.Components;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -1323,6 +1325,7 @@ namespace Vivo_Apps_API.Controllers
                             chamadored.MATRICULA_RESPONSAVEL = data.MATRICULA_REDIRECIONADO.Value;
                             MATRICULA_SOLICITANTE = chamadored.MATRICULA_SOLICITANTE;
                             MATRICULA_RESPONSAVEL = chamadored.MATRICULA_RESPONSAVEL;
+                            chamadored.ID_FILA_CHAMADO = data.SUBFILA.Value;
                             break;
 
                         case Tabela_Demanda.AcessoRelacao:
@@ -1349,6 +1352,7 @@ namespace Vivo_Apps_API.Controllers
                             .Where(x => x.MATRICULA == MATRICULA_ANTIGO_RESPONSAVEL)
                             .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
                             .First();
+
                         emailsender.Add(antigo_responsavel);
                     }
 
@@ -1486,8 +1490,8 @@ namespace Vivo_Apps_API.Controllers
                         if (!data.MATRICULA_REDIRECIONADO.HasValue)
                         {
                             var acesso = demanda as ACESSO_TERCEIROS_DTO;
-                            MATRICULA_SOLICITANTE = acesso.Solicitante.MATRICULA;
-                            MATRICULA_RESPONSAVEL = acesso.Responsavel.MATRICULA;
+                            MATRICULA_SOLICITANTE = acesso.Relacao.MATRICULA_SOLICITANTE;
+                            MATRICULA_RESPONSAVEL = acesso.Relacao.MATRICULA_RESPONSAVEL;
 
                             solicitante = Demanda_BD.ACESSOS_MOBILE
                                 .Where(x => x.MATRICULA == MATRICULA_SOLICITANTE)
@@ -1579,8 +1583,8 @@ namespace Vivo_Apps_API.Controllers
 
                         if (!data.MATRICULA_REDIRECIONADO.HasValue)
                         {
-                            MATRICULA_SOLICITANTE = desligamento.Solicitante.MATRICULA;
-                            MATRICULA_RESPONSAVEL = desligamento.Responsavel.MATRICULA;
+                            MATRICULA_SOLICITANTE = desligamento.Relacao.MATRICULA_SOLICITANTE;
+                            MATRICULA_RESPONSAVEL = desligamento.Relacao.MATRICULA_RESPONSAVEL;
 
                             solicitante = Demanda_BD.ACESSOS_MOBILE
                                 .Where(x => x.MATRICULA == MATRICULA_SOLICITANTE)
@@ -1786,23 +1790,64 @@ namespace Vivo_Apps_API.Controllers
 
                 var fila = Demanda_BD.DEMANDA_SUB_FILA.Include(x => x.DEMANDA_RESPONSAVEL_FILAs.Where(y => opera_disp.Contains(y.MATRICULA_RESPONSAVEL)))
                     .First(x => x.ID_SUB_FILA == data.FILA_DTO.ID_SUB_FILA);
+
                 int responsavel;
 
+                #region Algoritmo escolha de responsavel da demanda
                 if (fila.DEMANDA_RESPONSAVEL_FILAs.Count > 1)
                 {
                     List<(int, int)> saida = new();
 
-                    foreach (var item in fila.DEMANDA_RESPONSAVEL_FILAs)
+                    if (data.TIPO_FILA == 1)
                     {
-                        saida.Add((Demanda_BD.DEMANDA_CHAMADO.Count(x => x.MATRICULA_RESPONSAVEL == item.MATRICULA_RESPONSAVEL.Value), item.MATRICULA_RESPONSAVEL.Value));
-                    }
+                        string? uf = data.CAMPOS.FirstOrDefault(x => x.CAMPO == "uf")?.RESPOSTA;
+                        if (string.IsNullOrEmpty(uf))
+                        {
+                            var rnd = new Random();
+                            var disprespo = fila.DEMANDA_RESPONSAVEL_FILAs.Select(x => x.MATRICULA_RESPONSAVEL.Value).ToArray();
+                            int numrandomico = rnd.Next(0, fila.DEMANDA_RESPONSAVEL_FILAs.Count);
+                            responsavel = disprespo[numrandomico];
+                        }
+                        else
+                        {
 
-                    responsavel = saida.MinBy(x => x.Item1).Item2;
+                            var responsaveisacesso = Demanda_BD.DEMANDA_ACESSO_RESPONSAVEL_UF.Where(x => x.UF == uf).Select(x => x.MATRICULA_RESPONSAVEL);
+
+                            if (responsaveisacesso.Any())
+                            {
+                                foreach (var item in responsaveisacesso)
+                                {
+                                    saida.Add((Demanda_BD.DEMANDA_CHAMADO.Count(x => x.MATRICULA_RESPONSAVEL == item), item));
+                                }
+
+                                responsavel = saida.MinBy(x => x.Item1).Item2;
+                            }
+                            else
+                            {
+                                foreach (var item in fila.DEMANDA_RESPONSAVEL_FILAs)
+                                {
+                                    saida.Add((Demanda_BD.DEMANDA_CHAMADO.Count(x => x.MATRICULA_RESPONSAVEL == item.MATRICULA_RESPONSAVEL.Value), item.MATRICULA_RESPONSAVEL.Value));
+                                }
+
+                                responsavel = saida.MinBy(x => x.Item1).Item2;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        foreach (var item in fila.DEMANDA_RESPONSAVEL_FILAs)
+                        {
+                            saida.Add((Demanda_BD.DEMANDA_CHAMADO.Count(x => x.MATRICULA_RESPONSAVEL == item.MATRICULA_RESPONSAVEL.Value), item.MATRICULA_RESPONSAVEL.Value));
+                        }
+
+                        responsavel = saida.MinBy(x => x.Item1).Item2;
+                    }
                 }
                 else
                 {
                     responsavel = fila.DEMANDA_RESPONSAVEL_FILAs.First().MATRICULA_RESPONSAVEL.Value;
                 }
+                #endregion
 
                 var demanda = new DEMANDA_RELACAO_CHAMADO
                 {
@@ -1832,42 +1877,12 @@ namespace Vivo_Apps_API.Controllers
                     }
                 };
 
-                /*var demanda = new DEMANDA_CHAMADO
-                {
-                    ID_FILA_CHAMADO = data.FILA_DTO.ID_SUB_FILA,
-                    MATRICULA_RESPONSAVEL = responsavel,
-                    MATRICULA_SOLICITANTE = int.Parse(data.MAT_SOLICITANTE),
-                    DATA_ABERTURA = DateTime.Now,
-                    DATA_FECHAMENTO = null,
-                    PRIORIDADE = "BAIXA",
-                    REGIONAL = data.REGIONAL,
-                    CLIENTE_ALTO_VALOR = null,
-                    Respostas = new List<DEMANDA_CHAMADO_RESPOSTA>
-                    {
-                        new DEMANDA_CHAMADO_RESPOSTA
-                        {
-                            RESPOSTA = data.PROBLEMA,
-                            MATRICULA_RESPONSAVEL = int.Parse(data.MAT_SOLICITANTE),
-                            DATA_RESPOSTA = DateTime.Now,
-                            ARQUIVOS = data.Arquivos.Select(x => new DEMANDA_ARQUIVOS_RESPOSTA
-                            {
-                                NOME_CAMPO = x.FileName.Split('.')[0],
-                                ARQUIVO = x.Bytes,
-                                EXT_ARQUIVO = x.FileName.Split('.')[1]
-                            }).ToList()
-                        }
-                    },
-                    Campos = data.CAMPOS.Select(campo => new DEMANDA_CAMPOS_CHAMADO
-                    {
-                        VALOR = campo.RESPOSTA,
-                        CAMPO = campo.CAMPO
-                    }).ToList(),
-                };*/
-
                 Demanda_BD.DEMANDA_RELACAO_CHAMADO.Add(demanda);
 
                 await Demanda_BD.SaveChangesAsync();
+
                 demanda.ID_CHAMADO = demanda.ChamadoRelacao.ID;
+
                 demanda.Respostas.Add(new DEMANDA_CHAMADO_RESPOSTA
                 {
                     ID_RELACAO = demanda.ID_RELACAO,
@@ -1922,8 +1937,8 @@ namespace Vivo_Apps_API.Controllers
                 var demandaCompleta = GetDemandaByID(demanda.ChamadoRelacao.ID);
 
                 SendEmailModel email = new SendEmailModel(new string[] { retorno.EMAIL }, null, $"Nova demanda N {demandaCompleta.Relacao.Sequence}",
-                    $"Nova demanda aberta por {solicitante.DISPLAY_NOME}",
-                    $"Uma demanda demanda do tipo {demandaCompleta.Fila.ID_TIPO_FILANavigation.NOME_TIPO_FILA} e sub-fila {demandaCompleta.Fila.NOME_SUB_FILA} acaba de ser criada" +
+                $"Nova demanda aberta por {solicitante.DISPLAY_NOME}",
+                $"Uma demanda demanda do tipo {demandaCompleta.Fila.ID_TIPO_FILANavigation.NOME_TIPO_FILA} e sub-fila {demandaCompleta.Fila.NOME_SUB_FILA} acaba de ser criada" +
                 $" com o responsável principal {retorno.DISPLAY_NOME}, o sla para esta fila é de {(demandaCompleta.Fila.SLA > 24 ? $"{(demandaCompleta.Fila.SLA / 24)} dias" : $"{demandaCompleta.Fila.SLA} horas")} dias.</p>" +
                 $"<p>Acesse clicando <b><a href=\"http://brtdtbgs0090sl:8083/demandas/consultar/{demanda.ID_RELACAO}\">aqui<a/>.</b>", null,
                 new string[] { "ne_automacao.br@telefonica.com" });

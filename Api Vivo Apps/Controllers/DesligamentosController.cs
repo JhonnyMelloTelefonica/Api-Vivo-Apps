@@ -53,7 +53,7 @@ namespace Vivo_Apps_API.Controllers
 
         public DesligamentosController(ILogger<DesligamentosController> logger,
             IDbContextFactory<DemandasContext> dbContextFactory, IOutputCacheStore cache,
-            ISuporteDemandaHub hubContext, Vivo_MaisContext cD,IPWService service)
+            ISuporteDemandaHub hubContext, Vivo_MaisContext cD, IPWService service)
         {
             _service = service;
             _cache = cache;
@@ -64,27 +64,67 @@ namespace Vivo_Apps_API.Controllers
             DbFactory = dbContextFactory;
             DB = DbFactory.CreateDbContext();
             CD = cD;
+
+            var config = new MapperConfiguration(cfg =>
+            {
+                cfg.CreateMap<DEMANDA_RELACAO_CHAMADO, DEMANDA_DTO>();
+
+                cfg.CreateMap<ACESSOS_MOBILE, ACESSOS_MOBILE_DTO>()
+                .ForMember(
+                    dest => dest.CARGO,
+                    opt => opt.MapFrom(src => (Cargos)src.CARGO)
+                    )
+                .ForMember(
+                    dest => dest.CANAL,
+                    opt => opt.MapFrom(src => (Canal)src.CANAL)
+                    );
+
+                cfg.CreateMap<DEMANDA_CHAMADO_RESPOSTA, DEMANDA_CHAMADO_RESPOSTA_DTO>();
+                cfg.CreateMap<DEMANDA_ARQUIVOS_RESPOSTA, DEMANDA_ARQUIVOS_RESPOSTA_DTO>();
+                cfg.CreateMap<DEMANDA_STATUS_CHAMADO, DEMANDA_STATUS_CHAMADO_DTO>();
+                cfg.CreateMap<DEMANDA_ACESSOS, ACESSO_TERCEIROS_DTO>()
+                .ForMember(
+                    dest => dest.Respostas,
+                    opt => opt.MapFrom(src => src.Relacao.Respostas)
+                    );
+
+            });
+            _mapper = config.CreateMapper();
         }
 
         [HttpPost("create")]
-        public async Task<IActionResult> Create([FromBody] DEMANDA_DESLIGAMENTOS body, string MENSAGEM)
+        public async Task<IActionResult> Create([FromBody] DEMANDA_DESLIGAMENTOS data, string MENSAGEM)
         {
             try
             {
                 //body.Solicitante = DB.ACESSOS_MOBILE.First(x => x.MATRICULA == body.MATRICULA_SOLICITANTE);
+                int responsavel;
+
+                List<(int, int)> saida = new();
+                var responsaveisacesso = DB.DEMANDA_ACESSO_RESPONSAVEL_UF.Select(x => x.MATRICULA_RESPONSAVEL).ToList();
+
+                foreach (var item in responsaveisacesso)
+                {
+                    saida.Add((DB.DEMANDA_CHAMADO.Where(x => responsaveisacesso.Contains(x.MATRICULA_RESPONSAVEL.Value)).Count(x => x.MATRICULA_RESPONSAVEL == item), item));
+                }
+
+                responsavel = saida.MinBy(x => x.Item1).Item2;
+
+                data.MATRICULA_RESPONSAVEL = responsavel;
 
                 var demanda = new DEMANDA_RELACAO_CHAMADO
                 {
                     Sequence = DB.DEMANDA_RELACAO_CHAMADO.Count() + 1,
                     Tabela = DEMANDA_RELACAO_CHAMADO.Tabela_Demanda.DesligamentoRelacao,
-                    MATRICULA_SOLICITANTE = body.MATRICULA_SOLICITANTE,
+                    MATRICULA_SOLICITANTE = data.MATRICULA_SOLICITANTE,
+                    MATRICULA_RESPONSAVEL = responsavel,
                     DATA_ABERTURA = DateTime.Now,
                     PRIORIDADE = false,
                     PRIORIDADE_SEGMENTO = false,
-                    DesligamentoRelacao = body,
+                    DesligamentoRelacao = data,
                     LastStatus = STATUS_ACESSOS_PENDENTES.ABERTO.Value,
-                    REGIONAL = body.REGIONAL,
-                    ID_CHAMADO = body.ID
+                    REGIONAL = data.REGIONAL,
+                    ID_CHAMADO = data.ID
                 };
 
                 var demandaCompleta = DB.DEMANDA_RELACAO_CHAMADO.Add(demanda).Entity;
@@ -97,7 +137,7 @@ namespace Vivo_Apps_API.Controllers
                     ID_RELACAO = demanda.ID_RELACAO,
                     ID_CHAMADO = demanda.ID_CHAMADO,
                     RESPOSTA = MENSAGEM,
-                    MATRICULA_RESPONSAVEL = body.MATRICULA_SOLICITANTE,
+                    MATRICULA_RESPONSAVEL = data.MATRICULA_SOLICITANTE,
                     DATA_RESPOSTA = DateTime.Now,
                     ARQUIVOS = null
                 });
@@ -115,17 +155,17 @@ namespace Vivo_Apps_API.Controllers
                 //await _hubContext.SendTableDemandas();
 
                 var retorno = DB.ACESSOS_MOBILE
-                    .Where(x => x.MATRICULA == demanda.AcessoRelacao.MATRICULA_RESPONSAVEL)
+                    .Where(x => x.MATRICULA == demanda.DesligamentoRelacao.MATRICULA_RESPONSAVEL)
                     .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
                     .First();
                 var solicitante = DB.ACESSOS_MOBILE
-                    .Where(x => x.MATRICULA == demanda.AcessoRelacao.MATRICULA_SOLICITANTE)
+                    .Where(x => x.MATRICULA == demanda.DesligamentoRelacao.MATRICULA_SOLICITANTE)
                     .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
                     .First();
 
                 SendEmailModel email = new SendEmailModel(new string[] { retorno.EMAIL, solicitante.EMAIL }, null, $"Nova solicitação de acesso N {demandaCompleta.Sequence}",
-                    $"Nova solicitação de acesso do tipo {demanda.AcessoRelacao.Acao.GetDisplayName()} foi aberta por {solicitante.DISPLAY_NOME}",
-                    $"Uma solicitação para o time de acessos do tipo {demanda.AcessoRelacao.Acao.GetDisplayName()} acaba de ser criada" +
+                    $"Nova solicitação de acesso do tipo Desligamento foi aberta por {solicitante.DISPLAY_NOME}",
+                    $"Uma solicitação para o time de acessos do tipo desligamento acaba de ser criada" +
                     $"com o responsável principal {retorno.DISPLAY_NOME}, por favor aguarde o retorno do time de acessos.", null,
                     new string[] { "ne_automacao.br@telefonica.com", "ne_acesso.br@telefonica.com" });
 
