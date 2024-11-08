@@ -1325,7 +1325,9 @@ namespace Vivo_Apps_API.Controllers
                             chamadored.MATRICULA_RESPONSAVEL = data.MATRICULA_REDIRECIONADO.Value;
                             MATRICULA_SOLICITANTE = chamadored.MATRICULA_SOLICITANTE;
                             MATRICULA_RESPONSAVEL = chamadored.MATRICULA_RESPONSAVEL;
-                            chamadored.ID_FILA_CHAMADO = data.SUBFILA.Value;
+                            if (data.SUBFILA.HasValue)
+                                chamadored.ID_FILA_CHAMADO = data.SUBFILA.Value;
+
                             break;
 
                         case Tabela_Demanda.AcessoRelacao:
@@ -2633,12 +2635,19 @@ namespace Vivo_Apps_API.Controllers
                 //                    .Where(y => y.id_Perfil == 15)
                 //                    .Select(y => y.MATRICULA)
                 //                    .Contains(x.MATRICULA))
-                //    .Distinct().AsEnumerable();
 
-                var matanalistas = CD.DEMANDA_BD_OPERADOREs
-                    .Where(x => x.REGIONAL == regional && x.STATUS == true)
-                    .Select(x => x.MATRICULA).ToArray()
-                    .Distinct();
+                //    .Distinct().AsEnumerable();
+                IEnumerable<int> matanalistas;
+                matanalistas = CD.DEMANDA_BD_OPERADOREs
+                .Where(x => x.REGIONAL == regional && x.STATUS == true)
+                .Select(x => x.MATRICULA.Value).ToArray()
+                .Distinct();
+
+                if (SubFila != 0)
+                {
+                     var respfila = CD.DEMANDA_RESPONSAVEL_FILAs.Where(x => x.ID_SUB_FILA == SubFila).Select(x => x.MATRICULA_RESPONSAVEL.Value).ToList();
+                    matanalistas = matanalistas.Intersect(respfila);
+                }
 
                 var query = CD.ACESSOS_MOBILEs
                     .Where(x => matanalistas.Contains(x.MATRICULA));
@@ -2690,9 +2699,7 @@ namespace Vivo_Apps_API.Controllers
                     // Consulta para analistas do suporte que não tratam solicitação de acessos terceiro
                     case Controle_Demanda_role.ANALISTA:
 
-                        data = data.Where(x => x.Tabela == Tabela_Demanda.ChamadoRelacao
-                        && x.ChamadoRelacao != null && list_ids.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA)
-                        && x.REGIONAL == filter.Value.regional);
+                        data = data.Where(x => x.Tabela == Tabela_Demanda.ChamadoRelacao && x.ChamadoRelacao != null && list_ids.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA) || x.MATRICULA_RESPONSAVEL == filter.Value.matricula);
                         break;
 
                     // Consulta para analistas do suporte que tratam solicitação de acessos terceiro
@@ -2701,11 +2708,7 @@ namespace Vivo_Apps_API.Controllers
                         //var datademandaanalistaacesso = data.Where(x => x.Tabela == Tabela_Demanda.ChamadoRelacao
                         //    && x.ChamadoRelacao != null && list_ids.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA));
 
-                        //var dataacessoanalistaacesso = data.Where(x => x.Tabela == Tabela_Demanda.AcessoRelacao);
-
-                        //data = datademandaanalistaacesso.UnionBy(dataacessoanalistaacesso, x => x.ID_RELACAO);
-                        data = data.Where(x => (x.Tabela == Tabela_Demanda.ChamadoRelacao
-                            && x.ChamadoRelacao != null && list_ids.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA)) || (x.Tabela == Tabela_Demanda.AcessoRelacao));
+                        data = data.Where(x => (x.Tabela == Tabela_Demanda.ChamadoRelacao && x.ChamadoRelacao != null && list_ids.Contains(x.ChamadoRelacao.Fila.ID_SUB_FILA)) || (x.Tabela == Tabela_Demanda.AcessoRelacao) || x.MATRICULA_RESPONSAVEL == filter.Value.matricula);
 
                         break;
 
