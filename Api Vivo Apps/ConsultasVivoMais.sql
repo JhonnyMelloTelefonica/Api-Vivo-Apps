@@ -54,7 +54,7 @@ INSERÇÃO DE USUÁRIO NO VIVO +
 --t.schema_id = SCHEMA_ID('Fórum');
 
     
-    select * from CONTROLE_DE_DEMANDAS_OPERADORES
+    --delete ACESSOS_MOBILE_PENDENTE WHERE MATRICULA = 163794
     --insert into Demandas.DEMANDA_ACESSO_RESPONSAVEL_UF
     --values
     ----Omar
@@ -70,6 +70,29 @@ INSERÇÃO DE USUÁRIO NO VIVO +
     --(163794,'PE'),
     --(163794,'RN'),
     --(163794,'SE')
+
+    select * from DEMANDA_SUB_FILA WHERE ID_TIPO_FILA = 1 AND STATUS_SUB_FILA =1
+    AND NOME_SUB_FILA like '%PE/PB/RN/CE/PI - %'
+
+        select * from DEMANDA_RESPONSAVEL_FILA WHERE ID_SUB_FILA IN 
+        (    select ID_SUB_FILA from DEMANDA_SUB_FILA WHERE ID_TIPO_FILA = 1 AND STATUS_SUB_FILA =1
+    AND NOME_SUB_FILA like '%PE/PB/RN/CE/PI - %')
+
+    
+        select * from DEMANDA_CAMPOS_FILA WHERE ID_SUB_FILA IN 
+        (    select ID_SUB_FILA from DEMANDA_SUB_FILA WHERE ID_TIPO_FILA = 1 AND STATUS_SUB_FILA =1
+    AND NOME_SUB_FILA like '%PE/PB/RN/CE/PI - %')
+
+    delete DEMANDA_SUB_FILA
+    WHERE ID_TIPO_FILA = 1 
+    AND STATUS_SUB_FILA = 1 
+    AND NOME_SUB_FILA like '%PE/PB/RN/CE/PI - %'
+
+    --update DEMANDA_SUB_FILA SET NOME_SUB_FILA = 'BA/SE/AL - ' + NOME_SUB_FILA
+    --WHERE ID_TIPO_FILA = 1 AND STATUS_SUB_FILA =1
+
+    --update DEMANDA_SUB_FILA SET NOME_SUB_FILA = REPLACE(NOME_SUB_FILA, 'BA/SE/AL', '')
+    --WHERE ID_TIPO_FILA = 1 AND STATUS_SUB_FILA =1
 
     select * from Demandas.DEMANDA_RELACAo_CHAMADO wheRE Sequence = 46
         select * from Demandas.DEMANDA_CHAMADO wheRE ID = 203
