@@ -123,9 +123,15 @@ namespace Vivo_Apps_API.Controllers
                     PRIORIDADE_SEGMENTO = false,
                     DesligamentoRelacao = data,
                     LastStatus = STATUS_ACESSOS_PENDENTES.ABERTO.Value,
+                    DATA_ULTIMA_INTERACAO = DateTime.Now,
                     REGIONAL = data.REGIONAL,
                     ID_CHAMADO = data.ID
                 };
+
+                if (STATUS_ACESSOS_PENDENTES.IsFinalizado(demanda.LastStatus))
+                {
+                    demanda.DATA_FINALIZACAO = DateTime.Now;
+                }
 
                 var demandaCompleta = DB.DEMANDA_RELACAO_CHAMADO.Add(demanda).Entity;
                 await DB.SaveChangesAsync();

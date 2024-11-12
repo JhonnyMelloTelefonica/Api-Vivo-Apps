@@ -230,12 +230,12 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var AnalistaSuporte = CD.ACESSOS_MOBILEs.Where(x =>
-                    CD.DEMANDA_BD_OPERADOREs.Where(y => y.REGIONAL == regional)
-                    .Select(x => x.MATRICULA)
-                    .Distinct().Contains(x.MATRICULA)
-                ).IgnoreAutoIncludes()
-                .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider).ToList();
+                var list = CD.DEMANDA_BD_OPERADOREs.Where(y => y.REGIONAL == regional && y.STATUS == true)
+                .Select(x => x.MATRICULA).Distinct().ToList();
+
+                var AnalistaSuporte = CD.ACESSOS_MOBILEs.Where(x => list.Contains(x.MATRICULA)).IgnoreAutoIncludes()
+                .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
+                .ToList();
 
                 return new JsonResult(new Response<IEnumerable<ACESSOS_MOBILE_DTO>>
                 {
@@ -714,36 +714,45 @@ namespace Vivo_Apps_API.Controllers
                 {
                     if (data.Responsaveis.Any())
                     {
-                        List<int> listaOperadores = CD.DEMANDA_RESPONSAVEL_FILAs.Where(x =>
-                            x.ID_SUB_FILA == data.ID_SUB_FILA).Select(x => x.MATRICULA_RESPONSAVEL.Value).ToList();
-                        // Buscando todas os responsaveis que já existe dentro da fila
-                        if (data.Responsaveis.Count() > listaOperadores.Count) // Usuário adicionado
-                        {
-                            foreach (var resp in data.Responsaveis)
-                            {
-                                if (!listaOperadores.Any(x => x == resp.MATRICULA))
-                                {
-                                    CD.DEMANDA_RESPONSAVEL_FILAs.Add(new DEMANDA_RESPONSAVEL_FILA
-                                    {
-                                        ID_SUB_FILA = data.ID_SUB_FILA,
-                                        MATRICULA_RESPONSAVEL = resp.MATRICULA
-                                    });
-                                }
-                            }
-                        }
-                        else if (data.Responsaveis.Count() < listaOperadores.Count) // Usuário Excluido
-                        {
-                            foreach (var resp in listaOperadores)
-                            {
-                                if (!data.Responsaveis.Any(x => x.MATRICULA == resp))
-                                {
-                                    var usuario = CD.DEMANDA_RESPONSAVEL_FILAs.Where(x =>
-                                        x.ID_SUB_FILA == data.ID_SUB_FILA
-                                        && x.MATRICULA_RESPONSAVEL == resp).First();
+                        //var  = data.Responsaveis.Select(x => x.MATRICULA).Intersect(listactualresp).ToList();
+                        //var  = listactualresp.Except(data.Responsaveis.Select(x => x.MATRICULA)).ToList();
 
-                                    CD.DEMANDA_RESPONSAVEL_FILAs.Remove(usuario);
-                                }
-                            }
+                        // Responsaveis do banco
+
+
+                        //CD.DEMANDA_RESPONSAVEL_FILAs.Where(x => x.ID_SUB_FILA == data.ID_SUB_FILA).Select(x => x.MATRICULA_RESPONSAVEL.Value).ToList();
+
+                        var listactualresp = Demanda_BD.DEMANDA_RESPONSAVEL_FILA
+                                .Where(x =>
+                                    Demanda_BD.DEMANDA_BD_OPERADORES
+                                    .Where(y => y.STATUS == true)
+                                    .Select(y => y.MATRICULA)
+                                    .Contains(x.MATRICULA_RESPONSAVEL))
+                                .Where(x => x.ID_SUB_FILA == data.ID_SUB_FILA)
+                                .Select(x => x.MATRICULA_RESPONSAVEL.Value)
+                                .Distinct().ToList();
+
+                        //Todos os responsaveis que estao no banco mas não estão na requisição -> exlcuidos
+                        var respexclude = data.Responsaveis.Select(x => x.MATRICULA).Except(listactualresp).ToList();
+                        //Todos os responsaveis que estão na requisição mas não estão no banco -> add
+                        var respadd = listactualresp.Except(data.Responsaveis.Select(x => x.MATRICULA)).ToList();
+
+                        foreach (var resp in respexclude)
+                        {
+                            CD.DEMANDA_RESPONSAVEL_FILAs.Add(new DEMANDA_RESPONSAVEL_FILA
+                            {
+                                ID_SUB_FILA = data.ID_SUB_FILA,
+                                MATRICULA_RESPONSAVEL = resp
+                            });
+                        }
+
+                        foreach (var resp in respadd)
+                        {
+                            var usuario = CD.DEMANDA_RESPONSAVEL_FILAs.Where(x =>
+                                x.ID_SUB_FILA == data.ID_SUB_FILA
+                                && x.MATRICULA_RESPONSAVEL == resp).First();
+
+                            CD.DEMANDA_RESPONSAVEL_FILAs.Remove(usuario);
                         }
 
                     }
@@ -1313,6 +1322,11 @@ namespace Vivo_Apps_API.Controllers
 
                 var chamado_relacao = Demanda_BD.DEMANDA_RELACAO_CHAMADO.Find(data.ID_RELACAO);
                 chamado_relacao.LastStatus = data.Status;
+                if (STATUS_ACESSOS_PENDENTES.IsFinalizado(chamado_relacao.LastStatus))
+                {
+                    chamado_relacao.DATA_FINALIZACAO = DateTime.Now;
+                }
+                chamado_relacao.DATA_ULTIMA_INTERACAO = DateTime.Now;
 
                 if (data.MATRICULA_REDIRECIONADO.HasValue)
                 {
@@ -1800,50 +1814,50 @@ namespace Vivo_Apps_API.Controllers
                 {
                     List<(int, int)> saida = new();
 
-                    if (data.TIPO_FILA == 1)
+                    //if (data.TIPO_FILA == 1)
+                    //{
+                    //    string? uf = data.CAMPOS.FirstOrDefault(x => x.CAMPO == "uf")?.RESPOSTA;
+                    //    if (string.IsNullOrEmpty(uf))
+                    //    {
+                    //        var rnd = new Random();
+                    //        var disprespo = fila.DEMANDA_RESPONSAVEL_FILAs.Select(x => x.MATRICULA_RESPONSAVEL.Value).ToArray();
+                    //        int numrandomico = rnd.Next(0, fila.DEMANDA_RESPONSAVEL_FILAs.Count);
+                    //        responsavel = disprespo[numrandomico];
+                    //    }
+                    //    else
+                    //    {
+
+                    //        var responsaveisacesso = Demanda_BD.DEMANDA_ACESSO_RESPONSAVEL_UF.Where(x => x.UF == uf).Select(x => x.MATRICULA_RESPONSAVEL);
+
+                    //        if (responsaveisacesso.Any())
+                    //        {
+                    //            foreach (var item in responsaveisacesso)
+                    //            {
+                    //                saida.Add((Demanda_BD.DEMANDA_CHAMADO.Count(x => x.MATRICULA_RESPONSAVEL == item), item));
+                    //            }
+
+                    //            responsavel = saida.MinBy(x => x.Item1).Item2;
+                    //        }
+                    //        else
+                    //        {
+                    //            foreach (var item in fila.DEMANDA_RESPONSAVEL_FILAs)
+                    //            {
+                    //                saida.Add((Demanda_BD.DEMANDA_CHAMADO.Count(x => x.MATRICULA_RESPONSAVEL == item.MATRICULA_RESPONSAVEL.Value), item.MATRICULA_RESPONSAVEL.Value));
+                    //            }
+
+                    //            responsavel = saida.MinBy(x => x.Item1).Item2;
+                    //        }
+                    //    }
+                    //}
+                    //else
+                    //{
+                    foreach (var item in fila.DEMANDA_RESPONSAVEL_FILAs)
                     {
-                        string? uf = data.CAMPOS.FirstOrDefault(x => x.CAMPO == "uf")?.RESPOSTA;
-                        if (string.IsNullOrEmpty(uf))
-                        {
-                            var rnd = new Random();
-                            var disprespo = fila.DEMANDA_RESPONSAVEL_FILAs.Select(x => x.MATRICULA_RESPONSAVEL.Value).ToArray();
-                            int numrandomico = rnd.Next(0, fila.DEMANDA_RESPONSAVEL_FILAs.Count);
-                            responsavel = disprespo[numrandomico];
-                        }
-                        else
-                        {
-
-                            var responsaveisacesso = Demanda_BD.DEMANDA_ACESSO_RESPONSAVEL_UF.Where(x => x.UF == uf).Select(x => x.MATRICULA_RESPONSAVEL);
-
-                            if (responsaveisacesso.Any())
-                            {
-                                foreach (var item in responsaveisacesso)
-                                {
-                                    saida.Add((Demanda_BD.DEMANDA_CHAMADO.Count(x => x.MATRICULA_RESPONSAVEL == item), item));
-                                }
-
-                                responsavel = saida.MinBy(x => x.Item1).Item2;
-                            }
-                            else
-                            {
-                                foreach (var item in fila.DEMANDA_RESPONSAVEL_FILAs)
-                                {
-                                    saida.Add((Demanda_BD.DEMANDA_CHAMADO.Count(x => x.MATRICULA_RESPONSAVEL == item.MATRICULA_RESPONSAVEL.Value), item.MATRICULA_RESPONSAVEL.Value));
-                                }
-
-                                responsavel = saida.MinBy(x => x.Item1).Item2;
-                            }
-                        }
+                        saida.Add((Demanda_BD.DEMANDA_CHAMADO.Count(x => x.MATRICULA_RESPONSAVEL == item.MATRICULA_RESPONSAVEL.Value), item.MATRICULA_RESPONSAVEL.Value));
                     }
-                    else
-                    {
-                        foreach (var item in fila.DEMANDA_RESPONSAVEL_FILAs)
-                        {
-                            saida.Add((Demanda_BD.DEMANDA_CHAMADO.Count(x => x.MATRICULA_RESPONSAVEL == item.MATRICULA_RESPONSAVEL.Value), item.MATRICULA_RESPONSAVEL.Value));
-                        }
 
-                        responsavel = saida.MinBy(x => x.Item1).Item2;
-                    }
+                    responsavel = saida.MinBy(x => x.Item1).Item2;
+                    //}
                 }
                 else
                 {
@@ -1861,6 +1875,7 @@ namespace Vivo_Apps_API.Controllers
                     MATRICULA_SOLICITANTE = int.Parse(data.MAT_SOLICITANTE),
                     MATRICULA_RESPONSAVEL = responsavel,
                     LastStatus = STATUS_ACESSOS_PENDENTES.ABERTO.Value,
+                    DATA_ULTIMA_INTERACAO = DateTime.Now,
                     REGIONAL = data.REGIONAL,
                     ChamadoRelacao = new DEMANDA_CHAMADO
                     {
@@ -1878,6 +1893,11 @@ namespace Vivo_Apps_API.Controllers
                         }).ToList(),
                     }
                 };
+
+                if (STATUS_ACESSOS_PENDENTES.IsFinalizado(demanda.LastStatus))
+                {
+                    demanda.DATA_FINALIZACAO = DateTime.Now;
+                }
 
                 Demanda_BD.DEMANDA_RELACAO_CHAMADO.Add(demanda);
 
@@ -2645,7 +2665,7 @@ namespace Vivo_Apps_API.Controllers
 
                 if (SubFila != 0)
                 {
-                     var respfila = CD.DEMANDA_RESPONSAVEL_FILAs.Where(x => x.ID_SUB_FILA == SubFila).Select(x => x.MATRICULA_RESPONSAVEL.Value).ToList();
+                    var respfila = CD.DEMANDA_RESPONSAVEL_FILAs.Where(x => x.ID_SUB_FILA == SubFila).Select(x => x.MATRICULA_RESPONSAVEL.Value).ToList();
                     matanalistas = matanalistas.Intersect(respfila);
                 }
 

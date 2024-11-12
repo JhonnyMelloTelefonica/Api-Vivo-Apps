@@ -237,7 +237,7 @@ namespace Vivo_Apps_API.Controllers
 
                 foreach (var item in responsaveisacesso)
                 {
-                    saida.Add((DB.DEMANDA_CHAMADO.Where(x=> responsaveisacesso.Contains(x.MATRICULA_RESPONSAVEL.Value)).Count(x => x.MATRICULA_RESPONSAVEL == item), item));
+                    saida.Add((DB.DEMANDA_CHAMADO.Where(x => responsaveisacesso.Contains(x.MATRICULA_RESPONSAVEL.Value)).Count(x => x.MATRICULA_RESPONSAVEL == item), item));
                 }
 
                 responsavel = saida.MinBy(x => x.Item1).Item2;
@@ -254,6 +254,8 @@ namespace Vivo_Apps_API.Controllers
                     PRIORIDADE = false,
                     PRIORIDADE_SEGMENTO = false,
                     LastStatus = STATUS_ACESSOS_PENDENTES.ABERTO.Value,
+                    DATA_FINALIZACAO = null,
+                    DATA_ULTIMA_INTERACAO = DateTime.Now,
                     REGIONAL = data.REGIONAL,
                     AcessoRelacao = data,
                     ID_CHAMADO = data.ID
@@ -810,6 +812,11 @@ namespace Vivo_Apps_API.Controllers
                     DATA = DateTime.Now
                 });
                 demanda_relacao.LastStatus = STATUS_ACESSOS_PENDENTES.AGUARDANDO_CRIAÇÃO_DE_ACESSO.Value;
+                if (STATUS_ACESSOS_PENDENTES.IsFinalizado(demanda_relacao.LastStatus))
+                {
+                    demanda_relacao.DATA_FINALIZACAO = DateTime.Now;
+                }
+                demanda_relacao.DATA_ULTIMA_INTERACAO = DateTime.Now;
                 DB.SaveChanges();
             }
 
@@ -851,6 +858,11 @@ namespace Vivo_Apps_API.Controllers
                 });
 
                 demanda_relacao.LastStatus = STATUS_ACESSOS_PENDENTES.AGUARDANDO_TREINAMENTO.Value;
+                if (STATUS_ACESSOS_PENDENTES.IsFinalizado(demanda_relacao.LastStatus))
+                {
+                    demanda_relacao.DATA_FINALIZACAO = DateTime.Now;
+                }
+                demanda_relacao.DATA_ULTIMA_INTERACAO = DateTime.Now;
 
                 DB.SaveChanges();
             }
