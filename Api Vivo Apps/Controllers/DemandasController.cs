@@ -1324,7 +1324,14 @@ namespace Vivo_Apps_API.Controllers
                 chamado_relacao.LastStatus = data.Status;
                 if (STATUS_ACESSOS_PENDENTES.IsFinalizado(chamado_relacao.LastStatus))
                 {
-                    chamado_relacao.DATA_FINALIZACAO = DateTime.Now;
+                    if (chamado_relacao.LastStatus == STATUS_ACESSOS_PENDENTES.REABRIR.Value)
+                    {
+                        chamado_relacao.DATA_FINALIZACAO = null;
+                    }
+                    else
+                    {
+                        chamado_relacao.DATA_FINALIZACAO = DateTime.Now;
+                    }
                 }
                 chamado_relacao.DATA_ULTIMA_INTERACAO = DateTime.Now;
 
@@ -1606,6 +1613,7 @@ namespace Vivo_Apps_API.Controllers
                                 .Where(x => x.MATRICULA == MATRICULA_SOLICITANTE)
                                 .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
                                 .First();
+
                             if (MATRICULA_RESPONSAVEL.HasValue)
                             {
                                 responsavel = Demanda_BD.ACESSOS_MOBILE

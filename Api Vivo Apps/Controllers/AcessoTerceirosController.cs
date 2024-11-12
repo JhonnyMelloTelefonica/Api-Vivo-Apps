@@ -814,7 +814,14 @@ namespace Vivo_Apps_API.Controllers
                 demanda_relacao.LastStatus = STATUS_ACESSOS_PENDENTES.AGUARDANDO_CRIAÇÃO_DE_ACESSO.Value;
                 if (STATUS_ACESSOS_PENDENTES.IsFinalizado(demanda_relacao.LastStatus))
                 {
-                    demanda_relacao.DATA_FINALIZACAO = DateTime.Now;
+                    if (demanda_relacao.LastStatus == STATUS_ACESSOS_PENDENTES.REABRIR.Value)
+                    {
+                        demanda_relacao.DATA_FINALIZACAO = null;
+                    }
+                    else
+                    {
+                        demanda_relacao.DATA_FINALIZACAO = DateTime.Now;
+                    }
                 }
                 demanda_relacao.DATA_ULTIMA_INTERACAO = DateTime.Now;
                 DB.SaveChanges();
@@ -860,7 +867,17 @@ namespace Vivo_Apps_API.Controllers
                 demanda_relacao.LastStatus = STATUS_ACESSOS_PENDENTES.AGUARDANDO_TREINAMENTO.Value;
                 if (STATUS_ACESSOS_PENDENTES.IsFinalizado(demanda_relacao.LastStatus))
                 {
-                    demanda_relacao.DATA_FINALIZACAO = DateTime.Now;
+                    if (STATUS_ACESSOS_PENDENTES.IsFinalizado(demanda_relacao.LastStatus))
+                    {
+                        if (demanda_relacao.LastStatus == STATUS_ACESSOS_PENDENTES.REABRIR.Value)
+                        {
+                            demanda_relacao.DATA_FINALIZACAO = null;
+                        }
+                        else
+                        {
+                            demanda_relacao.DATA_FINALIZACAO = DateTime.Now;
+                        }
+                    }
                 }
                 demanda_relacao.DATA_ULTIMA_INTERACAO = DateTime.Now;
 
