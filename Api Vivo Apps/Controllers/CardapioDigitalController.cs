@@ -434,7 +434,7 @@ namespace Vivo_Apps_API.Controllers
             return Ok(result);
         }
 
-        [HttpDelete("Delete/{id}")]
+        [HttpPost("Delete/{id}")]
         [ProducesResponseType(typeof(Response<string>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
         public JsonResult Delete(Guid id)
@@ -546,7 +546,7 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
-        [HttpPut("Put")]
+        [HttpPost("Put")]
         [ProducesResponseType(typeof(Response<PRODUTOS_CARDAPIO>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
         public JsonResult Put([FromBody] PRODUTOS_CARDAPIO produto)
@@ -673,7 +673,7 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
-        [HttpDelete("Delete/Image")]
+        [HttpPost("Delete/Image")]
         [ProducesResponseType(typeof(Response<string>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
         public JsonResult Delete([FromBody] PRODUTO_IMAGEM imagem)
