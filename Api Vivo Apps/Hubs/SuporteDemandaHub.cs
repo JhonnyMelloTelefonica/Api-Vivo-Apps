@@ -473,6 +473,8 @@ namespace Vivo_Apps_API.Hubs
             var saida = data.Where(x => x.ID_RELACAO == macro.ID_RELACAO).First();
             saida.LastStatus = macro.LastStatus;
             saida.Respostas = macro.Respostas;
+            saida.DATA_FINALIZACAO = macro.DATA_FINALIZACAO;
+            saida.DATA_ULTIMA_INTERACAO = macro.DATA_ULTIMA_INTERACAO;
 
             if (macro.Responsavel is not null)
             {
