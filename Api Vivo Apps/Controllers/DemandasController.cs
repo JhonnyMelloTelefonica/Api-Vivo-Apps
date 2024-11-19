@@ -50,6 +50,9 @@ using DocumentFormat.OpenXml.Math;
 using DocumentFormat.OpenXml.Presentation;
 using System.Net.NetworkInformation;
 using Microsoft.FluentUI.AspNetCore.Components;
+using static System.Runtime.InteropServices.JavaScript.JSType;
+using Shared_Static_Class.Helpers;
+using System.Web.Razor.Tokenizer;
 
 namespace Vivo_Apps_API.Controllers
 {
@@ -2861,6 +2864,96 @@ namespace Vivo_Apps_API.Controllers
             catch (Exception ex)
             {
                 return [];
+            }
+        }
+
+        [HttpGet("CheckDemandaConcluidaSemRetorno")]
+        public async Task<IActionResult> CheckDemandaConcluidaSemRetorno()
+        {
+            try
+            {
+                List<ACESSOS_MOBILE_DTO> emailsender = [];
+                var datenow = DateTime.Now;
+                var demandas = Demanda_BD.DEMANDA_RELACAO_CHAMADO.Where(x => x.LastStatus == STATUS_ACESSOS_PENDENTES.AGUARDANDO_RESPOSTA_SOLICITANTE.Value);
+                IEnumerable<DEMANDA_DTO> saida = demandas.ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider).AsEnumerable();
+                saida = saida.Where(x => (DateHelpers.CalcularDiferencaDeTempo(x.DATA_ULTIMA_INTERACAO, DateTime.Now)) > TimeSpan.FromDays(2)).ToArray();
+
+                if (saida.Any())
+                {
+                    foreach (var data in saida)
+                    {
+                        ACESSOS_MOBILE_DTO? responsavel = null;
+                        var retorno = Demanda_BD.DEMANDA_CHAMADO_RESPOSTA.Add(new DEMANDA_CHAMADO_RESPOSTA
+                        {
+                            RESPOSTA = "Demanda finalizada devido a ausência de resposta por parte do solicitante dentro de 2 dias úteis após o retorno do analista",
+                            ID_CHAMADO = data.ID_CHAMADO,
+                            ID_RELACAO = data.ID_RELACAO,
+                            MATRICULA_RESPONSAVEL = data.MATRICULA_RESPONSAVEL,
+                            DATA_RESPOSTA = datenow,
+                            Status = new DEMANDA_STATUS_CHAMADO
+                            {
+                                ID_CHAMADO = data.ID_CHAMADO,
+                                ID_RELACAO = data.ID_RELACAO,
+                                STATUS = STATUS_ACESSOS_PENDENTES.CONCLUIDO_SEM_RETORNO.Value,
+                                DATA = datenow,
+                                MAT_QUEM_REDIRECIONOU = null,
+                                MAT_DESTINATARIO = null
+                            }
+                        }).Entity;
+                        Demanda_BD.SaveChanges();
+
+                        var chamado_relacao = Demanda_BD.DEMANDA_RELACAO_CHAMADO.Find(data.ID_RELACAO);
+
+                        chamado_relacao.LastStatus = STATUS_ACESSOS_PENDENTES.CONCLUIDO_SEM_RETORNO.Value;
+                        chamado_relacao.DATA_ULTIMA_INTERACAO = datenow;
+                        chamado_relacao.DATA_FINALIZACAO = datenow;
+
+                        var solicitante = Demanda_BD.ACESSOS_MOBILE
+                            .Where(x => x.MATRICULA == chamado_relacao.MATRICULA_SOLICITANTE)
+                            .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
+                            .First();
+
+                        emailsender.Add(solicitante);
+
+                        if (chamado_relacao.MATRICULA_RESPONSAVEL.HasValue)
+                        {
+                            responsavel = Demanda_BD.ACESSOS_MOBILE
+                                .Where(x => x.MATRICULA == chamado_relacao.MATRICULA_RESPONSAVEL)
+                                .ProjectTo<ACESSOS_MOBILE_DTO>(_mapper.ConfigurationProvider)
+                                .First();
+                            emailsender.Add(responsavel);
+                        }
+
+                        var email = new SendEmailModel(emailsender.Select(x => x.EMAIL), null,
+                                    $"Vivo X :: Controle de Demandas :: Sua demanda N {chamado_relacao.Sequence} foi finalizada devido a ausência de resposta", $"",
+                                    $"Caro usuário,</p><br/><p>Sua demanda aberta no Vivo X (Módulo Controle de Demandas) sob o número <b>{chamado_relacao.Sequence}</b>" +
+                                    $" foi finalizada em {datenow.ToString("dd/MM/yyyy")} as {datenow.Hour}h.</p>" +
+                                    $"<br/><p><b><u>Com a seguinte observação:</u></b></p><br/>" +
+                                    $"{retorno.RESPOSTA}" +
+                                    $"<p>Para maiores informações acessar chamado clicando <b><a href=\"http://brtdtbgs0090sl:8083/demandas/consultar/{retorno.ID_RELACAO}\">aqui<a/>.</b></p>" +
+                                    $"<br/><p style=\"color:red\">Caso tenha algum problema com a ferramenta, contate nosso suporte via e-mail NE_AUTOMACAO (<a href=\"mailto:ne_automacao.br@telefonica.com\">ne_automacao.br@telefonica.com</a>).</p>" +
+                                    $"<br/><p>Atenciosamente,</p>", null, new string[] { "ne_automacao.br@telefonica.com" });
+
+                        await Demanda_BD.SaveChangesAsync();
+
+                        await _hubContext.NewStatusDemanda(STATUS_ACESSOS_PENDENTES.CONCLUIDO_SEM_RETORNO.Value, data.ID_RELACAO);
+
+                        await _service.SendEmail(email);
+                        email.Footer = "<div></div>";
+
+                        Task.Run(() => _service.SendTeams(email));
+
+                        Task.Run(() => _hubContext.UpdateStatusChamado(chamado_relacao));
+
+                        emailsender.Clear();
+                    }
+                }
+
+                return Ok(true);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex);
             }
         }
 

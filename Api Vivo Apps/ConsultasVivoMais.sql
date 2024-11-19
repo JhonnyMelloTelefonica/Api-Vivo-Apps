@@ -1,3 +1,5 @@
+select * from ACESSOS_MOBILE WHERE MATRICULA IN  (147228,166933)
+
 /**----------------------------------------------------------
 
 INSERÇÃO DE USUÁRIO NO VIVO +
@@ -94,9 +96,12 @@ INSERÇÃO DE USUÁRIO NO VIVO +
     --update DEMANDA_SUB_FILA SET NOME_SUB_FILA = REPLACE(NOME_SUB_FILA, 'BA/SE/AL', '')
     --WHERE ID_TIPO_FILA = 1 AND STATUS_SUB_FILA =1
 
-    select * from Demandas.DEMANDA_RELACAo_CHAMADO wheRE Sequence = 46
-        select * from Demandas.DEMANDA_CHAMADO wheRE ID = 203
-        select * from Demandas.DEMANDA_STATUS_CHAMADO where ID_RELACAO = '995B2FA4-F8BC-4CC0-E311-08DCEDF5D4AF'
+    select * from Demandas.DEMANDA_RELACAo_CHAMADO where ID_RELACAO = 'f72765bd-c30f-42c5-3595-08dd07e5ba31'
+        select * from Demandas.DEMANDA_STATUS_CHAMADO where ID_RELACAO = 'f72765bd-c30f-42c5-3595-08dd07e5ba31'
+
+            update Demandas.DEMANDA_RELACAo_CHAMADO SET DATA_ULTIMA_INTERACAO = '2024-11-10 16:27:11.5950937' where ID_RELACAO = 'f72765bd-c30f-42c5-3595-08dd07e5ba31'
+        update Demandas.DEMANDA_STATUS_CHAMADO SET DATA = '2024-11-10 16:27:10.493' where id = 956
+        --select * from Demandas.DEMANDA_CHAMADO wheRE ID = 203
         --DELETE Demandas.DEMANDA_STATUS_CHAMADO where ID = '660'
 
         select A.MATRICULA_SOLICITANTE,C.NOME,CASE WHEN B.CAMPO = 'DDD' THEN B.VALOR END AS DDD , COUNT(*) AS 'COUNT BY USUÁRIO' from Demandas.DEMANDA_CHAMADO A    LEFT JOIN Demandas.DEMANDA_CAMPOS_CHAMADO B    ON A.ID = B.ID_CHAMADO    LEFT JOIN ACESSOS_MOBILE C    ON A.MATRICULA_SOLICITANTE = C.MATRICULA    where B.CAMPO LIKE '%DDD%' AND A.MATRICULA_SOLICITANTE <> 151191    GROUP BY A.MATRICULA_SOLICITANTE,C.NOME, B.CAMPO,B.VALOR    ORDER BY DDD desc , C.NOME Desc
@@ -619,8 +624,8 @@ select * from ACESSO_PERMISSAO_MENU WHERE idAcesso = '1274'
 --SET DescricaoMenu = '', TipoAcesso = ''
 --WHERE idAcesso = '3953'
 
-Insert into ACESSO VALUES('160835','Kamilla Maria Castelo Branco Da Cruz','kamilla.cruz@telefonica.com','NE',null,null,'ATIVO',0)
-Insert into ACESSO_PERMISSAO_MENU VALUES ((SELECT IdAcesso from ACESSO WHERE Login = '160835'),  'GERENTE GERAL - LLPP','LOJA')
+--Insert into ACESSO VALUES('166933','CAMYLA DE SOUZA GONCALO','camyla.goncalo@telefonica.com','NE',null,null,'ATIVO',0)
+--Insert into ACESSO_PERMISSAO_MENU VALUES ((SELECT IdAcesso from ACESSO WHERE Login = '166933'),  'GERENTE GERAL - LLPP','LOJA')
 
 --insert into CONTROLE_DE_DEMANDAS_RESPONSAVEL_FILA
 --select '162551',ID from CONTROLE_DE_DEMANDAS_FILA WHERE REGIONAL = 'MG' and FILA <> '-' and FILA NOT LIKE '%FILA DESATIVADA%'
@@ -820,30 +825,30 @@ GROUP BY A.ID, F.FILA, C.STATUS, D.Nome, A.DATA_ABERTURA, E.DATA_RESPOSTA,E.RESP
 
 --select top 1 * fROM ACESSOS_MOBILE order by id desc
 
---insert into ACESSOS_MOBILE 
---values
---(
---'joao.malmeida@telefonica.com'
---,'165088'
---,'80039AE51A10925FDF69FD2BA996315B'
---,'NE'
---,4
---,1	
---,'NERECIFE01'
---,'000.000.000-00'
---,'João Matheus De Brito Almeida'
---,'PE'
---,1
---,1	
---,NULL	
---,'OK'
---,NULL	
---,151191	
---,'2024-06-28 12:40:55.163'
---,NULL	
---,81	
---,NULL
---)
+insert into ACESSOS_MOBILE 
+values
+(
+'joao.malmeida@telefonica.com'
+,'166933'
+,'80039AE51A10925FDF69FD2BA996315B'
+,'NE'
+,4
+,1	
+,'NERECIFE01'
+,'000.000.000-00'
+,'João Matheus De Brito Almeida'
+,'PE'
+,1
+,1	
+,NULL	
+,'OK'
+,NULL	
+,151191	
+,'2024-06-28 12:40:55.163'
+,NULL	
+,81	
+,NULL
+)
 
 --select * from CONTROLE_DE_DEMANDAS_FILA where fila like '%fixa%' and REGIONAL = 'MG'
 --select * from Cardapio.PRODUTOS_CARDAPIO_FICHA_TECNICA
@@ -990,3 +995,5 @@ select * from DEMANDA_TIPO_FILA where ID_TIPO_FILA = 18
 
 select * from ACESSOS_MOBILE WHERE UserAvatar = null
 
+
+select * from 
