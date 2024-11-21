@@ -1972,7 +1972,7 @@ namespace Vivo_Apps_API.Controllers
                 SendEmailModel email = new SendEmailModel(new string[] { retorno.EMAIL }, null, $"Nova demanda N {demandaCompleta.Relacao.Sequence}",
                 $"Nova demanda aberta por {solicitante.DISPLAY_NOME}",
                 $"Uma demanda demanda do tipo {demandaCompleta.Fila.ID_TIPO_FILANavigation.NOME_TIPO_FILA} e sub-fila {demandaCompleta.Fila.NOME_SUB_FILA} acaba de ser criada" +
-                $" com o responsável principal {retorno.DISPLAY_NOME}, o sla para esta fila é de {(demandaCompleta.Fila.SLA > 24 ? $"{(demandaCompleta.Fila.SLA / 24)} dias" : $"{demandaCompleta.Fila.SLA} horas")} dias.</p>" +
+                $" com o responsável principal {retorno.DISPLAY_NOME}, o sla para esta fila é de {(demandaCompleta.Fila.SLA > 24 ? $"{(demandaCompleta.Fila.SLA / 24)} dias" : $"{demandaCompleta.Fila.SLA} horas")}.</p>" +
                 $"<p>Acesse clicando <b><a href=\"http://brtdtbgs0090sl:8083/demandas/consultar/{demanda.ID_RELACAO}\">aqui<a/>.</b>", null,
                 new string[] { "ne_automacao.br@telefonica.com" });
 

@@ -617,15 +617,15 @@ SELECT * from ACESSO WHERE Login = '143940'
 
 SELECT * from ACESSO_TERCEIROS where IdAcesso = '0'
 
-select * from ACESSO where Login = '160835'
+select * from ACESSO where Login = '81753'
 select * from ACESSO_PERMISSAO_MENU WHERE idAcesso = 'o'
 select * from ACESSO_PERMISSAO_MENU WHERE idAcesso = '1274'
 --update ACESSO_PERMISSAO_MENU 
 --SET DescricaoMenu = '', TipoAcesso = ''
 --WHERE idAcesso = '3953'
 
---Insert into ACESSO VALUES('166933','CAMYLA DE SOUZA GONCALO','camyla.goncalo@telefonica.com','NE',null,null,'ATIVO',0)
---Insert into ACESSO_PERMISSAO_MENU VALUES ((SELECT IdAcesso from ACESSO WHERE Login = '166933'),  'GERENTE GERAL - LLPP','LOJA')
+--Insert into ACESSO VALUES('81753','LUCAS DA SILVA MUNIZ DOS SANTOS','LUCAS.SSANTOS@TELEFONICA.COM','MG',null,null,'ATIVO',0)
+--Insert into ACESSO_PERMISSAO_MENU VALUES ((SELECT IdAcesso from ACESSO WHERE Login = '81753'),  'GERENTE GERAL - LLPP','LOJA')
 
 --insert into CONTROLE_DE_DEMANDAS_RESPONSAVEL_FILA
 --select '162551',ID from CONTROLE_DE_DEMANDAS_FILA WHERE REGIONAL = 'MG' and FILA <> '-' and FILA NOT LIKE '%FILA DESATIVADA%'
