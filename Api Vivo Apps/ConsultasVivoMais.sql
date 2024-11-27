@@ -1,4 +1,4 @@
-select * from ACESSOS_MOBILE WHERE MATRICULA IN  (147228,166933)
+select * from ACESSOS_MOBILE WHERE MATRICULA IN  (66359)
 
 /**----------------------------------------------------------
 
@@ -623,9 +623,13 @@ select * from ACESSO_PERMISSAO_MENU WHERE idAcesso = '1274'
 --update ACESSO_PERMISSAO_MENU 
 --SET DescricaoMenu = '', TipoAcesso = ''
 --WHERE idAcesso = '3953'
+select * from ACESSO where login = '43301'
+select * from ACESSO_PERMISSAO_MENU where idAcesso in (SELECT IdAcesso from ACESSO WHERE Login = '43301')
+--update ACESSO_PERMISSAO_MENU set DescricaoMenu = 'GERENTE GERAL - LLPP' where idAcesso in (SELECT IdAcesso from ACESSO WHERE Login = '43301')
 
---Insert into ACESSO VALUES('81753','LUCAS DA SILVA MUNIZ DOS SANTOS','LUCAS.SSANTOS@TELEFONICA.COM','MG',null,null,'ATIVO',0)
---Insert into ACESSO_PERMISSAO_MENU VALUES ((SELECT IdAcesso from ACESSO WHERE Login = '81753'),  'GERENTE GERAL - LLPP','LOJA')
+
+Insert into ACESSO VALUES('81753','LUCAS DA SILVA MUNIZ DOS SANTOS','LUCAS.SSANTOS@TELEFONICA.COM','MG',null,null,'ATIVO',0)
+Insert into ACESSO_PERMISSAO_MENU VALUES ((SELECT IdAcesso from ACESSO WHERE Login = '81753'),  'GERENTE GERAL - LLPP','LOJA')
 
 --insert into CONTROLE_DE_DEMANDAS_RESPONSAVEL_FILA
 --select '162551',ID from CONTROLE_DE_DEMANDAS_FILA WHERE REGIONAL = 'MG' and FILA <> '-' and FILA NOT LIKE '%FILA DESATIVADA%'
@@ -996,4 +1000,20 @@ select * from DEMANDA_TIPO_FILA where ID_TIPO_FILA = 18
 select * from ACESSOS_MOBILE WHERE UserAvatar = null
 
 
-select * from 
+select * from DEMANDA_TIPO_FILA 
+
+--update DEMANDA_TIPO_FILA 
+--set DESCRICAO = 'Demandas referentes ao time de Acessos da regional Nordeste'
+--where ID_TIPO_FILA = 1
+
+--update DEMANDA_TIPO_FILA 
+--set DESCRICAO = 'Demandas referentes ao time de Suporte de Processos da regional Nordeste'
+--where ID_TIPO_FILA = 18
+
+--update DEMANDA_TIPO_FILA 
+--set DESCRICAO = 'Demandas referentes ao time de Cadastro e Credenciamento de Parceiros da regional Nordeste'
+--where ID_TIPO_FILA = 27
+
+--Acessos: Demandas referentes ao time de Acessos da regional Nordeste
+--Suporte Processos: Demandas referentes ao time de Suporte de Processos da regional Nordeste
+--Cadastro e Credenciamento de Parceiros: Demandas referentes ao time de Cadastro e Credenciamento de Parceiros da regional Nordeste

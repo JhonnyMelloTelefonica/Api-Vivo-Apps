@@ -2568,43 +2568,47 @@ namespace Vivo_Apps_API.Controllers
                 int DemandaPrioridade = 0;
                 if (Total_de_Demandas > 0)
                 {
+                    var filterByConcluido = linqFiltered
+                         .Where(x => x.Relacao.LastStatus == STATUS_ACESSOS_PENDENTES.CONCLUIDO.Value);
 
-                    Concluído = linqFiltered
-                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS == STATUS_ACESSOS_PENDENTES.CONCLUIDO.Value)
-                        .Count();
+                    Concluído = filterByConcluido.Count();
+
+                    var list_Dentro_SLA = filterByConcluido
+                        .Select(x => new { lastdate = (x.Relacao.DATA_FINALIZACAO.HasValue ? x.Relacao.DATA_FINALIZACAO.Value : DateTime.Now), dt_abertura = x.Relacao.DATA_ABERTURA, sla = x.Fila.SLA })
+                        .AsEnumerable();
+
+                    Qtd_Dentro_SLA = list_Dentro_SLA.Where(x => DateHelpers.CalcularDiferencaDeTempo(x.dt_abertura, x.lastdate).TotalHours <= x.sla).Count();
+                    int Qtd_Fora_SLA = Concluído - Qtd_Dentro_SLA;
 
                     Em_andamento = linqFiltered
-                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS != STATUS_ACESSOS_PENDENTES.CONCLUIDO.Value)
+                        .Where(x => x.Relacao.LastStatus != STATUS_ACESSOS_PENDENTES.CONCLUIDO.Value)
                         .Count();
 
                     var list24Diferences = linqFiltered
-                          .Where(x => x.Relacao.Status.Count > 1)
-                          .Select(x => calculeDate(x.Relacao.Status.OrderBy(k => k.DATA).First().DATA, x.Relacao.Status.OrderBy(k => k.DATA).ElementAt(1).DATA));
+                          .Where(x => x.Relacao.Status.Count > 1) // Todos que já foram respondidos
+                          .Select(x => DateHelpers.CalcularDiferencaDeTempo(x.Relacao.DATA_ABERTURA, x.Relacao.Status.OrderBy(k => k.DATA).ElementAt(1).DATA));
+                    //Calcula o tempo 
 
                     var Qtd_Primeiro_SLA_24h = list24Diferences.AsEnumerable()
-                          .Where(x => x <= 24)
+                          .Where(x => x.TotalHours <= 24)
                           .Count();
 
                     Porc_Primeiro_SLA_24h = Math.Round((Qtd_Primeiro_SLA_24h / (double)Total_de_Demandas) * 100.0, 1);
 
-                    var list_Dentro_SLA = linqFiltered
-                          .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).Last().STATUS == STATUS_ACESSOS_PENDENTES.CONCLUIDO.Value)
-                          .Select(x => new { lastdate = x.Relacao.Status.OrderBy(k => k.DATA).Last().DATA, dt_abertura = x.DATA_ABERTURA.Value, sla = x.Fila.SLA })
-                          .AsEnumerable();
-
-                    Qtd_Dentro_SLA = list_Dentro_SLA.Where(x => calculeDate(x.lastdate, x.dt_abertura) <= x.sla).Count();
-
-                    Porc_Dentro_SLA = Math.Round((Qtd_Dentro_SLA / (double)Total_de_Demandas) * 100.0, 1);
+                    Porc_Dentro_SLA = Math.Round((Qtd_Dentro_SLA / (double)Concluído) * 100.0, 1);
 
                     Aguardando_outra_área = linqFiltered
-                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS == STATUS_ACESSOS_PENDENTES.AGUARDANDO_OUTRA_AREA.Value)
+                        .Where(x => x.Relacao.LastStatus == STATUS_ACESSOS_PENDENTES.AGUARDANDO_OUTRA_AREA.Value)
                         .Count();
+
                     Em_Aberto = linqFiltered
-                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS == STATUS_ACESSOS_PENDENTES.ABERTO.Value)
+                        .Where(x => x.Relacao.LastStatus == STATUS_ACESSOS_PENDENTES.ABERTO.Value)
                         .Count();
+
                     Devolvido = linqFiltered
-                        .Where(x => x.Relacao.Status.OrderBy(k => k.DATA).LastOrDefault().STATUS == STATUS_ACESSOS_PENDENTES.AGUARDANDO_ANALISTA.Value)
+                        .Where(x => x.Relacao.LastStatus == STATUS_ACESSOS_PENDENTES.AGUARDANDO_ANALISTA.Value)
                         .Count();
+
                     DemandaPrioridade = linqFiltered
                         .Where(x => x.Relacao.PRIORIDADE)
                         .Count();
@@ -2806,21 +2810,28 @@ namespace Vivo_Apps_API.Controllers
 
                 var first20 = dataBeforeFilter
                     .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider)
-                    .OrderByDescending(x => x.PRIORIDADE)
-                    .ThenByDescending(x => x.PRIORIDADE_SEGMENTO)
-                    .ThenBy(x => x.Sequence).Take(20).ToList();
+                    .ToList()
+                    .Where(x=> STATUS_ACESSOS_PENDENTES.IsEmAndamento(x.LastStatus))
+                    .Where(x=> x.SLA_TOTAL.HasValue && x.Tabela == Tabela_Demanda.ChamadoRelacao ? x.SLA_TOTAL.Value.TotalHours > x.ChamadoRelacao.Fila.SLA  : x.SLA_TOTAL.Value.TotalHours > 48 )
+                    .Take(20);
 
                 var dataresp = dataBeforeFilter
                     .Where(x => x.MATRICULA_SOLICITANTE == MATRICULA)
                     .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider)
                     .Take(20).ToList();
 
-                data = dataresp.UnionBy(first20, x => x.ID_RELACAO);
+                //data = dataresp.UnionBy(first20, x => x.ID_RELACAO)
+                data = first20
+                    .OrderByDescending(x => x.PRIORIDADE)
+                    .ThenByDescending(x => x.PRIORIDADE_SEGMENTO)
+                    .ThenBy(x => x.DATA_ABERTURA)
+                    .ThenBy(x => x.Sequence);
 
                 return Ok(data);
             }
             catch (Exception ex)
             {
+                Console.WriteLine(ex.InnerException.Message);
                 return BadRequest(new DEMANDA_DTO[0]);
             }
         }
@@ -3049,93 +3060,6 @@ namespace Vivo_Apps_API.Controllers
             {
                 return new byte[0];
             }
-        }
-
-        private static int calculeDate(DateTime startDate, DateTime endDate)
-        {
-
-            int days = 0;
-            var saida = ObterFeriados(DateTime.Now.Year);
-            while (startDate.Date <= endDate.Date)
-            {
-                if (startDate.DayOfWeek != DayOfWeek.Saturday
-                   && startDate.DayOfWeek != DayOfWeek.Sunday
-                   && !saida.Contains(startDate.Date))
-                    days++;
-
-                startDate = startDate.AddDays(1);
-            }
-
-            return days;
-        }
-
-        private static List<DateTime> ObterFeriados(int ano)
-        {
-            List<DateTime> feriados = new List<DateTime>
-        {
-            // Feriados fixos
-            new DateTime(ano, 1, 1), // Ano Novo
-            new DateTime(ano, 4, 21), // Tiradentes
-            new DateTime(ano, 5, 1), // Dia do Trabalhador
-            new DateTime(ano, 9, 7), // Independência do Brasil
-            new DateTime(ano, 10, 12), // Nossa Senhora Aparecida
-            new DateTime(ano, 11, 2), // Finados
-            new DateTime(ano, 11, 15), // Proclamação da República
-            new DateTime(ano, 12, 25), // Natal
-            /* Feriados de Recife */
-            new DateTime(ano, 6, 24), // São João
-            new DateTime(ano, 7, 16), // Nossa senhora do Carmo
-            new DateTime(ano, 12, 8), // Nosa Senhora da Conceição
-
-            // Feriados móveis
-            CalcularCarnaval(ano),
-            CalcularSextaFeiraSanta(ano),
-            CalcularCorpusChristi(ano)
-        };
-
-            return feriados;
-        }
-
-        // Função para calcular o Carnaval (terça-feira antes da Quarta-feira de Cinzas)
-        private static DateTime CalcularCarnaval(int ano)
-        {
-            DateTime pascoa = CalcularPascoa(ano);
-            return pascoa.AddDays(-47); // Carnaval é 47 dias antes da Páscoa
-        }
-
-        // Função para calcular a Sexta-feira Santa (2 dias antes da Páscoa)
-        private static DateTime CalcularSextaFeiraSanta(int ano)
-        {
-            DateTime pascoa = CalcularPascoa(ano);
-            return pascoa.AddDays(-2);
-        }
-
-        // Função para calcular o Corpus Christi (60 dias após a Páscoa)
-        private static DateTime CalcularCorpusChristi(int ano)
-        {
-            DateTime pascoa = CalcularPascoa(ano);
-            return pascoa.AddDays(60);
-        }
-
-        // Função para calcular a data da Páscoa (baseado no algoritmo de Meeus/Jones/Butcher)
-        private static DateTime CalcularPascoa(int ano)
-        {
-            int a = ano % 19;
-            int b = ano / 100;
-            int c = ano % 100;
-            int d = b / 4;
-            int e = b % 4;
-            int f = (b + 8) / 25;
-            int g = (b - f + 1) / 3;
-            int h = (19 * a + b - d - g + 15) % 30;
-            int i = c / 4;
-            int k = c % 4;
-            int l = (32 + 2 * e + 2 * i - h - k) % 7;
-            int m = (a + 11 * h + 22 * l) / 451;
-            int mes = (h + l - 7 * m + 114) / 31;
-            int dia = ((h + l - 7 * m + 114) % 31) + 1;
-
-            return new DateTime(ano, mes, dia);
         }
 
     }
