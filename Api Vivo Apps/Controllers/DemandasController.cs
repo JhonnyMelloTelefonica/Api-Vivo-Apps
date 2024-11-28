@@ -1327,6 +1327,11 @@ namespace Vivo_Apps_API.Controllers
                 chamado_relacao.LastStatus = data.Status;
                 if (STATUS_ACESSOS_PENDENTES.IsFinalizado(chamado_relacao.LastStatus))
                 {
+                    if (chamado_relacao.PRIORIDADE) //Altera a prioridade para 
+                    {
+                        chamado_relacao.PRIORIDADE = false;
+                    }
+
                     if (chamado_relacao.LastStatus == STATUS_ACESSOS_PENDENTES.REABRIR.Value)
                     {
                         chamado_relacao.DATA_FINALIZACAO = null;
@@ -2811,8 +2816,8 @@ namespace Vivo_Apps_API.Controllers
                 var first20 = dataBeforeFilter
                     .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider)
                     .ToList()
-                    .Where(x=> STATUS_ACESSOS_PENDENTES.IsEmAndamento(x.LastStatus))
-                    .Where(x=> x.SLA_TOTAL.HasValue && x.Tabela == Tabela_Demanda.ChamadoRelacao ? x.SLA_TOTAL.Value.TotalHours > x.ChamadoRelacao.Fila.SLA  : x.SLA_TOTAL.Value.TotalHours > 48 )
+                    .Where(x => STATUS_ACESSOS_PENDENTES.IsEmAndamento(x.LastStatus))
+                    .Where(x => x.SLA_TOTAL.HasValue && x.Tabela == Tabela_Demanda.ChamadoRelacao ? x.SLA_TOTAL.Value.TotalHours > x.ChamadoRelacao.Fila.SLA : x.SLA_TOTAL.Value.TotalHours > 48)
                     .Take(20);
 
                 var dataresp = dataBeforeFilter
