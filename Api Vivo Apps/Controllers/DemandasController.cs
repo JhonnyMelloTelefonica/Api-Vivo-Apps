@@ -1015,7 +1015,7 @@ namespace Vivo_Apps_API.Controllers
         [HttpGet("GetFiltersFilas")]
         [ProducesResponseType(typeof(Response<FilterFilaDemandasModel>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult GetFiltersFilas(string regional, [FromQuery] int[] Filas, [FromQuery] int[] SubFilas, bool RefreshFilas = true)
+        public JsonResult GetFiltersFilas(string regional, [FromQuery] int[] Filas, [FromQuery] int[] SubFilas, [FromQuery] int[] idSub, [FromQuery] bool[] status, bool RefreshFilas = true)
         {
             try
             {
@@ -1037,10 +1037,29 @@ namespace Vivo_Apps_API.Controllers
                     var sub_from_macro = Demanda_BD.DEMANDA_SUB_FILA.Where(x => Filas.Contains(x.ID_TIPO_FILA)).Select(x => x.ID_SUB_FILA);
                     parcial_result = parcial_result.Where(x => sub_from_macro.Contains(x.ID_SUB_FILA.Value));
 
+                    if (idSub.Any())
+                    {
+                        parcial_result = parcial_result.Where(x => idSub.Contains(x.ID_SUB_FILA.Value));
+                    }
+
                     if (SubFilas.Any())
                     {
                         parcial_result = parcial_result.Where(x => SubFilas.Contains(x.ID_SUB_FILA.Value));
                     }
+                }
+
+
+                //if (status!= null && status.Any())
+                //{
+                //   parcial_result = parcial_result
+                //        .Where(x => status.Contains(x.ID_SUB_FILANavigation.STATUS_SUB_FILA));
+                //}
+
+
+                if (status != null && status.Any())
+                {
+                    var parcial_result_status = parcial_result
+                         .Where(x => status.Contains(x.ID_SUB_FILANavigation.STATUS_SUB_FILA));
                 }
 
                 var list_matriculas = parcial_result
