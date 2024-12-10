@@ -1,4 +1,62 @@
-select * from ACESSOS_MOBILE WHERE MATRICULA IN  (66359)
+select * from JORNADA_BD_HIERARQUIA
+
+select * from ACESSOS_MOBILE WHERE MATRICULA IN  (165751,163355,156226)
+select * from ACESSOS_MOBILE WHERE NOME_SOCIAL iS null
+
+--alter table ACESSOS_MOBILE 
+--add NOME_SOCIAL varchar(50) NOT NULL default '-'
+
+--alter table ACESSOS_MOBILE_PENDENTE
+--add NOME_SOCIAL varchar(50) NOT NULL default '-'
+
+select String from ACESSOS_MOBILE
+
+select * from ACESSO A
+LEFT JOIN CONTROLE_DE_DEMANDAS_CHAMADO B ON A.Login = B.MATRICULA_SOLICITANTE
+
+select * from JORNADA_BD_CARGOS_CANAL
+
+select CAMPO,STATUS_CAMPOS_FILA STATUS from DEMANDA_CAMPOS_FILA WHERE ID_SUB_FILA = 408
+ 
+select 
+A.ID	,
+A.EMAIL	,
+A.MATRICULA	,
+A.SENHA	,
+A.REGIONAL	,
+B.CARGO	,
+B.CANAL	,
+A.PDV	,
+A.CPF	,
+A.NOME	,
+A.UF	,
+A.STATUS	,
+A.FIXA	,
+A.TP_AFASTAMENTO	,
+A.OBS	,
+A.UserAvatar	,
+A.LOGIN_MOD	,
+A.DT_MOD	,
+A.ELEGIVEL	,
+A.DDD	,
+A.TP_STATUS	,
+A.TELEFONE
+from ACESSOS_MOBILE A 
+LEFT JOIN  JORNADA_BD_CARGOS_CANAL B ON A.CARGO = B.ID
+WHERE REGIONAL = 'MG'
+
+
+--select * from Demandas.DEMANDA_RELACAO_CHAMADO where Sequence = 200
+
+--select * from Demandas.DEMANDA_CHAMADO where ID = 343
+
+--select * from Demandas.DEMANDA_CAMPOS_CHAMADO WHERE ID_CHAMADO = 343
+--INSERT INTO Demandas.DEMANDA_CAMPOS_CHAMADO 
+--VALUES(343,'UF','PE')
+
+--delete Demandas.DEMANDA_CAMPOS_CHAMADO
+--WHERE ID_CHAMADO = 343
+--and CAMPO IN ('Uf','ADABÁS DA LOJA')
 
 /**----------------------------------------------------------
 
@@ -540,6 +598,9 @@ select * from CONTROLE_DE_DEMANDAS_CAMPO_COMBOBOX_FILA WHERE ID_FILA = 481
 
 select * from PERFIL_PLATAFORMAS_VIVO
 select * from JORNADA_BD_CARGOS_CANAL
+select * from PERFIL_USUARIO
+--insert into PERFIL_USUARIO
+--select MATRICULA,13,'2024-12-09 00:00:00.000',151191 from ACESSOS_MOBILE WHERE CARGO IN (3,7,8,2)
 
 --UPDATE PERFIL_PLATAFORMAS_VIVO 
 --SET CARGO = '13;14;15'
@@ -1017,3 +1078,722 @@ select * from DEMANDA_TIPO_FILA
 --Acessos: Demandas referentes ao time de Acessos da regional Nordeste
 --Suporte Processos: Demandas referentes ao time de Suporte de Processos da regional Nordeste
 --Cadastro e Credenciamento de Parceiros: Demandas referentes ao time de Cadastro e Credenciamento de Parceiros da regional Nordeste
+
+--CREATE FUNCTION dbo.SplitString
+--(
+--    @Input NVARCHAR(MAX),
+--    @Delimiter CHAR(1)
+--)
+--RETURNS @Output TABLE (Value NVARCHAR(MAX))
+--AS
+--BEGIN
+--    DECLARE @Start INT, @End INT
+--    SET @Start = 1
+--    SET @End = CHARINDEX(@Delimiter, @Input)
+
+--    WHILE @Start < LEN(@Input) + 1
+--    BEGIN
+--        IF @End = 0 
+--            SET @End = LEN(@Input) + 1
+
+--        INSERT INTO @Output (Value)
+--        VALUES (SUBSTRING(@Input, @Start, @End - @Start))
+
+--        SET @Start = @End + 1
+--        SET @End = CHARINDEX(@Delimiter, @Input, @Start)
+--    END
+
+--    RETURN
+--END
+
+WITH Palavras AS (
+    SELECT 
+        NOME,
+        value AS Palavra,
+        ROW_NUMBER() OVER (PARTITION BY NOME ORDER BY (SELECT NULL)) AS Posicao
+    FROM 
+        ACESSOS_MOBILE
+        CROSS APPLY dbo.SplitString(NOME, ' ')
+    WHERE 
+        value NOT IN ('da', 'de', 'do', 'das', 'dos', 'e', 'a', 'o', 'as', 'os')
+),
+PalavrasValidas AS (
+    SELECT 
+        NOME,
+        COUNT(*) OVER (PARTITION BY NOME) AS TotalPalavras,
+        Palavra,
+        Posicao
+    FROM 
+        Palavras
+)
+SELECT 
+    NOME,
+    CASE 
+        WHEN TotalPalavras >= 3 THEN 
+            (SELECT Palavra FROM PalavrasValidas WHERE NOME = p.NOME AND Posicao = 1) + ' ' +
+            (SELECT Palavra FROM PalavrasValidas WHERE NOME = p.NOME AND Posicao = TotalPalavras)
+        ELSE ''
+    END AS DisplayName
+FROM 
+    PalavrasValidas p
+GROUP BY 
+    NOME, TotalPalavras;
+
+
+            SELECT 
+        MATRICULA,NOME,
+CASE 
+        WHEN NOME IS NULL OR LEN(LTRIM(RTRIM(NOME))) = 0 THEN '-'
+        ELSE LEFT(LTRIM(RTRIM(NOME)), CHARINDEX(' ', LTRIM(RTRIM(NOME)) + ' ') - 1) + ' ' + 
+             REVERSE(LEFT(REVERSE(LTRIM(RTRIM(NOME))), CHARINDEX(' ', REVERSE(LTRIM(RTRIM(NOME))) + ' ') - 1))
+    END
+    FROM 
+        ACESSOS_MOBILE;
+
+        SELECT 
+    NOME,
+    LEN(LEFT(NOME, CHARINDEX(' ', NOME + ' ') - 1) + ' ' + 
+        REVERSE(LEFT(REVERSE(NOME), CHARINDEX(' ', REVERSE(NOME) + ' ') - 1))) AS NewLength
+FROM 
+    ACESSOS_MOBILE
+    order by NewLength desc;
+
+--UPDATE ACESSOS_MOBILE
+--SET 
+--    NOME_SOCIAL = 
+--    CASE 
+--        WHEN NOME IS NULL OR LEN(LTRIM(RTRIM(NOME))) = 0 THEN '-'
+--        ELSE LEFT(LTRIM(RTRIM(NOME)), CHARINDEX(' ', LTRIM(RTRIM(NOME)) + ' ') - 1) + ' ' + 
+--             REVERSE(LEFT(REVERSE(LTRIM(RTRIM(NOME))), CHARINDEX(' ', REVERSE(LTRIM(RTRIM(NOME))) + ' ') - 1))
+--    END
+--    where MATRICULA != 0 
+
+
+--select * from ACESSOS_MOBILE WHERE NOME 
+--in(
+--'suzi.souza@telefonica.com',
+--'ApenasUmTesteMassivo'
+--)
+
+--delete ACESSOS_MOBILE WHERE NOME 
+--in(
+--'suzi.souza@telefonica.com',
+--'ApenasUmTesteMassivo'
+--)
+with matriculas_demanda as(
+SELECT DISTINCT(MATRICULA_SOLICITANTE) as MATRICULA_SOLICITANTE FROM CNS_CONTROLE_DEMANDAS_NE
+where STATUS <> 'FECHADO'),
+matriculas_acessos as(
+select DISTINCT(B.Login) from ACESSO_TERCEIROS A
+join ACESSO B ON A.IdAcesso = B.IdAcesso
+where 
+A.DataMatricula is NULL and A.DataExtracao is null and A.obs is null and A.DataStatus is null and A.Regional = 'NE'
+),
+matriculas_operadores as(
+select MATRICULA from DEMANDA_BD_OPERADORES where REGIONAL = 'NE'
+)
+
+select TOP 1 * from ACESSO
+--delete VIVO_VISITA_CANAL_TERRITORIO_ESTRUTURAS_OPERACAO
+--delete VIVO_VISITA_CANAL_TERRITORIO_ABERTURA
+
+--select * from CONTROLE_DEMANDAS_CADASTRO
+--delete CONTROLE_DEMANDAS_CADASTRO
+--select * from CONTROLE_DEMANDAS_EVIDENCIAS
+--delete CONTROLE_DEMANDAS_EVIDENCIAS
+
+--select * from LOJA_CONTESTACAO_FATURA
+--delete LOJA_CONTESTACAO_FATURA
+
+select * from acesso where Regional <> 'NE'
+
+delete ACESSO
+where 
+Regional = 'NE' and
+Login not in (
+'64960'
+,'151191'
+,'25183'
+,'16279'
+,'25183'
+,'94842'
+,'25677'
+,'156305'
+,'152001'
+,'80900909'
+,'160624'
+,'80796597'
+,'80904800'
+,'40416900'
+,'156727'
+,'159706'
+,'30722'
+,'40417113'
+,'156114'
+,'51336'
+,'3511507'
+,'71114'
+,'69372'
+,'3458749'
+,'40418413'
+,'47333'
+,'163794'
+,'80886919'
+,'157239'
+,'16005'
+,'123456'
+,'150939'
+,'22416'
+,'27121'
+,'30460'
+,'31705'
+,'32815'
+,'33433'
+,'38087'
+,'40497'
+,'40742'
+,'47856'
+,'49589'
+,'50125'
+,'62197'
+,'65244'
+,'65523'
+,'74600'
+,'93484'
+,'109428'
+,'110229'
+,'112324'
+,'118567'
+,'118678'
+,'126028'
+,'129311'
+,'130220'
+,'133819'
+,'134816'
+,'137872'
+,'145542'
+,'148516'
+,'150939'
+,'150987'
+,'151191'
+,'151981'
+,'154268'
+,'154315'
+,'156165'
+,'156559'
+,'156752'
+,'160776'
+,'160835'
+,'160987'
+,'161248'
+,'161310'
+,'161784'
+,'163637'
+,'163728'
+,'165372'
+,'165691'
+,'166018'
+,'166103'
+,'18095'
+,'22110'
+,'22385'
+,'23930'
+,'25194'
+,'25208'
+,'26868'
+,'29919'
+,'32815'
+,'33173'
+,'33431'
+,'35028'
+,'35929'
+,'36318'
+,'36392'
+,'37710'
+,'39013'
+,'40414390'
+,'40416870'
+,'40497'
+,'43606'
+,'44374'
+,'46198'
+,'46897'
+,'47333'
+,'49589'
+,'62197'
+,'62604'
+,'62609'
+,'64966'
+,'65244'
+,'65821'
+,'66359'
+,'67379'
+,'70365'
+,'70650'
+,'70835'
+,'71114'
+,'71940'
+,'72136'
+,'72215'
+,'72521'
+,'72565'
+,'73202'
+,'73204'
+,'75546'
+,'78035'
+,'80663'
+,'81880'
+,'89987'
+,'94163'
+,'94778'
+,'96039'
+,'97937'
+,'99659'
+,'99671'
+)
+
+--delete DESLIGAMENTOS
+--insert into [DESLIGAMENTOS_BACKUP]
+--select 
+--UF	,
+--DDD	,
+--NOME_FUNCIONARIO	,
+--MATRICULA_FUNCIONARIO	,
+--LOGIN_FUNCIONARIO	,
+--DATA_CADASTRO_DESLIGAMENTO	,
+--CONFIRMA_DESLIGAMENTO	,
+--DATA_CONFIRMA_DESLIGAMENTO	,
+--idAcesso	,
+--USUARIO	,
+--CPF	,
+--ADABAS	,
+--MOTIVO	,
+--REGIONAL
+--from DESLIGAMENTOS
+--join ACESSO B ON A.IdAcesso = B.IdAcesso
+
+select * from acesso where Regional = 'MG'
+
+
+--insert into acesso values
+--('43812','ADRIANA PIMENTA FAGUNDES','adriana.fagundes@telefonica.com','MG',null,null,'ATIVO',1)
+--,('64423','JOSIANE PEREIRA DE ARAUJO','josiane.paraujo@telefonica.com','MG',null,null,'ATIVO',1)
+--,('64936','WESLEY ZEFERINO DE ALMEIDA','wesley.almeida@telefonica.com','MG',null,null,'ATIVO',1)
+--,('17211','GEISA MARIA VILACA ALVIM PEREIRA','GEISA.ALVIM@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('418270','VIVIANE CRISTINA PINTO DIAS','VIVIANE.PDIAS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('442960','ALESKA IDALO MACIEIRA','ALESKA.MACIEIRA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('44708','LUCIO SANTANA JUNIOR','LUCIO.SANTANA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('64913','EDGAR ROLANDO GUZMAN ZUNIGA','EDGAR.RZUNIGA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('458200','TIAGO MENEZES LOPES','TIAGO.MENEZES@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('465250','LUIS GUSTAVO SANTOS GOMES','LUIS.SGOMES@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('36309','CARLOS HENRIQUE COSTA FONSECA','CARLOS.CFONSECA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('410530','LILIAN LEAL LIMA DINIZ','LILIAN.LIMA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('422360','THIAGO SILVEIRA DE FREITAS','THIAGO.FREITAS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('48522','ROBSON DE VASCONCELOS','ROBSON.VASCONCELOS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('65666','FERNANDA ALVES PEREIRA','FERNANDAA.PEREIRA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('419930','LETICIA CAMPOS TEIXEIRA','LETICIA.CTEIXEIRA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('452940','AMANDA AMARAL CAETANO','AMANDA.CAETANO@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('972850','LUDMILA PAROPATO CAMARGO BRAGA','LUDMILA.BRAGA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('999900','CLAUDIA LOUREIRO VASCONCELLOS DE PAULA','CLAUDIA.VASCONCELLOS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('48519','LEANDRO BARBOSA COELHO','LEANDRO.BCOELHO@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('81554','MARCO TULIO GOMES RODRIGUES','MARCO.TRODRIGUES@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('435880','RICARDO CORREIA DOS REIS','RICARDO.CREIS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('444210','LUIZ FERNANDO DE FREITAS REIS','LUIZ.FREIS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('452580','BRUNO RODRIGUES DE OLIVEIRA','BRUNO.ROLIVEIRA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('461770','MARCUS VINICIUS OTONI CAMARGOS','MARCUS.CAMARGOS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('465390','SAMUEL GOMES DA SILVA','SAMUEL.SILVA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('30660','LORRAINNE HELEN ALVES BORGES','LORRAINNH.BORGES@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('48761','JULIANE MATIAS DE PAULA OLIVEIRA','JULIANE.MATIAS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('463900','MARIANA DUARTE GUERRA','MARIANA.DGUERRA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('26416','THIAGO ANDRADE MOTA DE ABREU','THIAGO.MABREU@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('36878','EDILANE DE FATIMA PEREIRA','EDILANE.PEREIRA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('64384','GABRIELA FERREIRA GOMES','GABRIELA.FGOMES@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('36920','HELBERT MOREIRA SOARES','HELBERT.SOARES@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('421130','JAQUELINE SILVA TEIXEIRA','JAQUELINE.TEIXEIRA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('46881','CARLOS LUIZ MIRANDA','CARLOS.MIRANDA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('48728','RENATO MOREIRA MAGALHAES','RENATO.MAGALHAES@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('68307','LEONAM ALVES BATISTA','LEONAM.BATISTA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('70663','LUIZ CARLOS RODRIGUES ALMEIDA JUNIOR','LUIZ.RJUNIOR@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('453640','GUSTAVO FERREIRA DE OLIVEIRA','GUSTAVO.FOLIVEIRA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('41192','JOSIANE VARGAS DE SOUZA','JOSIANE.DSOUZA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('60595','POLIANA BELTRAME SILVA','POLIANA.SILVA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('78928','GRACIELY GONCALVES MARTINS','GRACIELY.MARTINS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('421330','GRAWBER DIEGO LOPES PONTES','GRAWBER.PONTES@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('425380','ARTUR EDUARDO ELBERT BRANDAO','ARTUR.EDUARDO@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('434160','DOUGLAS DE LIMA ALBUQUERQUE PINA','DOUGLAS.PINA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('442880','GUILHERME ALUIZIO SALAZAR SOARES','GUILHERME.SOARES@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('39526','THAIS DORALICE RESENDE COSTA','THAIS.RCOSTA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('27853','LUIS GUSTAVO TEODORO','LUIS.TEODORO@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('41164','DENNIS DE CASTRO PINTO','DENNIS.PINTO@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('41307','LUIZ FERNANDO VERTA MACEDO','LUIZ.VMACEDO@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('81813','WANDERSON DE OLIVEIRA','WANDERSON.OLIVEIRA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('86799','EDMARCIO ALMEIDA DOS SANTOS','EDMARCIO.SANTOS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('87797','FERNANDA BARBOSA RODRIGUES DE OLIVEIRA','FERNANDAB.OLIVEIRA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('435510','TALES ROSA LIMA','TALES.LIMA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('455920','ODAIR SANTOS DE LIMA','ODAIR.LIMA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('37865','RENATO GONCALVES CARDOSO','RENATO.CARDOSO@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('39423','WERISSON CESAR DA SILVA','WERISSON.SILVA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('28011','BRUNO CUNHA COSTA','BRUNO.CCOSTA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('73950','VANESSA DE CASSIA TEIXEIRA','VANESSA.TEIXEIRA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('36695','POLLIANA APARECIDA DE OLIVEIRA SOUSA','POLLIANA.OLIVEIRA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('69940','DAYSA DE FATIMA ZANIN','DAYSA.ZANIN@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('40727','LENISE ALVES DA SILVA','LENISE.SILVA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('43182','TAMIRES CRISTINA FAVARETTO','TAMIRES.FAVARETTO@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('28194','CHARLES SOARES RODRIGUES','CHARLES.RODRIGUES@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('40070','ANDRE BATISTA ZUBA','ANDRE.ZUBA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('60649','VICTOR ETIENE DOS SANTOS','VICTOR.ESANTOS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('415340','CYNTHIA EVANGELISTA ANTUNES','CYNTHIA.ANTUNES@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('72543','CASSIA APARECIDA RIBEIRO','CASSIA.RIBEIRO@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('74654','GENIVALDO ARAUJO DE AZEVEDO JUNIOR','GENIVALDO.AJUNIOR@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('48745','CARLA DA SILVA CANDIDO','CARLA.CANDIDO@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('457960','LUDMYLLA SILVA OLIVEIRA','LUDMYLLA.OLIVEIRA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('460930','FABRICIO TOLENTINO SANTANA','F.SANTANA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('43837','ROGERIO DE PAIVA MEDEIROS JUNIOR','ROGERIOP.JUNIOR@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('44695','GUSTAVO HENRIQUE MEDEIROS LEMOS','GUSTAVO.LEMOS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('49053','WILLIAM JONATAS ARTIGAS','WILLIAM.ARTIGAS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('61651','MARCOS PAULO SILVA LIMA','MARCOSP.LIMA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('425370','RAQUEL DIAS DUARTE','RAQUEL.DUARTE@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('35394','GLAUCIA MARTINS DE OLIVEIRA','GLAUCIA.OLIVEIRA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('455780','SIMONE DO COUTO SILVA','S.SILVA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('45585','ELBERT DE OLIVEIRA FONSECA JUNIOR','ELBERT.JUNIOR@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('31673','LIERTANE FERNANDES DE CAMPOS VIANA','LIERTANE.SILVA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('43955','RODRIGO SILVA DA COSTA','RODRIGO.SCOSTA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('61463','WYSLANN STERFANIN FONSECA DA SILVA','WYSLANN.SILVA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('28223','ILTON RODRIGUES DE MATOS JUNIOR','ILTON.JUNIOR@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('29888','RAFAEL HENRIQUE DE ALMEIDA SANTANA','RAFAEL.ASANTANA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('40418','THIAGO RODRIGUES DOS REIS','THIAGO.DREIS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('31743','RAISA RODRIGUES PINHEIRO','RAISA.PINHEIRO@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('32968','RAPHAEL MARTINS DA ROCHA','RAPHAEL.ROCHA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('39398','VICTOR SPINDOLA DA SILVA','VICTOR.SSILVA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('25089','RAFAEL MITRAUD FALCONE PAIVA','RAFAEL.FALCONE@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('49395','JUSILENE DE ASSIS DOS SANTOS','JUSILENE.SANTOS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('44658','ELIANE SILVA DE OLIVEIRA','ELIANE.OLIVEIRA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('445990','CINTIA MARIA RIBEIRO','CINTIA.RIBEIRO@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('35975','BRUNA MARA DOS SANTOS','BRUNA.DSANTOS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('991460','MICHELLE NOGUEIRA BAETA','MICHELLE.BAETA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('27349','WELDER DANIEL QUIRINO','WELDER.QUIRINO@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('32764','ADRIANA FLORIETA FONSECA FERREIRA','ADRIANA.FFERREIRA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('49708','PAULO ROBERTO MORAIS','PAULO.MORAIS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('69087','DIEGO FABIO SILVA GONCALVES','DIEGO.FGONCALVES@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('456010','JUNIA GRACIELE SOARES DA SILVA','JUNIA.SILVA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('31635','THATIANE BARBOSA DE MATOS','THATIANE.MATOS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('72551','GRACIELE APARECIDA DE SALES','GRACIELE.VALGAS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('43106','YURI GABRIEL PEREIRA TONGO','YURI.TONGO@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('424970','VINICIUS ADOLFO SANTOS DA SILVA','VINICIUS.SILVA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('41048','VINICIUS BRANDAO BARBOSA','VINICIUS.BARBOSA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('50371','ARIANE SILVA BRUZZI CORTES','ARIANE.CORTES@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('27237','JULIANA PEREIRA DA COSTA','JULIANA.COSTA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('28542','HIGOR PEDROSO BERNARDES','HIGOR.BERNARDES@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('457900','KARLA APARECIDA RODRIGUES RIBEIRO','KARLA.RIBEIRO@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('45017','INGRID ISABELA GONCALVES DA SILVA','INGRID.ISILVA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('70441','MARCELA QUEIROZ TOUSSAINT','MARCELA.TOUSSAINT@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('463790','LUDMILA DARTANHAN DA SILVA','LUDMILA.SILVA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('29249','BARBARA PAULA LOPES','BARBARA.LOPES@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('36710','ANDREIA SIQUEIRA LOPES','ANDREIA.LOPES@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('50532','RAFAEL AUGUSTO SILVA NASCIMENTO','RAFAEL.ANASCIMENTO@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('37862','JOANITA PAPALINI ROCHA','JOANITA.ROCHA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('47872','DAYANE FERNANDA REIS','DAYANE.REIS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('76336','ANA CAROLINA CALDEIRA BENFICA','ANA.BENFICA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('76306','MATHEUS HENRIQUE FREITAS SANTOS','MATHEUS.SANTOS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('29381','PRISCILA RODRIGUES GONZAGA RIBEIRO','PRISCILA.RRIBEIRO@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('40476','ERIC LEITE DE OLIVEIRA CAETANO','ERIC.CAETANO@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('35273','ALINE AGATA ROCHA CORREA','ALINE.ROCHA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('89710','MICHELE ELAINE PEREIRA','michele.epereira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('449740','LEANDRO MATOS SOARES','leandrom.soares@telefonica.com','MG',null,null,'ATIVO',1)
+--,('49576','MARIA ANGELICA DIVINO BARROS','maria.divino@telefonica.com','MG',null,null,'ATIVO',1)
+--,('89191','DIEGO SOARES CARVALHO','diego.scarvalho@telefonica.com','MG',null,null,'ATIVO',1)
+--,('91016','LUCIANA CRISTINA DO ROSARIO','luciana.rosario@telefonica.com','MG',null,null,'ATIVO',1)
+--,('31664','LEONARDO RODRIGUES PORTO','leonardo.rporto@telefonica.com','MG',null,null,'ATIVO',1)
+--,('29464','CLAUDIO MARCIO DE LACERDA','Claudio.Lacerda@telefonica.com','MG',null,null,'ATIVO',1)
+--,('3458719','EDVALDO PEREIRA MATEUS','edvaldo.mateus@telefonica.com','MG',null,null,'ATIVO',1)
+--,('459090','DANIEL GOMES DA SILVA ','daniel.gsilva@telefonica.com','MG',null,null,'ATIVO',1)
+--,('463660','EDUARDO BAHIA ALVES RIBEIRO','eduardob.ribeiro@telefonica.com','MG',null,null,'ATIVO',1)
+--,('70410','BRUNO CESAR NOGUEIRA DE SENA','BRUNO.SENA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('19024','HELENA DE SOUZA NOGUEIRA AMOROSO','helena.nogueira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('67727','JOHNY DALAMORA CORREA','johny.correa@telefonica.com','MG',null,null,'ATIVO',1)
+--,('43291','LEIDIANE NASCIMENTO DE JESUS','leidiane.tavares@telefonica.com','MG',null,null,'ATIVO',1)
+--,('46801','LARA AMORIM DE OLIVEIRA','lara.oliveira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('48701','CINTIA RODRIGUES ANTUNES','cintia.sousa@telefonica.com','MG',null,null,'ATIVO',1)
+--,('49069','STELLA RODRIGUES SILVA','stella.silva@telefonica.com','MG',null,null,'ATIVO',1)
+--,('49984','RENATA BOAVENTURA DE ALMEIDA','renata.balmeida@telefonica.com','MG',null,null,'ATIVO',1)
+--,('67024','ANDRE DA SILVA USUAL DOS SANTOS','andre.usantos@telefonica.com','MG',null,null,'ATIVO',1)
+--,('69839','GISELY MARIA PEREIRA LACERDA','gisely.lacerda@telefonica.com','MG',null,null,'ATIVO',1)
+--,('72498','DEIVILANE CAMPOS RIBEIRO','deivilane.ribeiro@telefonica.com','MG',null,null,'ATIVO',1)
+--,('74520','ALINE DE FREITAS FERREIRA','aline.fferreira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('75496','KATIANE APARECIDA CONCORDIA','katiane.concordia@telefonica.com','MG',null,null,'ATIVO',1)
+--,('76924','CAROLINE SABINO COSTA','caroline.sabino@telefonica.com','MG',null,null,'ATIVO',1)
+--,('78002','MARDONIELE DA CONCEICAO DOS SANTOS','mardoniele.santos@telefonica.com','MG',null,null,'ATIVO',1)
+--,('79817','KARINE PEREIRA DA SILVA','karine.silva@telefonica.com','MG',null,null,'ATIVO',1)
+--,('79869','CAMILA DA CONCEICAO DUARTE','camila.duarte@telefonica.com','MG',null,null,'ATIVO',1)
+--,('80820','ROSELENA FERREIRA','roselena.ferreira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('87625','DINAURA MATTOZO MEDEIROS','dinaura.medeiros@telefonica.com','MG',null,null,'ATIVO',1)
+--,('87731','RAYANE TAMARA ARAUJO VIEIRA','rayane.vieira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('87838','MATHEUS HENRIQUE NASCIMENTO LAIA','matheus.laia@telefonica.com','MG',null,null,'ATIVO',1)
+--,('89746','TADEU GOMES BRITO','tadeu.gbrito@telefonica.com','MG',null,null,'ATIVO',1)
+--,('92286','ANA LUIZA RODRIGUES DE SOUSA','anal.sousa@telefonica.com','MG',null,null,'ATIVO',1)
+--,('93476','PRISCILA MENDES DE OLIVEIRA','priscila.oliveira2@telefonica.com','MG',null,null,'ATIVO',1)
+--,('420770','THAIS GONCALVES VERARDO','thais.verardo@telefonica.com','MG',null,null,'ATIVO',1)
+--,('423610','BEATRIZ APARECIDA FERREIRA DE SOUSA','beatriz.ferreira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('426400','WITER CESAR DE MATOS','witer.matos@telefonica.com','MG',null,null,'ATIVO',1)
+--,('435480','CLAUDIA GOMES ORNELAS DE CASTRO','claudia.gornelas@telefonica.com','MG',null,null,'ATIVO',1)
+--,('458100','ESTER RODRIGUES DA SILVA','ester.rsilva@telefonica.com','MG',null,null,'ATIVO',1)
+--,('97311','ANDRE TIAGO DE OLIVEIRA','andre.toliveira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('988090','MARIANO  CABALZAR AMARAL','mariano.cabalzar@telefonica.com','MG',null,null,'ATIVO',1)
+--,('50525','TIAGO MENDES PEREIRA','tiago.mpereira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('425200','JULIANA ARAUJO FAGUNDES FIGUEIROA','JULIANA.FAGUNDES@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('156644','TAYANA KATHERINE MARINHO MACHADO','tayana.machado@telefonica.com','MG',null,null,'ATIVO',1)
+--,('100770','RAQUEL BRANDÃO CARVALHO','raquel.bcarvalho@telefonica.com','MG',null,null,'ATIVO',1)
+--,('99652','DIOGO DIAS VARGAS','diogo.vargas@telefonica.com','MG',null,null,'ATIVO',1)
+--,('99640','MARCELA NASCIMENTO','marcela.nascimento@telefonica.com','MG',null,null,'ATIVO',1)
+--,('99650','KATIA PRISCILA MEDIS ROSARIO','KATIA.KPM@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('100783','FELIPE ALVES FRANÇA CAMPOS','felipe.acampos@telefonica.com','MG',null,null,'ATIVO',1)
+--,('50355','WEMERSON FERNANDES OLIVEIRA','wemerson.oliveira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('73888','EMANUELA PRATES DOS SANTOS COELHO','emanuela.coelho@telefonica.com','MG',null,null,'ATIVO',1)
+--,('42538','ARTUR BRANDAO','artur.brandao@telefonica.com','MG',null,null,'ATIVO',1)
+--,('50268','ANA PAULA ALVES MELLO','ana.pmello@telefonica.com','MG',null,null,'ATIVO',1)
+--,('106371','ALEXANDRE FRANCESCO DE SOUZA','alexandref.souza@telefonica.com','MG',null,null,'ATIVO',1)
+--,('106484','ROBSON NATANAEL DOS SANTOS','robson.nsantos@telefonica.com','MG',null,null,'ATIVO',1)
+--,('70560','BERNARDO DUTRA MACHADO','bernardo.machado@telefonica.com','MG',null,null,'ATIVO',1)
+--,('108310','ERICK DE MOURA GUIMARAES','erick.guimaraes@telefonica.com','MG',null,null,'ATIVO',1)
+--,('46111','FILIPE ALVARO SILVEIRA DE PAULA','filipe.paula@telefonica.com','MG',null,null,'ATIVO',1)
+--,('109668','RENAN OTÁVIO SOARES VIEIRA','renan.vieira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('48477','BRUNA RAIANE ALVES DE SOUZA','bruna.souza@telefonica.com','MG',null,null,'ATIVO',1)
+--,('50017','BRUNA RAFAELLA ARAÚJO FARIA','bruna.faria@telefonica.com','MG',null,null,'ATIVO',1)
+--,('45944','ANA FLAVIA APARECIDA BARBOZA','ana.barboza@telefonica.com','MG',null,null,'ATIVO',1)
+--,('64081','ANA PAULA DOS SANTOS MANGUEIRA','ana.mangueira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('111148','LEANDRO DE OLIVEIRA ROCHA','leandro.orocha@telefonica.com','MG',null,null,'ATIVO',1)
+--,('99219','MARCIO DOS SANTOS DA SILVA','marcio.silva4@telefonica.com','MG',null,null,'ATIVO',1)
+--,('111128','ANNE BORGES FONSECA ROSALEM','anne.rosalem@telefonica.com','MG',null,null,'ATIVO',1)
+--,('136855','AUGUSTO GONCALVES','goncalves.augusto@telefonica.com','MG',null,null,'ATIVO',1)
+--,('113409','LAYLA FABIANNA GUIMARAES CARIBE','layla.caribe@telefonica.com','MG',null,null,'ATIVO',1)
+--,('978980','FLAVIANA COELHO SIMOES PACHECO','flaviana.simoes@telefonica.com','MG',null,null,'ATIVO',1)
+--,('3458683','URSULA ASSIS CAMPOS','ursula.campos@telefonica.com','MG',null,null,'ATIVO',1)
+--,('427700','KENYA ALVES DA COSTA','kenya.costa@telefonica.com','MG',null,null,'ATIVO',1)
+--,('429120','ANA  PAULA CASTRO DINIZ','ana.diniz@telefonica.com','MG',null,null,'ATIVO',1)
+--,('51195','FABRICIO XAVIER DIAS','fabricio.dias@telefonica.com','MG',null,null,'ATIVO',1)
+--,('117424','MARCELLE ALVIM MENDONCA','marcelle.mendonca@telefonica.com','MG',null,null,'ATIVO',1)
+--,('67632','MOACIR DE PAULA MARTINS','moacir.neto@telefonica.com','MG',null,null,'ATIVO',1)
+--,('120538','LETICIA PIMENTA SANT ANA','leticia.ana@telefonica.com','MG',null,null,'ATIVO',1)
+--,('78329','PATRICK JONATHAN BHERING CARVALHAIS','patrick.carvalhais@telefonica.com','MG',null,null,'ATIVO',1)
+--,('415060','ROBERTA FURTADO ARAUJO','roberta.araujo@telefonica.com','MG',null,null,'ATIVO',1)
+--,('120210','ALCIONE DE OLIVEIRA DE CASTRO','alcione.castro@telefonica.com','MG',null,null,'ATIVO',1)
+--,('988070','CYNTHIA RODRIGUES PINTO','cyntia.pinto@telefonica.com','MG',null,null,'ATIVO',1)
+--,('A0044969','CINTHIA ARF DE SOUZA','cinthia.souza@telefonica.com','MG',null,null,'ATIVO',1)
+--,('41159','MARIANNA  THEREZA DA SILVA DOMINGOS','marianna.domingos@telefonica.com','MG',null,null,'ATIVO',1)
+--,('44854','MARCIA  CRISTINA MOREIRA GUEDES COSTA','marcia.moreira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('465320','NAGELA BRUNA PINTO','nagela.pinto@telefonica.com','MG',null,null,'ATIVO',1)
+--,('131361','KARINE MARI REZENDE','karine.rezende@telefonica.com','MG',null,null,'ATIVO',1)
+--,('45784','CARLOS EDUARDO CARVALHAIS PEREIRA','carlose.pereira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('45584','MONIZY STEFANY ROSA MACHADO','monizy.machado@telefonica.com','MG',null,null,'ATIVO',1)
+--,('89082','EDER DA SILVA REGINATO','eder.reginato@telefonica.com','MG',null,null,'ATIVO',1)
+--,('47498','DAVID  HENRIQUE DE FREITAS BARBOSA','david.barbosa@telefonica.com','MG',null,null,'ATIVO',1)
+--,('38078','JULIANA CRISTINA ANGELO','juliana.angelo@telefonica.com','MG',null,null,'ATIVO',1)
+--,('980270','DANIELE NORONHA MARON ','daniele.noronha@telefonica.com','MG',null,null,'ATIVO',1)
+--,('0453640','GUSTAVO FERREIRA DE OLIVEIRA','gustavo.foliveira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('117429','PEDRO HENRIQUE DE REZENDE PERTENCE','pedro.pertence@telefonica.com','MG',null,null,'ATIVO',1)
+--,('76207','CAMILA EDVIRGENS FONSECA','camila.efonseca@telefonica.com','MG',null,null,'ATIVO',1)
+--,('70422','RODRIGO SOARES RIBEIRO','rodrigo.sribeiro@telefonica.com','MG',null,null,'ATIVO',1)
+--,('136883','JOSE WILLIAM SILVA JUNIOR','jose.wjunior@telefonica.com','MG',null,null,'ATIVO',1)
+--,('136878','PAULO HENRIQUE RIBEIRO SILVA','paulo.henrique@telefonica.com','MG',null,null,'ATIVO',1)
+--,('64490','SABRINA CAROLINE DE SOUZA DOS SANTOS','SABRINA.CSANTOS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('136969','RAPHAEL LIMA MARTINS PEREIRA','raphael.lpereira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('110121','GUSTAVO MENDES BUENO DE CARVALHO','gustavom.carvalho@telefonica.com','MG',null,null,'ATIVO',1)
+--,('80658','MATHEUS AUGUSTO TOMAZ','matheus.tomaz@telefonica.com','MG',null,null,'ATIVO',1)
+--,('138021','GLAUBER TIRADENTES DA SILVA','glauber.silva@telefonica.com','MG',null,null,'ATIVO',1)
+--,('137832','CASSIO GIOVANNI DOS SANTOS ARAUJO','cassio.araujo@telefonica.com','MG',null,null,'ATIVO',1)
+--,('137999','IZABELLA PACHECO ABRANTES','izabella.abrantes@telefonica.com','MG',null,null,'ATIVO',1)
+--,('46977','GABRIELA CAROLINA CAMPOS REZENDE','gabriela.rezende@telefonica.com','MG',null,null,'ATIVO',1)
+--,('138952','MARCEL ALVES DE OLIVEIRA','marcel.oliveira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('37863','LIDIANA CRISTINA DO NASCIMENTO','lidiana.nascimento@telefonica.com','MG',null,null,'ATIVO',1)
+--,('973635','ERICA RACHE PORTELA','erica.portela@telefonica.com','MG',null,null,'ATIVO',1)
+--,('71907','MARCOS ALBERTO ALVES DOS ANJOS','marcos.anjos@telefonica.com','MG',null,null,'ATIVO',1)
+--,('73880','GUILHERME FRANCISCO MOREIRA DOS ANJOS','guilherme.anjos@telefonica.com','MG',null,null,'ATIVO',1)
+--,('71072','ADRIAN CHRISTINA VIEIRA','adrian.vieira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('141046','NATALIA NETTO BASILIO DIAS','natalia.ndias@telefonica.com','MG',null,null,'ATIVO',1)
+--,('141052','PAULO HENRIQUE MARQUES RIOS','paulo.rios@telefonica.com','MG',null,null,'ATIVO',1)
+--,('89121','LARISSA MUNIZ JUNGER DA CRUZ','larissa.cruz@telefonica.com','MG',null,null,'ATIVO',1)
+--,('143803','RODRIGO SANTHIAGO PIRES MURCA','rodrigo.murca@telefonica.com','MG',null,null,'ATIVO',1)
+--,('142735','PAULO ROBERTO CARDEAL DIAS','paulo.dias@telefonica.com','MG',null,null,'ATIVO',1)
+--,('143356','FARLLEY LUIS VIEIRA DE SA','farlley.sa@telefonica.com','MG',null,null,'ATIVO',1)
+--,('144868','RODRIGO LIMA DE SOUSA','rodrigo.sousa@telefonica.com','MG',null,null,'ATIVO',1)
+--,('69853','LAIS DOS SANTOS ESTEVES','lais.esteves@telefonica.com','MG',null,null,'ATIVO',1)
+--,('71095','MATHEUS TOMAZ MOREIRA SANTOS','matheust.santos@telefonica.com','MG',null,null,'ATIVO',1)
+--,('28064',' MARCIO ROMUALDO MARTINS','marcio.martins@telefonica.com','MG',null,null,'ATIVO',1)
+--,('94539','CLEBER PEREIRA DOS SANTOS','CLEBER.PSANTOS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('39581','TATIANA CRISTINA DA SILVA','tatianad.silva@telefonica.com','MG',null,null,'ATIVO',1)
+--,('48716','LETÍCIA FRANSCIELE DE ALMEIDA SANTOS','leticia.fsantos@telefonica.com','MG',null,null,'ATIVO',1)
+--,('146521','VINICIUS CRISTOVAO CORREA','vinicius.correa@telefonica.com','MG',null,null,'ATIVO',1)
+--,('80492594','FABIO BASTOS MOREIRA','jf.shoppingindependencia@redeinovacel.com.br','MG',null,null,'ATIVO',1)
+--,('69057','YASMINE FERNANDES DE ALMEIDA SANTOS','yasmine.santos@telefonica.com','MG',null,null,'ATIVO',1)
+--,('146685','JULIA PERES PLACIDO','julia.placido@telefonica.com','MG',null,null,'ATIVO',1)
+--,('147201','TATIANA ELISA FERRAZ','tatiana.ferraz@telefonica.com','MG',null,null,'ATIVO',1)
+--,('40414110','CATHARINE OLIVEIRA DA SILVA','catharine.silva@telefonica.com','MG',null,null,'ATIVO',1)
+--,('63850','LUCIANA SILVA ARAUJO','luciana.saraujo@telefonica.com','MG',null,null,'ATIVO',1)
+--,('148621','BENVINDA LAMARAO VILAS BOAS DE MEDEIROS','benvinda.medeiros@telefonica.com','MG',null,null,'ATIVO',1)
+--,('70969','ALINNE LOPES DA SILVA ','alinne.silva@telefonica.com','MG',null,null,'ATIVO',1)
+--,('92362','ANA PAULA MARTINS SARMENTO FREITAS','ana.pfreitas@telefonica.com','MG',null,null,'ATIVO',1)
+--,('40415005','ANA ALICE DE CASTRO SANTOS','ana.asantos@telefonica.com','MG',null,null,'ATIVO',1)
+--,('87789','PEDRO HENRIQUE SERNIZON VIEIRA','pedro.hvieira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('98461','GABRIELA NERES DANIEL','gabriela.daniel@telefonica.com','MG',null,null,'ATIVO',1)
+--,('86913','GRAZIELE OLIVEIRA SANTOS','graziele.santos@telefonica.com','MG',null,null,'ATIVO',1)
+--,('40414308','ADRYELLE CAROLINE SILVA BRITO','adryelle.brito@telefonica.com','MG',null,null,'ATIVO',1)
+--,('71879','MARCUS VINICIUS PIRES DOS SANTOS','marcusv.santos@telefonica.com','MG',null,null,'ATIVO',1)
+--,('151138','LUIS PAULO RIGAMONTE','luis.rigamonte@telefonica.com','MG',null,null,'ATIVO',1)
+--,('40414192','MATEUS MATSUMOTO DA SILVA','mateus.msilva@telefonica.com','MG',null,null,'ATIVO',1)
+--,('80023','NAYARA RIBEIRO DOS REIS','nayara.rreis@telefonica.com','MG',null,null,'ATIVO',1)
+--,('94502','LETICIA ANGELICA NOGUEIRA DE PAIVA','leticia.paiva@telefonica.com','MG',null,null,'ATIVO',1)
+--,('150964','DANIEL NILSON VIEIRA','daniel.nvieira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('81746','YASMIN PINHEIRO LIMA','yasmin.lima@telefonica.com','MG',null,null,'ATIVO',1)
+--,('152390','JULIANO FIDELIS DE OLIVEIRA','juliano.foliveira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('90192','ROSEMEIRE SOARES DE SOUZA','rosemeire.souza@telefonica.com','MG',null,null,'ATIVO',1)
+--,('40414335','WAGNER JUNIO FERREIRA ANDRADE','wagner.jandrade@telefonica.com','MG',null,null,'ATIVO',1)
+--,('118682','TARYKE CRISTIANO MARTINS FERREIRA','TARYKE.FERREIRA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('152655','VAGNER DE SOUSA COIMBRA JUNIOR','vagner.sjunior@telefonica.com','MG',null,null,'ATIVO',1)
+--,('45152','BRUNA GABRIELE BARBARA','bruna.barbara@telefonica.com','MG',null,null,'ATIVO',1)
+--,('45186','DANIELA DE OLIVEIRA RAMOS','daniela.oramos@telefonica.com','MG',null,null,'ATIVO',1)
+--,('153505','KLEYTON OLIVEIRA JORGE','kleyton.jorge@telefonica.com','MG',null,null,'ATIVO',1)
+--,('153550','RENAN WESLEY DE OLIVEIRA','renan.woliveira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('80452','GERSON FIORAVANTI JUNIOR','GERSON.FJUNIOR@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('20591','MARIA DE LOURDES RODRIGUES FERREIRA','MARIA.RODRIGUESFERREIRA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('97334','ELIANE APARECIDA DE JESUS','ELIANE.JESUS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('154598','BRUNA ISABEL ANTUNES FOGACA','bruna.fogaca@telefonica.com','MG',null,null,'ATIVO',1)
+--,('445130','MARCELO DE OLIVEIRA SOARES','marcelo.soares@telefonica.com','MG',null,null,'ATIVO',1)
+--,('155245','FABRICIO DANTAS CORREIA','FABRICIO.CORREIA@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('155459','JESSICA POLIANE MOREIRA DA CRUZ VICENTE','jessicap.moreira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('78901','WADSON RIBEIRO CESAR','wadson.cesar@telefonica.com','MG',null,null,'ATIVO',1)
+--,('67217','GRACIENE HELENA PEREIRA','graciene.pereira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('35403','MILLANE CANDIDA DE SOUZA','millane.souza@telefonica.com','MG',null,null,'ATIVO',1)
+--,('155741','JOAO GABRIEL TEIXEIRA','joao.teixeira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('156135','JOAO PAULO MORAES DA CRUZ','joao.pcruz@telefonica.com','MG',null,null,'ATIVO',1)
+--,('147468','HAMILCAR CHIARINI DE FARIA','hamilcar.faria@telefonica.com','MG',null,null,'ATIVO',1)
+--,('156167','DANIELA FARIA LIMA','daniela.flima@telefonica.com','MG',null,null,'ATIVO',1)
+--,('78322','MARCIO VALERIO REZENDE DE SOUSA','marcio.sousa@telefonica.com','MG',null,null,'ATIVO',1)
+--,('93939','ERIKA DE OLIVEIRA GUIMARAES','erika.oguimaraes@telefonica.com','MG',null,null,'ATIVO',1)
+--,('87792','YGOR AUGUSTO VASCONCELOS MACIEL','ygor.maciel@telefonica.com','MG',null,null,'ATIVO',1)
+--,('156552','ARNALDO LUCIANO FERREIRA','arnaldo.ferreira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('156533','FERNANDA DE ARAUJO PINTO','fernanda.apinto@telefonica.com','MG',null,null,'ATIVO',1)
+--,('87630','NATALIA MATOS COSTA','natalia.costa@telefonica.com','MG',null,null,'ATIVO',1)
+--,('40416296','VINICIUS FERNANDES MORAIS','vinicius.fmorais@telefonica.com','MG',null,null,'ATIVO',1)
+--,('69869','GUSTAVO MAGNO MOURA CARDOSO','gustavo.mcardoso@telefonica.com','MG',null,null,'ATIVO',1)
+--,('99118','PAULO HENRIQUE MARTINS','pauloh.martins@telefonica.com','MG',null,null,'ATIVO',1)
+--,('71906','YOHANA DOS SANTOS CERQUEIRA','yohana.cerqueira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('156735','GUSTAVO BUZINARI MACHADO','gustavo.machado@telefonica.com','MG',null,null,'ATIVO',1)
+--,('69104','MAIGUEL SANTOS PEREIRA','maiguel.pereira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('98515','PAULO HENRIQUE VALERIANO SOUZA DOS SANTOS','pauloh.santos@telefonica.com','MG',null,null,'ATIVO',1)
+--,('156202','AMERICO LEITE SOUZA SALGADO','americo.salgado@telefonica.com','MG',null,null,'ATIVO',1)
+--,('157558','BIANCA DE OLIVEIRA FERREIRA','bianca.oferreira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('92173','KAMILA VIEIRA DE MELO','kamila.melo@telefonica.com','MG',null,null,'ATIVO',1)
+--,('24835','THAMARA DE PAULA DOS SANTOS LEANDRO','thamara.psantos@telefonica.com','MG',null,null,'ATIVO',1)
+--,('72520','AMANDA MOREIRA PIRES','amanda.pires@telefonica.com','MG',null,null,'ATIVO',1)
+--,('79010','JOCIELI DA SILVA SANTOS','jocieli.santos@telefonica.com','MG',null,null,'ATIVO',1)
+--,('39422','THAYS FERREIRA QUEIROZ BRAGA','thays.queiroz@telefonica.com','MG',null,null,'ATIVO',1)
+--,('157693','TATIANA APARECIDA DA SILVA RIBEIRO','tatiana.aribeiro@telefonica.com','MG',null,null,'ATIVO',1)
+--,('158148','KAMILA TACIANA PIO','kamila.pio@telefonica.com','MG',null,null,'ATIVO',1)
+--,('158920','ELVIS REGO DE FREITAS','elvis.freitas@telefonica.com','MG',null,null,'ATIVO',1)
+--,('159021','JACKSON JUNIO FERREIRA SOARES','jackson.soares@telefonica.com','MG',null,null,'ATIVO',1)
+--,('158998','ALEXANDRE SILVA DE OLIVERIO','alexandre.oliverio@telefonica.com','MG',null,null,'ATIVO',1)
+--,('66347','PATRICIA DA SILVA ALMEIDA','patricia.salmeida@telefonica.com','MG',null,null,'ATIVO',1)
+--,('98683','ANGELICA APARECIDA VITOR','angelica.vitor@telefonica.com','MG',null,null,'ATIVO',1)
+--,('99442','RAFAEL DE PINHO GONCALVES','rafael.pgoncalves@telefonica.com','MG',null,null,'ATIVO',1)
+--,('159873','HENRIQUE GONCALVES GOMES','henrique.gomes@telefonica.com','MG',null,null,'ATIVO',1)
+--,('159581','BRUNA HELLEN GOMES DOS SANTOS DESTEFANI','bruna.destefani@telefonica.com','MG',null,null,'ATIVO',1)
+--,('160088','DJALMA FONSECA DOS SANTOS JUNIOR','djalma.fjunior@telefonica.com','MG',null,null,'ATIVO',1)
+--,('160707','ANDREA FREITAS DE ALMEIDA BRAGA','andrea.braga@telefonica.com','MG',null,null,'ATIVO',1)
+--,('160433','JADER RICARDO COSTA CARNEIRO','jader.carneiro@telefonica.com','MG',null,null,'ATIVO',1)
+--,('120944','LUCAS HENRIQUE TEIXEIRA GOTT','lucas.gott@telefonica.com','MG',null,null,'ATIVO',1)
+--,('40417178','CHARLES GEOVANE DE OLIVEIRA','charles.oliveira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('78148','AMANDA MARTINS DE SOUZA','amanda.msouza@telefonica.com','MG',null,null,'ATIVO',1)
+--,('130160','JAMES NEVES RIBEIRO','james.ribeiro@telefonica.com','MG',null,null,'ATIVO',1)
+--,('78866','AUGUSTO CESAR COELHO CHAVES','augusto.chaves@telefonica.com','MG',null,null,'ATIVO',1)
+--,('161232','THIAGO DE SOUZA LUCIANO','thiago.luciano@telefonica.com','MG',null,null,'ATIVO',1)
+--,('158198','ANYELE RAYANE MACHADO MENEZES','anyele.menezes@telefonica.com','MG',null,null,'ATIVO',1)
+--,('158223','FRANCIELLI ALVES REZENDE','francielli.rezende@telefonica.com','MG',null,null,'ATIVO',1)
+--,('147421','EDUARDA DE CASTRO NEVES SANTOS','eduarda.santos@telefonica.com','MG',null,null,'ATIVO',1)
+--,('157597','FELIPE JARDIM DIAS','felipe.dias@telefonica.com','MG',null,null,'ATIVO',1)
+--,('40417219','VINICIUS GONCALVES SILVA','vinicius.silva@telefonica.com','MG',null,null,'ATIVO',1)
+--,('78283','MARCELO RUBENS SERAPIAO LEAL','marcelo.leal@telefonica.com','MG',null,null,'ATIVO',1)
+--,('161542','ODANE REIS LIMA DA SILVA','odane.silva@telefonica.com','MG',null,null,'ATIVO',1)
+--,('161345','POLLIANA RIBEIRO FERREIRA BRAZ','polliana.braz@telefonica.com','MG',null,null,'ATIVO',1)
+--,('51271','AMANDA CRISTINA DE MORAIS','amanda.cmorais@telefonica.com','MG',null,null,'ATIVO',1)
+--,('113422','ERIKA ROSIANE MOTA RIBEIRO','erika.ribeiro@telefonica.com','MG',null,null,'ATIVO',1)
+--,('157832','IORRANE MARIELE VIEIRA DE SOUZA','iorrane.souza@telefonica.com','MG',null,null,'ATIVO',1)
+--,('114966','JUCIELLY ALVES DA SILVA SANTOS','jucielly.santos@telefonica.com','MG',null,null,'ATIVO',1)
+--,('153711','ANA CAROLINA PEREIRA DE FREITAS','ana.cfreitas@telefonica.com','MG',null,null,'ATIVO',1)
+--,('112115','NUBIA CAMILA SANTOS AVILA','nubia.cavila@telefonica.com','MG',null,null,'ATIVO',1)
+--,('157077','CRISTIANE MARTINS PIRES','cristiane.pires@telefonica.com','MG',null,null,'ATIVO',1)
+--,('161707','JULIANO TONYDDAN GOMES','juliano.tgomes@telefonica.com','MG',null,null,'ATIVO',1)
+--,('153265','JEFERSON LEAL VIEIRA','jeferson.vieira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('63854','GESSICA FREITAS BONICONTRO','gessica.bonicontro@telefonica.com','MG',null,null,'ATIVO',1)
+--,('63854','GESSICA FREITAS BONICONTRO','gessica.bonicontro@telefonica.com','MG',null,null,'ATIVO',1)
+--,('120789','LEONIDAS JUNIOR OLIVEIRA MARQUES','leonidas.marques@telefonica.com','MG',null,null,'ATIVO',1)
+--,('162407','DANIEL CONRADO GOMES DE ARAUJO','daniel.caraujo@telefonica.com','MG',null,null,'ATIVO',1)
+--,('162093','MAIRA MALDONADO EVANGELISTA','maira.evangelista@telefonica.com','MG',null,null,'ATIVO',1)
+--,('151275','MATHEUS AUGUSTO DE DEUS','matheus.deus@telefonica.com','MG',null,null,'ATIVO',1)
+--,('162895','KETLEN MELINNY NAVES NASCIMENTO','ketlen.nascimento@telefonica.com','MG',null,null,'ATIVO',1)
+--,('162873','MATHEUS MENDES SALVADOR E FREITAS','matheus.freitas@telefonica.com','MG',null,null,'ATIVO',1)
+--,('162873','MATHEUS MENDES SALVADOR E FREITAS','matheus.freitas@telefonica.com','MG',null,null,'ATIVO',1)
+--,('127211','JOAO MARCOS SOUZA AMORIM','joao.amorim@telefonica.com','MG',null,null,'ATIVO',1)
+--,('154956','SAIMON DAVI SOARES FERREIRA','saimon.ferreira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('163196','LUCAS MARTINS DE OLIVEIRA','lucas.oliveira2@telefonica.com','MG',null,null,'ATIVO',1)
+--,('163223','JOHN ERICK LIMA DA SILVA','john.silvaerick@telefonica.com','MG',null,null,'ATIVO',1)
+--,('162683','TIAGO HELBERT GOMES','tiago.hgomes@telefonica.com','MG',null,null,'ATIVO',1)
+--,('146579','JEFFERSON DA SILVA ALVES RIBEIRO','jefferson.ribeiro@telefonica.com','MG',null,null,'ATIVO',1)
+--,('163303','MARIA NICOLI RODRIGUES DE FREITAS','maria.nfreitas@telefonica.com','MG',null,null,'ATIVO',1)
+--,('40417845','CAROLINA DA COSTA LUCAS','carolina.lucas@telefonica.com','MG',null,null,'ATIVO',1)
+--,('99420','HUGO FRANCO ARRUDA','hugo.arruda@telefonica.com','MG',null,null,'ATIVO',1)
+--,('148513','BRAIAN ARAUJO RIBEIRO','BRAIAN.RIBEIRO@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('96186','JOAO PAULO ALVES CAIXETA','joao.caixeta@telefonica.com','MG',null,null,'ATIVO',1)
+--,('96186','JOAO PAULO ALVES CAIXETA','joao.caixeta@telefonica.com','MG',null,null,'ATIVO',1)
+--,('94644','KARLA DANIELE PEREIRA','karla.pereira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('164295','WELITON CORREA DE MACEDO','weliton.macedo@telefonica.com','MG',null,null,'ATIVO',1)
+--,('50321','JUAN MARCEL SILVA VALADAO','juan.valadao@telefonica.com','MG',null,null,'ATIVO',1)
+--,('50321','JUAN MARCEL SILVA VALADAO','juan.valadao@telefonica.com','MG',null,null,'ATIVO',1)
+--,('162700','JOAO VICTOR GOMES FERREIRA','joaov.ferreira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('153092','GABRIEL LIMA MATA','gabriel.mata@telefonica.com','MG',null,null,'ATIVO',1)
+--,('165716','MARY JANE MARINHO MOREIRA','mary.moreira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('162551','ISABELA RIBEIRO LOPES','ISABELA.LOPES@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('89427','JOZAH SILVA ASSUNCAO','jozah.assuncao@telefonica.com','MG',null,null,'ATIVO',1)
+--,('98877','RAFAEL OLIVEIRA DE JESUS','rafael.ojesus@telefonica.com','MG',null,null,'ATIVO',1)
+--,('166195','FERNANDO MARTINS PATRICIO NETO','fernando.mneto@telefonica.com','MG',null,null,'ATIVO',1)
+--,('162394','LAURA ALVARENGA DIBAI MARX','laura.marx@telefonica.com','MG',null,null,'ATIVO',1)
+--,('38469','PAULA LIONELLA DE KASSIA CHAVES SOUZA','paula.souza @telefonica.com','MG',null,null,'ATIVO',1)
+--,('73969','BRYAN DIMITRY SILVESTRE BALBINO MONTARROYOS SIMOURA','bryan.simoura@telefonica.com','MG',null,null,'ATIVO',1)
+--,('87159','LAIZA DE PAULA DOMINGOS','laiza.domingos@telefonica.com','MG',null,null,'ATIVO',1)
+--,('90897','ANNE ELISE SOUZA LEMES','anne.lemes@telefonica.com','MG',null,null,'ATIVO',1)
+--,('120496','ROSALIA MARIA SILVA TROMBINI','rosalia.trombini@telefonica.com','MG',null,null,'ATIVO',1)
+--,('166699','TUANNY CAMILA FREITAS RODRIGUES','tuanny.rodrigues@telefonica.com','MG',null,null,'ATIVO',1)
+--,('166656','FERNANDA BARBOSA RODRIGUES DE OLIVEIRA','fernanda.boliveira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('166997','LUCAS FELIPE ARAUJO CASTRO','lucas.fcastro@telefonica.com','MG',null,null,'ATIVO',1)
+--,('74465','LEONARDO PORTELA DE ALVARENGA','leonardo.alvarenga@telefonica.com','MG',null,null,'ATIVO',1)
+--,('139169','THIAGO FERREIRA MARTINS ALVES','thiago.alves@telefonica.com','MG',null,null,'ATIVO',1)
+--,('167430','JORGE LUIZ CARDEAL MELO','jorge.lmelo@telefonica.com','MG',null,null,'ATIVO',1)
+--,('167297','LUCIANE BAHIA DAS NEVES ROCHA','luciane.rocha@telefonica.com','MG',null,null,'ATIVO',1)
+--,('166219','TIAGO CALVET PEREIRA','tiago.cpereira@telefonica.com','MG',null,null,'ATIVO',1)
+--,('166645','BERNARDO LUIZ GUIMARAES UMBELINO','bernardo.umbelino@telefonica.com','MG',null,null,'ATIVO',1)
+--,('167122','WESLEY GONZAGA OLIMPIO','wesley.olimpio@telefonica.com','MG',null,null,'ATIVO',1)
+--,('81753','LUCAS DA SILVA MUNIZ DOS SANTOS','LUCAS.SSANTOS@TELEFONICA.COM','MG',null,null,'ATIVO',1)
+--,('167792','GIOVANNA ALVES SOUZA','giovanna.souza@telefonica.com','MG',null,null,'ATIVO',1)
+
+
+--insert into ACESSO_PERMISSAO_MENU
+--select idAcesso,'GERENTE GERAL - LLPP','LOJA' from ACESSO 
+--WHERE Regional = 'MG'
+
+--update ACESSO_PERMISSAO_MENU
+---- Atualizando as matrículas selecionadas para perfil de suporte
+--SET DescricaoMenu = 'SUPORTE', TipoAcesso = 'ADMINISTRATIVO'
+--where idAcesso in (
+---- Buscando todos os operadores de minas
+--select A.IdAcesso from ACESSO A
+--LEFT JOIN (select * from DEMANDA_BD_OPERADORES where REGIONAL = 'MG') B ON A.Login = B.MATRICULA
+--)
+
+select * from PERFIL_PLATAFORMAS_VIVO
+
+--delete DEMANDA_TIPO_FILA
+--WHERE ID_TIPO_FILA IN (162
+--,163
+--,164
+--,165)
+
+select * from DEMANDA_SUB_FILA 

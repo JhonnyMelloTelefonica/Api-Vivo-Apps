@@ -1216,33 +1216,20 @@ namespace Vivo_Apps_API.Controllers
 
             try
             {
-
                 var demandaSubDemandas = Demanda_BD.DEMANDA_TIPO_FILA
                 .Where(d => d.REGIONAL == regional)
                 .Select(fila => new DEMANDA_TIPO_FILA_DTO
-
                 {
-
                     ID_TIPO_FILA = fila.ID_TIPO_FILA,
-
                     NOME_TIPO_FILA = fila.NOME_TIPO_FILA,
-
                     DEMANDA_SUB_FILAs = Demanda_BD.DEMANDA_SUB_FILA
-
                 .Where(subFila => subFila.ID_TIPO_FILA == fila.ID_TIPO_FILA)
-
                 .Select(subFila => new DEMANDA_SUB_FILA_DTO
-
                 {
-
                     ID_TIPO_FILA = subFila.ID_TIPO_FILA,
-
                     ID_SUB_FILA = subFila.ID_SUB_FILA,
-
                     NOME_SUB_FILA = subFila.NOME_SUB_FILA
-
                 }).ToList() // Cria uma lista de subfilas
-
                 });
 
                 return Ok(demandaSubDemandas);
@@ -1407,7 +1394,7 @@ namespace Vivo_Apps_API.Controllers
                     email = new SendEmailModel(emailsender.Select(x => x.EMAIL), null,
                                 $"Vivo X :: Controle de Demandas :: Sua demanda N {chamado_relacao.Sequence} foi encaminhada para outro analista", $"",
                                 $"Caro usuário,</p><br/><p>Sua demanda aberta no Vivo X (Módulo Controle de Demandas) sob o número <b>{chamado_relacao.Sequence}</b>" +
-                                $" foi encaminhada para {responsavel?.DISPLAY_NOME} em {DateTime.Now.Date.ToString("dd/MM/yyyy")} as {DateTime.Now.Hour}h.</p>" +
+                                $" foi encaminhada para {responsavel?.NOME_SOCIAL} em {DateTime.Now.Date.ToString("dd/MM/yyyy")} as {DateTime.Now.Hour}h.</p>" +
                                 $"<br/><p><b><u>Com a seguinte observação:</u></b></p><br/>" +
                                 $"{data.resposta}" +
                                 $"<p>Para maiores informações acessar chamado clicando <b><a href=\"http://brtdtbgs0090sl:8083/demandas/consultar/{retorno.ID_RELACAO}\">aqui<a/>.</b></p>" +
@@ -1975,9 +1962,9 @@ namespace Vivo_Apps_API.Controllers
                 var demandaCompleta = GetDemandaByID(demanda.ChamadoRelacao.ID);
 
                 SendEmailModel email = new SendEmailModel(new string[] { retorno.EMAIL }, null, $"Nova demanda N {demandaCompleta.Relacao.Sequence}",
-                $"Nova demanda aberta por {solicitante.DISPLAY_NOME}",
+                $"Nova demanda aberta por {solicitante.NOME_SOCIAL}",
                 $"Uma demanda demanda do tipo {demandaCompleta.Fila.ID_TIPO_FILANavigation.NOME_TIPO_FILA} e sub-fila {demandaCompleta.Fila.NOME_SUB_FILA} acaba de ser criada" +
-                $" com o responsável principal {retorno.DISPLAY_NOME}, o sla para esta fila é de {(demandaCompleta.Fila.SLA > 24 ? $"{(demandaCompleta.Fila.SLA / 24)} dias" : $"{demandaCompleta.Fila.SLA} horas")}.</p>" +
+                $" com o responsável principal {retorno.NOME_SOCIAL}, o sla para esta fila é de {(demandaCompleta.Fila.SLA > 24 ? $"{(demandaCompleta.Fila.SLA / 24)} dias" : $"{demandaCompleta.Fila.SLA} horas")}.</p>" +
                 $"<p>Acesse clicando <b><a href=\"http://brtdtbgs0090sl:8083/demandas/consultar/{demanda.ID_RELACAO}\">aqui<a/>.</b>", null,
                 new string[] { "ne_automacao.br@telefonica.com" });
 
@@ -2563,6 +2550,7 @@ namespace Vivo_Apps_API.Controllers
                     .Count();
 
                 int Concluído = 0;
+                int Concluído_geral = 0;
                 int Em_andamento = 0;
                 double Porc_Primeiro_SLA_24h = 0.0;
                 double Porc_Dentro_SLA = 0.0;
@@ -2570,23 +2558,30 @@ namespace Vivo_Apps_API.Controllers
                 int Aguardando_outra_área = 0;
                 int Em_Aberto = 0;
                 int Devolvido = 0;
+                int Aguardando_Solicitante = 0;
                 int DemandaPrioridade = 0;
+                int Sem_Retorno = 0;
+                int Chamado_Indevido = 0;
+
                 if (Total_de_Demandas > 0)
                 {
-                    var filterByConcluido = linqFiltered
-                         .Where(x => x.Relacao.LastStatus == STATUS_ACESSOS_PENDENTES.CONCLUIDO.Value);
+                    linqFiltered = linqFiltered
+                            .Include(x => x.Relacao)
+                            .Include(x => x.Fila);
+
+                    var filterByConcluido = linqFiltered.AsEnumerable()
+                         .Where(x => STATUS_ACESSOS_PENDENTES.IsFinalizado(x.Relacao.LastStatus));
 
                     Concluído = filterByConcluido.Count();
 
                     var list_Dentro_SLA = filterByConcluido
-                        .Select(x => new { lastdate = (x.Relacao.DATA_FINALIZACAO.HasValue ? x.Relacao.DATA_FINALIZACAO.Value : DateTime.Now), dt_abertura = x.Relacao.DATA_ABERTURA, sla = x.Fila.SLA })
-                        .AsEnumerable();
+                        .Select(x => new { lastdate = (x.Relacao.DATA_FINALIZACAO.HasValue ? x.Relacao.DATA_FINALIZACAO.Value : DateTime.Now), dt_abertura = x.Relacao.DATA_ABERTURA, sla = x.Fila.SLA });
 
                     Qtd_Dentro_SLA = list_Dentro_SLA.Where(x => DateHelpers.CalcularDiferencaDeTempo(x.dt_abertura, x.lastdate).TotalHours <= x.sla).Count();
                     int Qtd_Fora_SLA = Concluído - Qtd_Dentro_SLA;
 
-                    Em_andamento = linqFiltered
-                        .Where(x => x.Relacao.LastStatus != STATUS_ACESSOS_PENDENTES.CONCLUIDO.Value)
+                    Em_andamento = linqFiltered.AsEnumerable()
+                        .Where(x => !STATUS_ACESSOS_PENDENTES.IsFinalizado(x.Relacao.LastStatus))
                         .Count();
 
                     var list24Diferences = linqFiltered
@@ -2614,6 +2609,22 @@ namespace Vivo_Apps_API.Controllers
                         .Where(x => x.Relacao.LastStatus == STATUS_ACESSOS_PENDENTES.AGUARDANDO_ANALISTA.Value)
                         .Count();
 
+                    Aguardando_Solicitante = linqFiltered
+                        .Where(x => x.Relacao.LastStatus == STATUS_ACESSOS_PENDENTES.AGUARDANDO_RESPOSTA_SOLICITANTE.Value)
+                        .Count();
+
+                    Sem_Retorno = linqFiltered
+                        .Where(x => x.Relacao.LastStatus == STATUS_ACESSOS_PENDENTES.CONCLUIDO_SEM_RETORNO.Value)
+                        .Count();
+
+                    Concluído_geral = linqFiltered
+                        .Where(x => x.Relacao.LastStatus == STATUS_ACESSOS_PENDENTES.CONCLUIDO.Value)
+                        .Count();
+
+                    Chamado_Indevido = linqFiltered
+                        .Where(x => x.Relacao.LastStatus == STATUS_ACESSOS_PENDENTES.CONCLUIDO_INDEVIDO.Value)
+                        .Count();
+
                     DemandaPrioridade = linqFiltered
                         .Where(x => x.Relacao.PRIORIDADE)
                         .Count();
@@ -2638,7 +2649,11 @@ namespace Vivo_Apps_API.Controllers
                           Aguardando_outra_área,
                           Em_Aberto,
                           Devolvido,
-                          DemandaPrioridade
+                          DemandaPrioridade,
+                          Aguardando_Solicitante,
+                          Concluído_geral,
+                          Chamado_Indevido,
+                          Sem_Retorno
                       },
                       Succeeded = true,
                       Message = "Tudo Certo"
@@ -2815,15 +2830,15 @@ namespace Vivo_Apps_API.Controllers
 
                 var first20 = dataBeforeFilter
                     .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider)
-                    .ToList()
-                    .Where(x => STATUS_ACESSOS_PENDENTES.IsEmAndamento(x.LastStatus))
-                    .Where(x => x.SLA_TOTAL.HasValue && x.Tabela == Tabela_Demanda.ChamadoRelacao ? x.SLA_TOTAL.Value.TotalHours > x.ChamadoRelacao.Fila.SLA : x.SLA_TOTAL.Value.TotalHours > 48)
+                    .AsEnumerable()
+                    .Where(x => !STATUS_ACESSOS_PENDENTES.IsFinalizado(x.LastStatus))
+                    .Where(x => x.Tabela == Tabela_Demanda.ChamadoRelacao)
                     .Take(20);
 
-                var dataresp = dataBeforeFilter
-                    .Where(x => x.MATRICULA_SOLICITANTE == MATRICULA)
-                    .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider)
-                    .Take(20).ToList();
+                //var dataresp = dataBeforeFilter
+                //    .Where(x => x.MATRICULA_SOLICITANTE == MATRICULA)
+                //    .ProjectTo<DEMANDA_DTO>(_mapper.ConfigurationProvider)
+                //    .Take(20).ToList();
 
                 //data = dataresp.UnionBy(first20, x => x.ID_RELACAO)
                 data = first20

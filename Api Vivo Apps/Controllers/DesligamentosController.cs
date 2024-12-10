@@ -170,9 +170,9 @@ namespace Vivo_Apps_API.Controllers
                     .First();
 
                 SendEmailModel email = new SendEmailModel(new string[] { retorno.EMAIL, solicitante.EMAIL }, null, $"Nova solicitação de acesso N {demandaCompleta.Sequence}",
-                    $"Nova solicitação de acesso do tipo Desligamento foi aberta por {solicitante.DISPLAY_NOME}",
+                    $"Nova solicitação de acesso do tipo Desligamento foi aberta por {solicitante.NOME_SOCIAL}",
                     $"Uma solicitação para o time de acessos do tipo desligamento acaba de ser criada" +
-                    $"com o responsável principal {retorno.DISPLAY_NOME}, por favor aguarde o retorno do time de acessos.", null,
+                    $"com o responsável principal {retorno.NOME_SOCIAL}, por favor aguarde o retorno do time de acessos.", null,
                     new string[] { "ne_automacao.br@telefonica.com", "ne_acesso.br@telefonica.com" });
 
                 Task.Run(() => _service.SendEmail(email));

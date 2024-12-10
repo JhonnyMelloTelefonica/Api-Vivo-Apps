@@ -60,14 +60,9 @@ namespace Vivo_Apps_API.Controllers
                 )
                 .ForMember(dest => dest.CONFIRMSENHA,
                     opt => opt.MapFrom(k => k.SENHA)
-                );
-
-                cfg.CreateMap<ACESSOS_MOBILE_PENDENTE, SOLICITAR_USUARIO_MODEL>()
-                .ForMember(dest => dest.STATUS,
-                    opt => opt.MapFrom(k => k.STATUS == "FINALIZADO" ? false : true)
                 )
-                .ForMember(dest => dest.CONFIRMSENHA,
-                    opt => opt.MapFrom(k => k.SENHA)
+                .ForMember(dest => dest.NOME_SOCIAL,
+                    opt => opt.MapFrom(k => k.NOME_SOCIAL)
                 );
 
                 cfg.CreateMap<ACESSOS_MOBILE, SOLICITAR_USUARIO_MODEL>()
@@ -440,100 +435,115 @@ namespace Vivo_Apps_API.Controllers
         [HttpPost("GetUsuarios")]
         public JsonResult GetUsuarios([FromBody] PaginationControleAcessoModel filter)
         {
-            var pagedData = CD.ACESSOS_MOBILEs.AsQueryable();
+            try
+            {
 
-            if (filter.IsSuporte == false)
-            {
-                var listaOperadores = CD.DEMANDA_BD_OPERADOREs.Select(x => x.MATRICULA);
-                var listaMatricula = CD.ACESSOS_MOBILEs.Where(x => listaOperadores.Contains(x.MATRICULA)).Select(x => x.MATRICULA);
+                var pagedData = CD.ACESSOS_MOBILEs.AsQueryable();
 
-                // Busca as matriculas que não são operadores
-                pagedData = pagedData.Where(x => !listaMatricula.Contains(x.MATRICULA));
+                if (filter.IsSuporte == false)
+                {
+                    var listaOperadores = CD.DEMANDA_BD_OPERADOREs.Select(x => x.MATRICULA);
+                    var listaMatricula = CD.ACESSOS_MOBILEs.Where(x => listaOperadores.Contains(x.MATRICULA)).Select(x => x.MATRICULA);
+
+                    // Busca as matriculas que não são operadores
+                    pagedData = pagedData.Where(x => !listaMatricula.Contains(x.MATRICULA));
+                }
+
+                if (filter.Uf.Count() > 0)
+                {
+                    pagedData = pagedData.Where(x => filter.Uf.Contains(x.UF));
+                }
+                if (filter.Cargo.Count() > 0)
+                {
+                    pagedData = pagedData.Where(x => filter.Cargo.Contains((double)x.CARGO));
+                }
+                if (filter.Canal.Count() > 0)
+                {
+                    pagedData = pagedData.Where(x => filter.Canal.Contains((double)x.CANAL));
+                }
+                if (filter.Regional.Count() > 0)
+                {
+                    pagedData = pagedData.Where(x => filter.Regional.Contains(x.REGIONAL));
+                }
+                if (filter.Fixa.Count() > 0)
+                {
+                    pagedData = pagedData.Where(x => filter.Fixa.Contains(x.FIXA.Value));
+                }
+                if (!string.IsNullOrEmpty(filter.Nome))
+                {
+                    pagedData = pagedData.Where(x => x.NOME.ToLower().Contains(filter.Nome.ToLower()));
+                }
+                if (filter.MatriculaDivisao != null && filter.MatriculaDivisao.Any())
+                //if (!string.IsNullOrEmpty(filter.MatriculaDivisao))
+                {
+                    pagedData = pagedData.Where(x =>
+                        CD.JORNADA_BD_CARTEIRA_DIVISAOs
+                            .Where(y => y.DIVISAO != null)
+                            //.Where(y => y.DIVISAO.Value.ToString() == filter.MatriculaDivisao)
+                            .Where(y => filter.MatriculaDivisao.Contains(y.DIVISAO.Value.ToString()))
+                            .Select(y => y.Vendedor).Contains(x.PDV)
+                        );
+                }
+                if (filter.Matricula is not null)
+                {
+                    pagedData = pagedData.Where(x => x.MATRICULA == filter.Matricula);
+                }
+                if (!string.IsNullOrEmpty(filter.Pdv))
+                {
+                    pagedData = pagedData.Where(x => x.PDV.ToLower().Contains(filter.Pdv.ToLower()));
+                }
+                if (!string.IsNullOrEmpty(filter.email))
+                {
+                    pagedData = pagedData.Where(x => x.EMAIL.ToLower().Contains(filter.email.ToLower()));
+                }
+
+                var Data = pagedData.OrderBy(x => x.ID)
+                        .Skip((filter.PageNumber - 1) * filter.PageSize)
+                        .Take(filter.PageSize);
+
+                var totalRecords = pagedData.Count();
+                var totalPages = ((double)totalRecords / (double)filter.PageSize);
+
+                var DataFinal = Data.ProjectTo<SOLICITAR_USUARIO_MODEL>(_mapper.ConfigurationProvider);
+                //var DataFinal = Data.Select(x => new SOLICITAR_USUARIO_MODEL
+                //{
+                //    ID = x.ID,
+                //    EMAIL = x.EMAIL,
+                //    MATRICULA = x.MATRICULA.Value,
+                //    SENHA = x.SENHA,
+                //    REGIONAL = x.REGIONAL,
+                //    CARGO = x.CARGO,
+                //    CANAL = x.CANAL,
+                //    PDV = x.PDV,
+                //    DDD = x.DDD.HasValue ? x.DDD.Value : 0,
+                //    CONFIRMSENHA = x.SENHA,
+                //    CPF = x.CPF,
+                //    NOME = x.NOME,
+                //    UF = x.UF,
+                //    STATUS = x.STATUS,
+                //    FIXA = x.FIXA.Value,
+                //    TP_AFASTAMENTO = x.TP_AFASTAMENTO,
+                //    OBS = x.OBS,
+                //    UserAvatar = x.UserAvatar,
+                //    LOGIN_MOD = x.LOGIN_MOD,
+                //    DT_MOD = x.DT_MOD,
+                //    ELEGIVEL = x.ELEGIVEL == null ? false : x.ELEGIVEL.Value,
+                //    Perfil = CD.PERFIL_USUARIOs.Where(k => k.MATRICULA == x.MATRICULA).Select(x => x.id_Perfil.Value).ToList()
+                //});
+
+                return new JsonResult(PagedResponse.CreatePagedReponse<SOLICITAR_USUARIO_MODEL>(DataFinal, filter, totalRecords));
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = ex.Message,
+                    Succeeded = false,
+                    Errors = [ex.Message, ex.InnerException.Message],
+                    Message = ex.Message,
+                });
             }
 
-            if (filter.Uf.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.Uf.Contains(x.UF));
-            }
-            if (filter.Cargo.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.Cargo.Contains((double)x.CARGO));
-            }
-            if (filter.Canal.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.Canal.Contains((double)x.CANAL));
-            }
-            if (filter.Regional.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.Regional.Contains(x.REGIONAL));
-            }
-            if (filter.Fixa.Count() > 0)
-            {
-                pagedData = pagedData.Where(x => filter.Fixa.Contains(x.FIXA.Value));
-            }
-            if (!string.IsNullOrEmpty(filter.Nome))
-            {
-                pagedData = pagedData.Where(x => x.NOME.ToLower().Contains(filter.Nome.ToLower()));
-            }
-            if (filter.MatriculaDivisao != null && filter.MatriculaDivisao.Any())
-            //if (!string.IsNullOrEmpty(filter.MatriculaDivisao))
-            {
-                pagedData = pagedData.Where(x =>
-                    CD.JORNADA_BD_CARTEIRA_DIVISAOs
-                        .Where(y => y.DIVISAO != null)
-                        //.Where(y => y.DIVISAO.Value.ToString() == filter.MatriculaDivisao)
-                        .Where(y => filter.MatriculaDivisao.Contains(y.DIVISAO.Value.ToString()))
-                        .Select(y => y.Vendedor).Contains(x.PDV)
-                    );
-            }
-            if (filter.Matricula is not null)
-            {
-                pagedData = pagedData.Where(x => x.MATRICULA == filter.Matricula);
-            }
-            if (!string.IsNullOrEmpty(filter.Pdv))
-            {
-                pagedData = pagedData.Where(x => x.PDV.ToLower().Contains(filter.Pdv.ToLower()));
-            }
-            if (!string.IsNullOrEmpty(filter.email))
-            {
-                pagedData = pagedData.Where(x => x.EMAIL.ToLower().Contains(filter.email.ToLower()));
-            }
-
-            var Data = pagedData.OrderBy(x => x.ID)
-                    .Skip((filter.PageNumber - 1) * filter.PageSize)
-                    .Take(filter.PageSize);
-
-            var totalRecords = pagedData.Count();
-            var totalPages = ((double)totalRecords / (double)filter.PageSize);
-
-            var DataFinal = Data.ProjectTo<SOLICITAR_USUARIO_MODEL>(_mapper.ConfigurationProvider);
-            //var DataFinal = Data.Select(x => new SOLICITAR_USUARIO_MODEL
-            //{
-            //    ID = x.ID,
-            //    EMAIL = x.EMAIL,
-            //    MATRICULA = x.MATRICULA.Value,
-            //    SENHA = x.SENHA,
-            //    REGIONAL = x.REGIONAL,
-            //    CARGO = x.CARGO,
-            //    CANAL = x.CANAL,
-            //    PDV = x.PDV,
-            //    DDD = x.DDD.HasValue ? x.DDD.Value : 0,
-            //    CONFIRMSENHA = x.SENHA,
-            //    CPF = x.CPF,
-            //    NOME = x.NOME,
-            //    UF = x.UF,
-            //    STATUS = x.STATUS,
-            //    FIXA = x.FIXA.Value,
-            //    TP_AFASTAMENTO = x.TP_AFASTAMENTO,
-            //    OBS = x.OBS,
-            //    UserAvatar = x.UserAvatar,
-            //    LOGIN_MOD = x.LOGIN_MOD,
-            //    DT_MOD = x.DT_MOD,
-            //    ELEGIVEL = x.ELEGIVEL == null ? false : x.ELEGIVEL.Value,
-            //    Perfil = CD.PERFIL_USUARIOs.Where(k => k.MATRICULA == x.MATRICULA).Select(x => x.id_Perfil.Value).ToList()
-            //});
-
-            return new JsonResult(PagedResponse.CreatePagedReponse<SOLICITAR_USUARIO_MODEL>(DataFinal, filter, totalRecords));
         }
 
         /// <summary>
@@ -579,6 +589,7 @@ namespace Vivo_Apps_API.Controllers
                     CARGO = usuario.CARGO,
                     CANAL = usuario.CANAL.Value,
                     NOME = usuario.NOME,
+                    NOME_SOCIAL = usuario.NOME_SOCIAL,
                     UF = usuario.UF,
                     TELEFONE = usuario.TELEFONE,
                     CPF = usuario.CPF,
@@ -680,6 +691,7 @@ namespace Vivo_Apps_API.Controllers
                     CARGO = usuario.CARGO,
                     CANAL = (int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO)),
                     NOME = usuario.NOME,
+                    NOME_SOCIAL = usuario.NOME_SOCIAL,
                     UF = usuario.UF,
                     CPF = usuario.CPF,
                     PDV = usuario.PDV,
@@ -849,6 +861,7 @@ namespace Vivo_Apps_API.Controllers
                     user.PDV = usuario.PDV;
                     user.CPF = usuario.CPF;
                     user.NOME = usuario.NOME;
+                    user.NOME_SOCIAL = usuario.NOME_SOCIAL;
                     user.UF = usuario.UF;
                     user.DDD = usuario.DDD;
                     user.TELEFONE = usuario.TELEFONE;
@@ -926,6 +939,7 @@ namespace Vivo_Apps_API.Controllers
                     CARGO = user.CARGO,
                     CANAL = user.CANAL,
                     NOME = user.NOME,
+                    NOME_SOCIAL = user.NOME_SOCIAL,
                     UF = user.UF,
                     APROVACAO = true,
                     FIXA = user.FIXA,
@@ -998,6 +1012,7 @@ namespace Vivo_Apps_API.Controllers
                     CARGO = user.CARGO,
                     CANAL = user.CANAL,
                     NOME = user.NOME,
+                    NOME_SOCIAL = user.NOME_SOCIAL,
                     UF = user.UF,
                     TELEFONE = user.TELEFONE,
                     APROVACAO = true,
@@ -1150,9 +1165,9 @@ namespace Vivo_Apps_API.Controllers
 
                 return new JsonResult(new Response<string>
                 {
-                    Data = "matrícula válida!",
+                    Data = "Matrícula válida!",
                     Succeeded = true,
-                    Message = "matrícula válida!"
+                    Message = "Matrícula válida!"
                 });
             }
             catch (Exception ex)
@@ -1185,7 +1200,7 @@ namespace Vivo_Apps_API.Controllers
                 {
                     Data = perfilbycargo,
                     Succeeded = true,
-                    Message = "matrícula válida!"
+                    Message = "Matrícula válida!"
                 });
             }
             catch (Exception ex)
@@ -1223,16 +1238,16 @@ namespace Vivo_Apps_API.Controllers
                 var perfilbycargo = CD.PERFIL_PLATAFORMAS_VIVOs
                  .AsEnumerable()
                  .Where(x => x.CARGO != null)
-                 .SelectMany(p => p.CARGO.Split(';'), (p, CargoId) => new { CargoId = CargoId, Perfil = p.Perfil, IdPerfil = p.ID_PERFIL})
+                 .SelectMany(p => p.CARGO.Split(';'), (p, CargoId) => new { CargoId = CargoId, Perfil = p.Perfil, IdPerfil = p.ID_PERFIL })
                  .GroupBy(x => x.IdPerfil)
                  .Select(g => new
                  {
                      //UsuarioId = (Cargos)int.Parse(g.Key),
                      IdPerfil = g.Key,
                      NomePerfil = g.Select(x => x.Perfil).ToList().FirstOrDefault(),
-                     cargos = g.Select(x=> x.CargoId) ?? []
+                     cargos = g.Select(x => x.CargoId) ?? []
                  }).ToList();
-               
+
 
                 //{
                 //                  "Perfilid": 11,
@@ -1268,10 +1283,7 @@ namespace Vivo_Apps_API.Controllers
                 return BadRequest(ex);
             }
         }
-
-
         // VALIDAÇÕES //
-
         private string CryptSenha(string senha)
         {
             var md5 = System.Security.Cryptography.MD5.Create();
@@ -1303,6 +1315,7 @@ namespace Vivo_Apps_API.Controllers
                     CARGO = usuario.CARGO,
                     CANAL = (int)DePara.CanalCargoEnum((Cargos)usuario.CARGO),
                     NOME = usuario.NOME,
+                    NOME_SOCIAL = usuario.NOME_SOCIAL,
                     UF = usuario.UF,
                     CPF = usuario.CPF,
                     PDV = usuario.PDV,
@@ -1461,6 +1474,7 @@ namespace Vivo_Apps_API.Controllers
                     CARGO = (int)usuario.SOLICITACAO.DADOS_SOLICITACAO.CARGO,
                     CANAL = (int)DePara.CanalCargoEnum((Cargos)usuario.SOLICITACAO.DADOS_SOLICITACAO.CARGO),
                     NOME = usuario.SOLICITACAO.DADOS_SOLICITACAO.NOME,
+                    NOME_SOCIAL = usuario.SOLICITACAO.DADOS_SOLICITACAO.NOME_SOCIAL,
                     UF = usuario.SOLICITACAO.DADOS_SOLICITACAO.UF,
                     CPF = usuario.SOLICITACAO.DADOS_SOLICITACAO.CPF,
                     DDD = usuario.SOLICITACAO.DADOS_SOLICITACAO.DDD,
@@ -1543,6 +1557,7 @@ namespace Vivo_Apps_API.Controllers
                 acesso.CARGO = (int)usuario.SOLICITACAO.DADOS_SOLICITACAO.CARGO;
                 acesso.CANAL = (int)DePara.CanalCargoEnum((Cargos)usuario.SOLICITACAO.DADOS_SOLICITACAO.CARGO);
                 acesso.NOME = usuario.SOLICITACAO.DADOS_SOLICITACAO.NOME;
+                acesso.NOME_SOCIAL = usuario.SOLICITACAO.DADOS_SOLICITACAO.NOME_SOCIAL;
                 acesso.DDD = usuario.SOLICITACAO.DADOS_SOLICITACAO.DDD;
                 acesso.UF = usuario.SOLICITACAO.DADOS_SOLICITACAO.UF;
                 acesso.CPF = usuario.SOLICITACAO.DADOS_SOLICITACAO.CPF;
@@ -1623,6 +1638,7 @@ namespace Vivo_Apps_API.Controllers
                 acesso.CARGO = (int)usuario.SOLICITACAO.DADOS_SOLICITACAO.CARGO;
                 acesso.CANAL = (int)DePara.CanalCargoEnum((Cargos)usuario.SOLICITACAO.DADOS_SOLICITACAO.CARGO);
                 acesso.NOME = usuario.SOLICITACAO.DADOS_SOLICITACAO.NOME;
+                acesso.NOME_SOCIAL = usuario.SOLICITACAO.DADOS_SOLICITACAO.NOME_SOCIAL;
                 acesso.DDD = usuario.SOLICITACAO.DADOS_SOLICITACAO.DDD;
                 acesso.UF = usuario.SOLICITACAO.DADOS_SOLICITACAO.UF;
                 acesso.CPF = usuario.SOLICITACAO.DADOS_SOLICITACAO.CPF;
@@ -1723,6 +1739,7 @@ namespace Vivo_Apps_API.Controllers
                         CARGO = usuario.CARGO,
                         CANAL = (int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO)),
                         NOME = usuario.NOME,
+                        NOME_SOCIAL = usuario.NOME_SOCIAL,
                         UF = usuario.UF,
                         CPF = usuario.CPF,
                         PDV = usuario.PDV,
@@ -1815,6 +1832,7 @@ namespace Vivo_Apps_API.Controllers
                             CARGO = usuario.CARGO,
                             CANAL = (int)DePara.CanalCargoEnum((Cargos)Convert.ToInt32(usuario.CARGO)),
                             NOME = usuario.NOME,
+                            NOME_SOCIAL = usuario.NOME_SOCIAL,
                             UF = usuario.UF,
                             CPF = usuario.CPF,
                             PDV = usuario.PDV,
@@ -2216,7 +2234,6 @@ namespace Vivo_Apps_API.Controllers
                 perfis_usuario = CD.PERFIL_PLATAFORMAS_VIVOs.Where(x => idperfis.Contains(x.ID_PERFIL));
             }
             var acesso2 = _mapper.Map<SOLICITAR_USUARIO_MODEL>(acesso_pendente);
-
             return new DETALHADO_ACESSO_PENDENTE_MODEL
             {
                 RESPOSTAS = respostas,
@@ -2226,7 +2243,6 @@ namespace Vivo_Apps_API.Controllers
                 acesso_pendente?.APROVACAO,
                 acesso_pendente?.TIPO,
                 acesso_pendente?.STATUS,
-
                 CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso_pendente.LOGIN_SOLICITANTE),
                 (acesso_pendente.LOGIN_RESPONSAVEL.HasValue ? CD.ACESSOS_MOBILEs.FirstOrDefault(x => x.MATRICULA == acesso_pendente.LOGIN_RESPONSAVEL) : null),
                 acesso_pendente.DT_SOLICITACAO.Value,

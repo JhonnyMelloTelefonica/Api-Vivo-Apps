@@ -980,6 +980,40 @@ namespace Vivo_Apps_API.Controllers
             }
         }
 
+
+        [HttpGet("GetCargosPDV")]
+        [ProducesResponseType(typeof(Response<IEnumerable<Cargos>>), 200)]
+        [ProducesResponseType(typeof(Response<string>), 500)]
+        public JsonResult GetCargosPDV()
+        {
+            try
+            {
+                var questions = CD.JORNADA_BD_CARGOS_CANALs.Where(x => x.USER_PDV == true).Select(x => (Cargos)x.ID);
+                Console.WriteLine(questions);
+                return new JsonResult(new Response<IEnumerable<Cargos>>
+                {
+                    Data = questions,
+                    Succeeded = true,
+                    Message = "Tudo certo!",
+                    Errors = null,
+                });
+            }
+            catch (Exception ex)
+            {
+                return new JsonResult(new Response<string>
+                {
+                    Data = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Succeeded = false,
+                    Message = "Recebemos a solicitação da ação mas não conseguimos executa-lá",
+                    Errors = new string[]
+                    {
+                        ex.Message,
+                        ex.StackTrace
+                    },
+                });
+            }
+        }
+
         [HttpPost("GetForm")]
         [ProducesResponseType(typeof(Response<List<QUESTIONS>>), 200)]
         public JsonResult GetForm(int ID_PROVA)

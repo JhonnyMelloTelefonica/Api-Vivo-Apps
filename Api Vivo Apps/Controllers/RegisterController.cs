@@ -51,33 +51,29 @@ namespace Vivo_Apps_API.Controllers
         {
             try
             {
-                var UltimaSolicitacao = CD.ACESSOS_MOBILE_PENDENTEs
-                    .Where(x => x.MATRICULA == matricula).OrderByDescending(x => x.ID).FirstOrDefault();
+                var UltimaSolicitacao = CD.ACESSOS_MOBILE_PENDENTEs.Where(x => x.MATRICULA == matricula)
+                .ToList()
+                .Where(x=> x.TIPO != TIPO_ACESSOS_PENDENTES.ALTERACAO.Value
+                //Necessário que a solicitação não seja do tipo ALTERAÇÃO
+                && !STATUS_ACESSOS_PENDENTES.IsFinalizado(x.STATUS))
+                /* 
+                 * Verifica se possui o último status é finalizado ou reprovado ou aprovado,
+                 * caso a ultima solicitação não tenha nenhum destes status significa que ainda está em andamento
+                 */
+                .LastOrDefault();
                 // Busco a última solicitação para esta matrícula
 
-                if (UltimaSolicitacao is not null && UltimaSolicitacao.TIPO != "ALTERAÇÃO")
+                if (UltimaSolicitacao is not null)
                 {
-                    var solicitacaoAndamento = (string.Equals(UltimaSolicitacao.STATUS, STATUS_ACESSOS_PENDENTES.REPROVADO.Value)
-                                                || string.Equals(UltimaSolicitacao.STATUS, STATUS_ACESSOS_PENDENTES.CANCELADO.Value)
-                                                || string.Equals(UltimaSolicitacao.STATUS, STATUS_ACESSOS_PENDENTES.CONCLUIDO.Value));
-                    // verifico se possui o último status é finalizado ou reprovado ou aprovado,
-                    // caso não seja nenhum dos 2 siginifica que ainda está em andamento
 
-                    if (!solicitacaoAndamento ) 
-                        //Caso a ultima solicitação não tenha nenhum destes status 
-                        //significa que ainda está em andamento
+                    return new JsonResult(new Response<ACESSOS_MOBILE_PENDENTE?>
                     {
-                        var user = CD.ACESSOS_MOBILE_PENDENTEs.Where(x => x.MATRICULA == matricula).First();
-
-                        return new JsonResult(new Response<ACESSOS_MOBILE_PENDENTE?>
-                        {
-                            // ele retorna um aviso que já existe uma solicitação em andamento
-                            Data = user,
-                            Succeeded = true,
-                            Message = "solicitação em andamento, aguarde o retorno do responsável",
-                            Errors = new string[] { "Matrícula existente!" },
-                        });
-                    }
+                        // ele retorna um aviso que já existe uma solicitação em andamento
+                        Data = UltimaSolicitacao,
+                        Succeeded = true,
+                        Message = "Existe uma solicitação em andamento com sua matrícula, aguarde o retorno da área responsável",
+                        Errors = new string[] { "Matrícula existente!" },
+                    });
                 }
 
                 return new JsonResult(new Response<ACESSOS_MOBILE_PENDENTE?>
@@ -98,7 +94,7 @@ namespace Vivo_Apps_API.Controllers
                     {
                         ex.Message,
                         ex.StackTrace
-                    },
+    },
                 });
             }
         }
