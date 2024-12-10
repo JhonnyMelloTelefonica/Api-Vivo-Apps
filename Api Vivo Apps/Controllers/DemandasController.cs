@@ -1047,7 +1047,20 @@ namespace Vivo_Apps_API.Controllers
                         parcial_result = parcial_result.Where(x => SubFilas.Contains(x.ID_SUB_FILA.Value));
                     }
                 }
-            
+
+
+                //if (status!= null && status.Any())
+                //{
+                //   parcial_result = parcial_result
+                //        .Where(x => status.Contains(x.ID_SUB_FILANavigation.STATUS_SUB_FILA));
+                //}
+
+
+                if (status != null && status.Any())
+                {
+                    var parcial_result_status = parcial_result
+                         .Where(x => status.Contains(x.ID_SUB_FILANavigation.STATUS_SUB_FILA));
+                }
 
                 var list_matriculas = parcial_result
                             .Select(x => x.MATRICULA_RESPONSAVEL)
