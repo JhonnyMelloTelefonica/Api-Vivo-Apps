@@ -1768,6 +1768,10 @@ namespace Vivo_Apps_API.Controllers
                 });
 
                 Demanda_BD.SaveChanges();
+                var retorno_relacao = Demanda_BD.DEMANDA_RELACAO_CHAMADO.Find(data.ID_RELACAO);
+                retorno_relacao.DATA_ULTIMA_INTERACAO = DateTime.Now;
+                Demanda_BD.SaveChanges();
+
                 await _cache.EvictByTagAsync("AllDemandas", default);
                 await _hubContext.SendTableDemandas();
                 object demanda;

@@ -1117,6 +1117,7 @@ WITH Palavras AS (
     WHERE 
         value NOT IN ('da', 'de', 'do', 'das', 'dos', 'e', 'a', 'o', 'as', 'os')
 ),
+
 PalavrasValidas AS (
     SELECT 
         NOME,
@@ -1797,3 +1798,14 @@ select * from PERFIL_PLATAFORMAS_VIVO
 --,165)
 
 select * from DEMANDA_SUB_FILA 
+
+select * from ACESSOS_MOBILE WHERE NOME LIKE 'kenya%'
+select * from PERFIL_USUARIO WHERE MATRICULA = 155741
+select * from Demandas.DEMANDA_RELACAO_CHAMADO where Sequence = 228
+select * from DEMANDA_BD_OPERADORES
+--insert into DEMANDA_BD_OPERADORES
+--values (168024,'NE',1,'2024-12-11 18:55:47.580', 151191)
+
+select * from ACESSOS_MOBILE_PENDENTE
+
+select * from Demandas.DEMANDA_RELACAO_CHAMADO WHERE MATRICULA_SOLICITANTE = 44374
