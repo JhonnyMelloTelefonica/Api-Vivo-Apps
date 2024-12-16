@@ -749,7 +749,6 @@ namespace Vivo_Apps_API.Controllers
                 i++;
             }
         }
-
         private Task AddNewTreinamentoHistory(DEMANDA_RELACAO_TREINAMENTO_FINALIZADO item, string mensagem, int matricularesp, out bool valid, Guid? id = null)
         {
             valid = true;
@@ -830,7 +829,6 @@ namespace Vivo_Apps_API.Controllers
             return Task.CompletedTask;
 
         }
-
         private Task ExecuteChangeMatriculaTerceiro(Guid id, int newmatricula, int matricula_resp, string mensagem, out DEMANDA_ACESSOS? demanda)
         {
             var demanda_relacao = DB.DEMANDA_RELACAO_CHAMADO.Find(id);

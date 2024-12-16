@@ -1769,8 +1769,11 @@ namespace Vivo_Apps_API.Controllers
 
                 Demanda_BD.SaveChanges();
                 var retorno_relacao = Demanda_BD.DEMANDA_RELACAO_CHAMADO.Find(data.ID_RELACAO);
-                retorno_relacao.DATA_ULTIMA_INTERACAO = DateTime.Now;
-                Demanda_BD.SaveChanges();
+                if (data.MATRICULA != retorno_relacao.MATRICULA_SOLICITANTE)
+                {
+                    retorno_relacao.DATA_ULTIMA_INTERACAO = DateTime.Now;
+                    Demanda_BD.SaveChanges();
+                }
 
                 await _cache.EvictByTagAsync("AllDemandas", default);
                 await _hubContext.SendTableDemandas();
@@ -3042,6 +3045,10 @@ namespace Vivo_Apps_API.Controllers
             => Demanda_BD.DEMANDA_ACESSOS
                     .Include(x => x.Responsavel)
                     .Include(x => x.Solicitante)
+                    .Include(x => x.Relacao)
+                            .ThenInclude(x => x.Responsavel)
+                    .Include(x => x.Relacao)
+                            .ThenInclude(x => x.Solicitante)
                     .Include(x => x.Relacao)
                         .ThenInclude(x => x.Respostas)
                             .ThenInclude(x => x.Responsavel)
