@@ -395,7 +395,7 @@ namespace Vivo_Apps_API.Controllers
                     string modifiedString = string.Join("/", new string(filteredString.Take(3).ToArray()), new string(filteredString.Skip(3).ToArray()));
 
                     xlWorkSheet.Cells[i, 13] = modifiedString.ToUpper();
-                    xlWorkSheet.Cells[i, 14] = item.DataNascimento;                     //3
+                    xlWorkSheet.Cells[i, 14] = item.DataNascimento.Value.ToString("yyyyMMdd", CultureInfo.InvariantCulture);                     //3
                     xlWorkSheet.Cells[i, 15] = "BR Brasileiro";                         //5
                     xlWorkSheet.Cells[i, 16] = item.Telefone;     // COLUNA   AM
                     xlWorkSheet.Cells[i, 18] = "2 Ens Méd/Profissional";
@@ -433,22 +433,22 @@ namespace Vivo_Apps_API.Controllers
                     }
                     else
                     {
-                        xlWorkSheet.Cells[i, 25] = "10017038";
-                        xlWorkSheet.Cells[i, 26] = "10017038";
+                        xlWorkSheet.Cells[i, 25] = "10010406";
+                        xlWorkSheet.Cells[i, 26] = "10010406"; 
                     }
                     xlWorkSheet.Cells[i, 27] = matricula.ToString();
                     xlWorkSheet.Cells[i, 29] = item.DataContratoInicio.Value.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
                     xlWorkSheet.Cells[i, 30] = item.DataContratoInicio.Value.AddYears(2).ToString("yyyyMMdd", CultureInfo.InvariantCulture);
                     xlWorkSheet.Cells[i, 31] = "A Ativo";
-                    xlWorkSheet.Cells[i, 32] = "";
-                    xlWorkSheet.Cells[i, 33] = "80000064    SERVIÇOS - VENDAS";
+                    xlWorkSheet.Cells[i, 32] = item.Funcao?.GetDisplayName();
+                    xlWorkSheet.Cells[i, 33] = "80000064  SERVIÇOS - VENDAS";
                     xlWorkSheet.Cells[i, 34] = "TBRA";
                     xlWorkSheet.Cells[i, 35] = "T-" + item.Estado?.GetDisplayName();
-                    xlWorkSheet.Cells[i, 36] = item.Estado.Value.GetDisplayName();
+                    xlWorkSheet.Cells[i, 36] = DePara.EstadoSubArea(item.Estado.Value.GetDisplayName()); //Sub-area
                     xlWorkSheet.Cells[i, 37] = item.Cidade.ToUpper();
-                    xlWorkSheet.Cells[i, 38] = "";
-                    xlWorkSheet.Cells[i, 39] = "";      // COLUNA AL
-                    xlWorkSheet.Cells[i, 40] = "";     // COLUNA   AM
+                    xlWorkSheet.Cells[i, 38] = item.Estado.Value.GetDisplayName();
+                    xlWorkSheet.Cells[i, 39] = ""; // COLUNA AL
+                    xlWorkSheet.Cells[i, 40] = ""; // COLUNA   AM
                     xlWorkSheet.Cells[i, 41] = "1 Sim";
                     xlWorkSheet.Cells[i, 42] = "2 Não";
                     xlWorkSheet.Cells[i, 43] = "";    // COLUNA   AP

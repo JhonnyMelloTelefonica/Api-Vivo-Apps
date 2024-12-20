@@ -892,7 +892,10 @@ namespace Vivo_Apps_API.Controllers
             try
             {
                 var fila = Demanda_BD.DEMANDA_SUB_FILA.Where(x => x.ID_SUB_FILA == id)
-                        .ProjectTo<DEMANDA_SUB_FILA_DTO>(_mapper.ConfigurationProvider).FirstOrDefault();
+                        .ProjectTo<DEMANDA_SUB_FILA_DTO>(_mapper.ConfigurationProvider)
+                        .FirstOrDefault();
+
+
 
                 var options = new JsonSerializerOptions
                 {
@@ -1184,11 +1187,11 @@ namespace Vivo_Apps_API.Controllers
         [HttpGet("GetDadosFilaByID")]
         [ProducesResponseType(typeof(Response<object>), 200)]
         [ProducesResponseType(typeof(Response<string>), 500)]
-        public JsonResult GetDadosFilaByID(int id_fila)
+        public JsonResult GetDadosFilaByID(int id_fila, string regional)
         {
             try
             {
-                var Carteira = CD.Carteira_NEs.Where(x => x.ANOMES == CD.Carteira_NEs.Max(y => y.ANOMES));
+                var Carteira = CD.JORNADA_BD_HIERARQUIAs.Where(x => x.REGIONAL == regional);
                 var Sap = CD.CNS_BASE_TERCEIROS_SAP_GTs.AsQueryable();
                 var Dados_Fila = Demanda_BD.DEMANDA_SUB_FILA.Where(x => x.ID_TIPO_FILA == id_fila && x.STATUS_SUB_FILA == true).Select(x => new OptionFilas(x.ID_SUB_FILA, x.NOME_SUB_FILA, x.DESCRICAO)).Distinct().AsEnumerable();
                 string Descricao = Demanda_BD.DEMANDA_TIPO_FILA.Find(id_fila).DESCRICAO ?? string.Empty;
@@ -1225,7 +1228,6 @@ namespace Vivo_Apps_API.Controllers
                 });
             }
         }
-
 
         [HttpGet("GetDadosFilaSubFila")]
         [ProducesResponseType(typeof(Response<object>), 200)]
@@ -1269,7 +1271,6 @@ namespace Vivo_Apps_API.Controllers
                 });
             }
         }
-
 
         /// <summary>
         /// Responde a demnanda alterando o status de alguma forma
@@ -2031,12 +2032,14 @@ namespace Vivo_Apps_API.Controllers
             }
             catch (Exception ex)
             {
+                var path = System.IO.Path.Combine(Directory.GetCurrentDirectory(), "logvivox.txt");
+                await System.IO.File.AppendAllTextAsync(path, string.Join($" -> {DateTime.Now.ToString("dd/MM HH:mm")};\n", [ex.InnerException?.Message, ex.Message, ex.StackTrace]));
                 return new JsonResult(new Response<string>
                 {
                     Data = $"500 -> {ex.Message} ---------------------- {ex.ToString()}",
                     Succeeded = false,
                     Message = $"Algum erro ocorreu!",
-                    Errors = null,
+                    Errors = [ex.InnerException?.Message, ex.Message,ex.StackTrace],
                 });
             }
         }

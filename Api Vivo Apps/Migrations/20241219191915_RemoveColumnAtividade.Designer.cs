@@ -12,8 +12,8 @@ using Shared_Static_Class.DB_Context_Vivo_MAIS;
 namespace Vivo_Apps_API.Migrations
 {
     [DbContext(typeof(DemandasContext))]
-    [Migration("20241209134932_ChangeColumnNameLenght")]
-    partial class ChangeColumnNameLenght
+    [Migration("20241219191915_RemoveColumnAtividade")]
+    partial class RemoveColumnAtividade
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -72,8 +72,7 @@ namespace Vivo_Apps_API.Migrations
                         .HasColumnType("varchar(max)");
 
                     b.Property<string>("NOME_SOCIAL")
-                        .IsUnicode(false)
-                        .HasColumnType("varchar(max)");
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("OBS")
                         .IsUnicode(false)
@@ -1125,7 +1124,8 @@ namespace Vivo_Apps_API.Migrations
 
                     b.HasOne("Shared_Static_Class.Data.ACESSOS_MOBILE", "Responsavel")
                         .WithMany()
-                        .HasForeignKey("MATRICULA_RESPONSAVEL");
+                        .HasForeignKey("MATRICULA_RESPONSAVEL")
+                        .HasPrincipalKey("MATRICULA");
 
                     b.HasOne("Shared_Static_Class.Data.ACESSOS_MOBILE", "Solicitante")
                         .WithMany()
